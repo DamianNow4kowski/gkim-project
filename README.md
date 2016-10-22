@@ -35,12 +35,12 @@
 	* jakiś standard; przykład:
 	```
 	/**
-        * @global (funkcja globalna)
- 	* @param int a czynnik
-	* @param int b czynnik
-        * @return int wynik mnozenia
-        */
-        int mul(int a, int b) { return a*b; }
+	 * @global (funkcja globalna)
+	 * @param int a czynnik
+	 * @param int b czynnik
+	 * @return int wynik mnozenia
+	 */
+	int mul(int a, int b) { return a*b; }
 	```
 
 	* brak standardu;
