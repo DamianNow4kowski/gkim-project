@@ -20,26 +20,26 @@
 	Klamerki: 
 
 	* w tym samym wierszu; przykład:
-	void func() {
-		return;
-	}
+	> void func() {
+	> 	return;
+	> }
 
 	* w nastepnym wierszu; przykład:
-	void func()
-	{
-		return;
-	}
+	> void func()
+	> {
+	> 	return;
+	> }
 
 	Opis funkcji:
 	
 	* jakiś standard; przykład:
-	/**
-         * @global (funkcja globalna)
- 	 * @param int a czynnik
-	 * @param int b czynnik
-         * @return int wynik mnozenia
-         */
-        int mul(int a, int b) { return a*b; }
+	> /**
+        >  * @global (funkcja globalna)
+ 	>  * @param int a czynnik
+	>  * @param int b czynnik
+        >  * @return int wynik mnozenia
+        >  */
+        > int mul(int a, int b) { return a*b; }
 
 	* brak standardu;
 	* inne:;
