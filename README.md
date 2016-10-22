@@ -20,16 +20,18 @@
 	Klamerki: 
 
 	* w tym samym wierszu; przykład:
-	> void func() {
-	> 	return;
-	> }
-
+	```
+	void func() {
+		return;
+	}
+	```
 	* w nastepnym wierszu; przykład:
-	> void func()
-	> {
-	> 	return;
-	> }
-
+	```
+	void func()
+	{
+		return;
+	}
+	```
 	Opis funkcji:
 	
 	* jakiś standard; przykład:
