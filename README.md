@@ -47,8 +47,6 @@
 
 	* brak standardu;
 	* inne:;
-
-xD
 		
 	
 
