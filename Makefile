@@ -1,6 +1,4 @@
 CC := g++ # This is the main compiler
-# CC := gcc # TODO: Only c compiler
-# CC := clang --analyze # and comment out the linker last line for sanity (under $(TARGET))
 SRCDIR := src
 BUILDDIR := build
 TARGET := bin/app
@@ -8,8 +6,8 @@ TARGET := bin/app
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -Wall
-LIB := -L lib
+CFLAGS := -g -Wall -std=c++11
+LIB := -L lib -lSDL2
 INC := -I include
 
 $(TARGET): $(OBJECTS)
