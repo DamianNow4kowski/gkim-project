@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <string>
-#include "SingleColorData.h"
 #include "Node.h"
 
 template<class T>

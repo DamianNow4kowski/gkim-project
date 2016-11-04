@@ -1,11 +1,7 @@
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
 
-#include <iostream>
-
 #include "BMP_Surface.h"
-#include "ColorCounter.h"
-#include "List.h"
 
 class Huffman
 {

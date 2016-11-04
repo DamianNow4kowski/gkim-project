@@ -15,7 +15,7 @@ BMP_Surface::~BMP_Surface()
 	SDL_FreeSurface(this->surface);
 }
 
-Uint32 BMP_Surface::getPixel(const int & x, const int & y) const
+Uint32 BMP_Surface::getPixel(const int &x, const int &y) const
 {
 	int bpp = this->surface->format->BytesPerPixel;
 	/* Here p is the address to the pixel we want to retrieve */
@@ -57,7 +57,7 @@ int BMP_Surface::getHeigth() const
 	return this->surface->h;
 }
 
-bool BMP_Surface::loadBMP(const std::string & filename)
+bool BMP_Surface::loadBMP(const std::string &filename)
 {
 	this->surface = SDL_LoadBMP(filename.c_str());
 	return this->surface != NULL ? true : false;

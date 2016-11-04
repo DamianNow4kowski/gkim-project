@@ -2,19 +2,18 @@
 #define INIT_ERROR_H
 
 #include <exception>
-#include <SDL.h>
 #include <string>
 
-class InitError : public std::exception 
+class InitError : public std::exception
 {
-public:
-	InitError();
-	InitError(const std::string&);
-	virtual ~InitError();
-	virtual const char* what() const;
+  public:
+    InitError();
+    InitError(const std::string &);
+    virtual ~InitError();
+    virtual const char *what() const noexcept;
 
-private:
-	std::string msg;
+  private:
+    std::string msg;
 };
 
 #endif // !INIT_ERROR_H

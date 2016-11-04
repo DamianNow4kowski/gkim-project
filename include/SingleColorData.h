@@ -1,9 +1,9 @@
 #ifndef SINGLE_COLOR_DATA_H
 #define SINGLE_COLOR_DATA_H 
 
+#include "SDL.h"
 #include <iostream>
 #include <iomanip>
-#include <SDL.h>
 
 class SingleColorData
 {

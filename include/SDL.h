@@ -1,7 +1,12 @@
 #ifndef SDL_H
 #define SDL_H
 
-#include <SDL.h>
+#ifdef __linux
+	#include <SDL2/SDL.h>
+#else
+	#include <SDL.h>
+#endif
+
 #include "InitError.h"
 
 class SDL 

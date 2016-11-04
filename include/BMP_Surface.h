@@ -1,7 +1,7 @@
 #ifndef BMP_SURFACE_H
 #define BMP_SURFACE_H
 
-#include <SDL.h>
+#include "SDL.h"
 #include <string>
 
 class BMP_Surface
