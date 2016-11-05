@@ -3,7 +3,7 @@
 SDL::SDL(Uint32 flags)
 {
     if (SDL_Init(flags) != 0)
-	throw InitError();
+	throw RuntimeError();
 }
 
 SDL::~SDL()

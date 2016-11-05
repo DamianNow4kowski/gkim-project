@@ -7,7 +7,7 @@
 	#include <SDL.h>
 #endif
 
-#include "InitError.h"
+#include "RuntimeError.h"
 
 class SDL 
 {
