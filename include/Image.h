@@ -6,7 +6,8 @@
 class Image
 {
 private:
-  SDL_Surface *image;
+  SDL_Surface *surface;
+  unsigned int h, w;
   void init(SDL_Surface *);
   void free();
 
@@ -21,9 +22,12 @@ public:
   Image(const char *);
   ~Image();
 
-  bool load(const char *);
-  int width() const;
-  int height() const;
+  void load(const char *);
+  Uint32 getPixel(const int &x, const int &y) const;
+  unsigned int width() const;
+  unsigned int height() const;
+  unsigned int size() const;
+  bool initialized();
 };
 
 #endif // !IMAGE
