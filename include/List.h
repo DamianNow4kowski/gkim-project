@@ -5,6 +5,7 @@
 #include "Tree.h"
 #include "SingleColorData.h"
 
+
 template<class T>
 class List
 {
