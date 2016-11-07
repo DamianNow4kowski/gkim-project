@@ -1,13 +1,13 @@
 #ifndef COLOR_COUNTER_H
 #define COLOR_COUNTER_H
 
-#include "BMP_Surface.h"
+#include "Image.h"
 #include "SingleColorData.h"
 
 class ColorCounter
 {
 private:
-	BMP_Surface *bmp;
+	Image *img;
 	int index;
 
 	Uint32 partition(Uint32 p, Uint32 q);
@@ -16,7 +16,7 @@ private:
 
 public:
 	SingleColorData *colors;
-	ColorCounter(BMP_Surface *bmp);
+	ColorCounter(Image *img);
 	~ColorCounter();
 
 	Uint32 countColors();

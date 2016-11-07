@@ -9,7 +9,7 @@ class SingleColorData
 {
 public:
 	Uint32 color;
-	int counter;
+	unsigned int counter;
 
 	friend bool operator<(const SingleColorData &el1, const SingleColorData &el2)
 	{

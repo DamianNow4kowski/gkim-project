@@ -21,7 +21,7 @@ protected:
 public:
   Image();
   Image(const char *);
-  ~Image();
+  virtual ~Image();
 
   void load(const char *);
   Uint32 getPixel(const int &x, const int &y) const;

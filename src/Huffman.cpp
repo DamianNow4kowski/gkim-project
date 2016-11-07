@@ -3,9 +3,9 @@
 #include "List.h"
 #include <iostream>
 
-Huffman::Huffman(BMP_Surface *surface)
+Huffman::Huffman(Image *image)
 {
-  this->surface = surface;
+  this->image = image;
 }
 
 Huffman::~Huffman()
@@ -14,7 +14,7 @@ Huffman::~Huffman()
 
 void Huffman::runHoffman()
 {
-  ColorCounter *colorCntr = new ColorCounter(this->surface);
+  ColorCounter *colorCntr = new ColorCounter(this->image);
   int numColors = colorCntr->countColors();
   colorCntr->sort();
 

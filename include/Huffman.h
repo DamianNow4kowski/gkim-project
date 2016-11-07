@@ -1,15 +1,15 @@
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
 
-#include "BMP_Surface.h"
+#include "Image.h"
 
 class Huffman
 {
 private:
-	BMP_Surface *surface;
+	Image *image;
 
 public:
-	Huffman(BMP_Surface *surface);
+	Huffman(Image *image);
 	~Huffman();
 
 	void runHoffman();

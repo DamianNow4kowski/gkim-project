@@ -1,9 +1,9 @@
 #include "ColorCounter.h"
 
-ColorCounter::ColorCounter(BMP_Surface * bmp)
+ColorCounter::ColorCounter(Image *img)
 {
-	this->bmp = bmp;
-	this->colors = new SingleColorData[bmp->getWidth() * bmp->getHeigth()];
+	this->img = img;
+	this->colors = new SingleColorData[img->size()];
 	this->index = 0;
 }
 
@@ -64,11 +64,12 @@ Uint32 ColorCounter::countColors()
 {
 	Uint32 clr;
 	int boolIndex;
+	unsigned int i, j;
 
-	for (int i = 0; i < this->bmp->getWidth(); i++)
-		for (int j = 0; j < this->bmp->getHeigth(); j++)
+	for (i = 0; i < this->img->width(); ++i)
+		for (j = 0; j < this->img->height(); ++j)
 		{
-			clr = this->bmp->getPixel(i, j);
+			clr = this->img->getPixel(i, j);
 			// check if already added
 			boolIndex = ifExists(clr);
 			if (boolIndex == -1)
