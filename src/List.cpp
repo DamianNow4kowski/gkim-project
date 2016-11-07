@@ -123,7 +123,7 @@ int List<T>::getSize() const
 template<class T>
 bool List<T>::empty() const
 {
-	return !this->size > 0;
+	return !(this->size > 0);
 }
 
 template<class T>
