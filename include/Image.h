@@ -14,7 +14,8 @@ private:
 protected:
   virtual SDL_Surface *loadImpl(const char *)
   {
-    throw RuntimeError();
+    // When this virtual methods is not implemented exception is thrown
+    throw RuntimeError("Virtual method loadImpl() is not implemented");
   }
 
 public:
