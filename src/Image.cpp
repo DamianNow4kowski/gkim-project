@@ -115,5 +115,5 @@ unsigned int Image::size() const
 
 bool Image::initialized()
 {
-    return this->surface == nullptr;
+    return this->surface != nullptr;
 }

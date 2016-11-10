@@ -12,11 +12,12 @@ private:
   void free();
 
 protected:
-  virtual SDL_Surface *loadImpl(const char *)
-  {
-    // When this virtual methods is not implemented exception is thrown
-    throw RuntimeError("Virtual method loadImpl() is not implemented");
-  }
+  /**
+   * Custom implamentation of loading image file
+   * @param name of image file
+   * @return pointer SDL_Surface containg loaded image  
+   */
+  virtual SDL_Surface *loadImpl(const char *) = 0;
 
 public:
   Image();

@@ -23,7 +23,7 @@ clean:
 	@echo " Cleaning..."; 
 	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
 
-# clean and compile fresh
+# Performs fresh compilation
 install: clean $(TARGET)
 
 # Tests - unit tests
