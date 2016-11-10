@@ -30,8 +30,4 @@ install: clean $(TARGET)
 #test:
 #	$(CC) $(CFLAGS) test/main.cpp $(INC) $(LIB) -o bin/test
 
-# Spikes - small chunks of code, classes keeped for testing, future reference 
-#ticket:
-#	$(CC) $(CFLAGS) spikes/ticket.cpp $(INC) $(LIB) -o bin/ticket
-
 .PHONY: clean
