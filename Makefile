@@ -6,7 +6,7 @@ TARGET := bin/app
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g -Wall -std=c++11
+CFLAGS := -g -Wall -std=c++14
 LIB := -L lib -lSDL2
 INC := -I include
 
@@ -18,11 +18,13 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	@mkdir -p $(BUILDDIR)
 	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
 
-# UNNCOMENT BELLOW IF NEEDED
-# Clean compilation for production (removes source and build dir)
-#clean:
-#	@echo " Cleaning..."; 
-#	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
+# Removes source and build dir
+clean:
+	@echo " Cleaning..."; 
+	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
+
+# clean and compile fresh
+install: clean $(TARGET)
 
 # Tests - unit tests
 #test:
