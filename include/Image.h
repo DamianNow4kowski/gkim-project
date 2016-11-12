@@ -14,8 +14,8 @@ private:
 protected:
   /**
    * Custom implamentation of loading image file
-   * @param name of image file
-   * @return pointer SDL_Surface containg loaded image  
+   * @param cstring filename of wanted image
+   * @return SDL_Surface* containing loaded image
    */
   virtual SDL_Surface *loadImpl(const char *) = 0;
 
