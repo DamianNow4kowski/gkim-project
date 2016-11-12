@@ -11,6 +11,7 @@ private:
   unsigned int h, w;
   void init(SDL_Surface *);
   void free();
+  SDL_Texture *texturize(SDL_Renderer *);
 
 protected:
   /**
@@ -24,7 +25,7 @@ public:
   // Construct
   Image();
   Image(const char *);
-  
+
   // Virtual desctruct due to abstraction of this class
   virtual ~Image();
 
@@ -40,6 +41,7 @@ public:
   unsigned int height() const;
   unsigned int size() const;
   bool initialized();
+  void preview();
 };
 
 #endif // !IMAGE

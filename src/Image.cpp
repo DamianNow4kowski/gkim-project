@@ -60,15 +60,16 @@ void Image::load(const char *file, bool requireVaildExt)
     try
     {
         const char *ext = this->extension();
-        if(!FileHandler::verifyExtension(file, ext)) 
+        if (!FileHandler::verifyExtension(file, ext))
         {
-            if(requireVaildExt) 
+            if (requireVaildExt)
             {
                 std::ostringstream error;
-                error << "Extension of loaded file, must be *." << ext; 
+                error << "Extension of loaded file, must be *." << ext;
                 throw RuntimeError(error.str());
-            } 
-            else std::cerr << "Warning: Loaded extension is invaild." << std::endl;
+            }
+            else
+                std::cerr << "Warning: Loaded extension is invaild." << std::endl;
         }
         temp = this->loadImpl(file);
         this->init(temp);
@@ -87,7 +88,7 @@ void Image::load(const char *file, bool requireVaildExt)
 Uint32 Image::getPixel(const int &x, const int &y) const
 {
     Uint8 bpp, *pixel;
-    
+
     // Bytes per pixel in current loaded surface
     bpp = this->surface->format->BytesPerPixel;
 
@@ -135,4 +136,42 @@ unsigned int Image::size() const
 bool Image::initialized()
 {
     return this->surface != nullptr;
+}
+
+SDL_Texture *Image::texturize(SDL_Renderer* renderer) {
+    return SDL_CreateTextureFromSurface(renderer, this->surface);
+}
+
+void Image::preview()
+{
+    if(!this->initialized())
+        throw RuntimeError("Cannot preview not initilized Image");
+
+    SDL_Window *window = SDL_CreateWindow("Preview Image", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, this->w, this->h, SDL_WINDOW_SHOWN);
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Texture* texture = this->texturize(renderer);
+    SDL_Event e;
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderPresent(renderer);
+
+    // Simple loop
+    std::cout << "Press key 'Q' or 'ESC' to exit view." << std::endl;
+    while(SDL_WaitEvent(&e)) 
+    {
+        if(e.type == SDL_KEYDOWN) {
+            std::cout << "Pressed key '" << SDL_GetKeyName(e.key.keysym.sym) << "'" << std::endl;
+            if(e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_q) {
+                std::cout << "Exiting view.." << std::endl;
+                break;
+            }
+        } else if (e.type == SDL_QUIT) {
+            std::cout << "User requested to close window." << std::endl;
+            break;
+        }
+    }
+    
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
 }

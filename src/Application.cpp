@@ -34,10 +34,13 @@ int main(int argc, char *argv[])
     bmp_surface->load(test_bmp.c_str(), false);
     cout << "Second image is " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
 
+    bmp_surface->preview();
+
     Huffman *huff = new Huffman(bmp_surface);
     huff->runHoffman();
 
     // Clean
+    SDL_Quit();
     delete huff;
     delete bmp_surface;
 
