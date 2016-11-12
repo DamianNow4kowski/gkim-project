@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     BMP *bmp_surface = new BMP();
     bmp_surface->load("bin/test.bmp");
     cout << "First image is " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
-    bmp_surface->load(test_bmp.c_str());
+    bmp_surface->load(test_bmp.c_str(), false);
     cout << "Second image is " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
 
     Huffman *huff = new Huffman(bmp_surface);

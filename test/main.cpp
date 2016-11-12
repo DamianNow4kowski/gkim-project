@@ -14,6 +14,12 @@ void testFileHandler() {
     cout << "Test 2 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
     e = !(FileHandler::verifyExtension(filename.c_str(), strlen(filename.c_str()), wrong.c_str(), strlen(wrong.c_str())));
     cout << "Test 3 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
+    e = FileHandler::verifyExtension(".txt", "txt");
+    cout << "Test 4 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
+    e = !(FileHandler::verifyExtension("txt", "txt"));
+    cout << "Test 5 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
+    e = !(FileHandler::verifyExtension(".dtxt", "txt"));
+    cout << "Test 6 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
 }
 
 int main() {

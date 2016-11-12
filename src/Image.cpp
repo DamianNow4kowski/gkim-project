@@ -1,5 +1,8 @@
 #include "Image.h"
+#include "FileHandler.h"
 #include <iostream>
+#include <sstream>
+#include <string>
 
 /**
  * PRIVATE
@@ -45,18 +48,34 @@ Image::~Image()
     this->free();
 }
 
-// functions
-void Image::load(const char *file)
+/** 
+ * Main function for loading image files
+ * @param cstring image filename
+ * @param bool if true throws error and terminates program
+ *             when extension of image file is wrong
+ */
+void Image::load(const char *file, bool requireVaildExt)
 {
     SDL_Surface *temp = nullptr;
     try
     {
+        const char *ext = this->extension();
+        if(!FileHandler::verifyExtension(file, ext)) 
+        {
+            if(requireVaildExt) 
+            {
+                std::ostringstream error;
+                error << "Extension of loaded file, must be *." << ext; 
+                throw RuntimeError(error.str());
+            } 
+            else std::cerr << "Warning: Loaded extension is invaild." << std::endl;
+        }
         temp = this->loadImpl(file);
         this->init(temp);
     }
     catch (const RuntimeError &err)
     {
-        std::cerr << "Error while loading SDL_Surface: " << err.what() << std::endl;
+        std::cerr << "Error while loading to SDL_Surface*: " << err.what() << std::endl;
     }
 }
 

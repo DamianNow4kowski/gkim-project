@@ -11,6 +11,7 @@ class BMP : public Image
   public:
     BMP();
     BMP(const char *);
+    const char *extension() const;
 };
 
 #endif // !BMP_H
