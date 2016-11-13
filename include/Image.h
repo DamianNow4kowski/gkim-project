@@ -9,7 +9,6 @@ class Image
 private:
   SDL_Surface *surface;
   unsigned int h, w;
-  void init(SDL_Surface *);
   void free();
   SDL_Texture *texturize(SDL_Renderer *);
 
@@ -24,6 +23,7 @@ protected:
 public:
   // Construct
   Image();
+  Image(SDL_Surface *);
   Image(const char *);
 
   // Virtual desctruct due to abstraction of this class
@@ -35,6 +35,7 @@ public:
   virtual const char *extension() const = 0;
 
   // Functions
+  void init(SDL_Surface *);
   void load(const char *, bool = true);
   Uint32 getPixel(const int &x, const int &y) const;
   unsigned int width() const;

@@ -40,7 +40,6 @@ int main(int argc, char *argv[])
     huff->runHoffman();
 
     // Clean
-    SDL_Quit();
     delete huff;
     delete bmp_surface;
 

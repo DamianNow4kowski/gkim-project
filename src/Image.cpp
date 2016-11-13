@@ -12,19 +12,6 @@ void Image::free()
     SDL_FreeSurface(this->surface);
 }
 
-void Image::init(SDL_Surface *surface)
-{
-    if (surface == nullptr)
-        throw RuntimeError();
-
-    if (this->initialized())
-        this->free();
-
-    this->surface = surface;
-    this->w = static_cast<unsigned int>(surface->w);
-    this->h = static_cast<unsigned int>(surface->h);
-}
-
 /**
  * PUBLIC
  */
@@ -37,6 +24,14 @@ Image::Image()
     this->h = 0;
 }
 
+Image::Image(SDL_Surface *surface) {
+    try {
+        this->init(surface);
+    } catch (const RuntimeError &err) {
+        std::cerr << "Error while loading to SDL_Surface*: " << err.what() << std::endl;
+    }
+}
+
 Image::Image(const char *file)
 {
     this->load(file);
@@ -46,6 +41,19 @@ Image::Image(const char *file)
 Image::~Image()
 {
     this->free();
+}
+
+void Image::init(SDL_Surface *surface)
+{
+    if (surface == nullptr)
+        throw RuntimeError();
+
+    if (this->initialized())
+        this->free();
+
+    this->surface = surface;
+    this->w = static_cast<unsigned int>(surface->w);
+    this->h = static_cast<unsigned int>(surface->h);
 }
 
 /** 
