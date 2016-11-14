@@ -183,3 +183,10 @@ void Image::preview()
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 }
+
+SDL_Surface *Image::img() {
+    if(!this->initialized())
+        throw RuntimeError("Trying to access uninitialized surface.");
+    
+    return this->surface;
+}

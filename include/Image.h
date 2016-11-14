@@ -43,6 +43,7 @@ public:
   unsigned int size() const;
   bool initialized();
   void preview();
+  SDL_Surface* img();
 };
 
 #endif // !IMAGE
