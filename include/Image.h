@@ -19,6 +19,7 @@ protected:
    * @return SDL_Surface* containing loaded image
    */
   virtual SDL_Surface *loadImpl(const char *) = 0;
+  void makeSurface(int w, int h);
 
 public:
   // Construct
@@ -44,6 +45,8 @@ public:
   bool initialized();
   void preview();
   SDL_Surface* img();
+  void setPixel(int x, int y, Uint8 R, Uint8 G, Uint8 B);
+  SDL_Color getPixelSDL(int x, int y);
 };
 
 #endif // !IMAGE

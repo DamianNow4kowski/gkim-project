@@ -1,15 +1,14 @@
-#include "Image.h"
+﻿#include "Image.h"
 #include "FileHandler.h"
 #include <iostream>
 #include <sstream>
 #include <string>
-
 /**
  * PRIVATE
  */
 void Image::free()
 {
-    SDL_FreeSurface(this->surface);
+	SDL_FreeSurface(this->surface);
 }
 
 /**
@@ -189,4 +188,78 @@ SDL_Surface *Image::img() {
         throw RuntimeError("Trying to access uninitialized surface.");
     
     return this->surface;
+}
+
+
+void Image::setPixel(int x, int y, Uint8 R, Uint8 G, Uint8 B)
+{
+	if ((x >= 0) && (x < this->surface->w) && (y >= 0) && (y < this->surface->h))
+	{
+		/* Zamieniamy poszczególne sk³adowe koloru na format koloru pixela */
+		Uint32 pixel = SDL_MapRGB(this->surface->format, R, G, B);
+
+		/* Pobieramy informacji ile bajtów zajmuje jeden pixel */
+		int bpp = this->surface->format->BytesPerPixel;
+
+		/* Obliczamy adres pixela */
+		Uint8 *p = (Uint8 *)this->surface->pixels + y * this->surface->pitch + x * bpp;
+
+		/* Ustawiamy wartoœæ pixela, w zale¿noœci od formatu powierzchni*/
+		switch (bpp)
+		{
+		case 1: //8-bit
+			*p = pixel;
+			break;
+
+		case 2: //16-bit
+			*(Uint16 *)p = pixel;
+			break;
+
+		case 3: //24-bit
+			if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+				p[0] = (pixel >> 16) & 0xff;
+				p[1] = (pixel >> 8) & 0xff;
+				p[2] = pixel & 0xff;
+			}
+			else {
+				p[0] = pixel & 0xff;
+				p[1] = (pixel >> 8) & 0xff;
+				p[2] = (pixel >> 16) & 0xff;
+			}
+			break;
+
+		case 4: //32-bit
+			*(Uint32 *)p = pixel;
+			break;
+
+		}
+		/* update the screen (aka double buffering) */
+	}
+}
+
+SDL_Color Image::getPixelSDL(int x, int y) 
+{
+	SDL_Color color;
+	Uint32 col = 0;
+	if ((x >= 0) && (x < this->w) && (y >= 0) && (y < this->h))
+	{
+		//determine position
+		char *pPosition = (char *)this->surface->pixels;
+		//offset by y
+		pPosition += (this->surface->pitch * y);
+		//offset by x
+		pPosition += (this->surface->format->BytesPerPixel * x);
+		//copy pixel data
+		memcpy(&col, pPosition, this->surface->format->BytesPerPixel);
+		//convert color
+		SDL_GetRGB(col, this->surface->format, &color.r, &color.g, &color.b);
+	}
+	return (color);
+}
+
+void Image::makeSurface(int w, int h)
+{
+	this->surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
+	this->w = w;
+	this->h = h;
 }
