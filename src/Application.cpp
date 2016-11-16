@@ -2,6 +2,7 @@
 #include "SDL.h"
 #include "BMP.h"
 #include "Huffman.h"
+#include "Own.h"
 
 using namespace std;
 
@@ -24,25 +25,32 @@ int main(int argc, char *argv[])
     if(argc == 3 && strcmp(argv[1], "-f") == 0) {
       test_bmp = argv[2];
     } else {
-      cout << "Podaj plik *.bmp do kompresji: "; cin >> test_bmp;
+      //cout << "Podaj plik *.bmp do kompresji: "; cin >> test_bmp;
     }
 
     // Load BMP
     BMP *bmp_surface = new BMP();
-    bmp_surface->load("bin/test.bmp");
-    cout << "First image is " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
-    bmp_surface->load(test_bmp.c_str(), false);
-    cout << "Second image is " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
+    bmp_surface->load("bird.bmp");
+    //cout << "First image is " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
+    //bmp_surface->load(test_bmp.c_str(), false);
+    //cout << "Second image is " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
 
-    bmp_surface->preview();
+   // bmp_surface->preview();
 
-    Huffman *huff = new Huffman(bmp_surface);
-    huff->runHoffman();
+    //Huffman *huff = new Huffman(bmp_surface);
+    //huff->runHoffman();
+
+
+	//Własny format
+	//Own own(bmp_surface->img());
+	//own.saveFile("test.f");
+	Own own;
+	own.readFile("test.f").preview();
+
 
     // Clean
-    delete huff;
+    //delete huff;
     delete bmp_surface;
-
     // Return sucess
     return EXIT_SUCCESS;
 }
