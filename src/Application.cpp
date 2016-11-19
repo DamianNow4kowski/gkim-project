@@ -25,17 +25,17 @@ int main(int argc, char *argv[])
     if(argc == 3 && strcmp(argv[1], "-f") == 0) {
       test_bmp = argv[2];
     } else {
-      //cout << "Podaj plik *.bmp do kompresji: "; cin >> test_bmp;
+      cout << "Podaj plik *.bmp do kompresji: "; cin >> test_bmp;
     }
 
     // Load BMP
     BMP *bmp_surface = new BMP();
-    bmp_surface->load("bird.bmp");
-    //cout << "First image is " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
-    //bmp_surface->load(test_bmp.c_str(), false);
-    //cout << "Second image is " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
+    //bmp_surface->load("bird.bmp");
+    //cout << "Hardcoded image dimensions: " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
+	bmp_surface->load(test_bmp.c_str(), false);
+    cout << "Loaded image dimensions: " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
 
-   // bmp_surface->preview();
+    bmp_surface->preview();
 
     //Huffman *huff = new Huffman(bmp_surface);
     //huff->runHoffman();
@@ -44,13 +44,14 @@ int main(int argc, char *argv[])
 	//Własny format
 	//Own own(bmp_surface->img());
 	//own.saveFile("test.f");
-	Own own;
-	own.readFile("test.f").preview();
+	//Own own;
+	//own.readFile("test.f").preview();
 
 
     // Clean
     //delete huff;
     delete bmp_surface;
-    // Return sucess
+    
+	// Return sucess
     return EXIT_SUCCESS;
 }
