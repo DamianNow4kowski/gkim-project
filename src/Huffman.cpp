@@ -2,10 +2,17 @@
 #include "ColorCounter.h"
 #include "List.h"
 #include <iostream>
+#include <queue>
+
+// TODO:
+/*
+List.h / List.cpp - to delete
+Test new Huffman
+*/
 
 Huffman::Huffman(Image *image)
 {
-  this->image = image;
+	this->image = image;
 }
 
 Huffman::~Huffman()
@@ -14,32 +21,28 @@ Huffman::~Huffman()
 
 void Huffman::runHoffman()
 {
-  ColorCounter *colorCntr = new ColorCounter(this->image);
-  int numColors = colorCntr->countColors();
-  colorCntr->sort();
+	ColorCounter *colorCntr = new ColorCounter(this->image);
+	int numColors = colorCntr->countColors();
+	colorCntr->sort();
+	std::cout << "Number of colors in image: " << numColors << std::endl;
 
-  List<Tree<SingleColorData>> huffTreeList;
-  Node<SingleColorData> *nodes = new Node<SingleColorData>[ numColors ];
-  Tree<SingleColorData> *trees = new Tree<SingleColorData>[ numColors ];
+	std::priority_queue<Tree<SingleColorData>*, std::vector<Tree<SingleColorData>*>, TreesCmp> trees;
 
-  for (int i = 0; i < numColors; i++)
-  {
-    nodes[i].setVar(colorCntr->getColor(i));
-    trees[i].setRoot(nodes[i]);
-    huffTreeList.insertQueue(trees[i]);
-  }
+	for (int i = 0; i < numColors; i++)
+		trees.push(new Tree<SingleColorData>(*(new Node<SingleColorData>(colorCntr->getColor(i)))));
 
-  while (huffTreeList.getSize() > 1)
-  {
-    Tree<SingleColorData> temp1 = huffTreeList.getItem(0);
-    Tree<SingleColorData> temp2 = huffTreeList.getItem(1);
-    Tree<SingleColorData> res = temp1 + temp2;
-    huffTreeList.insertQueue(res);
-    huffTreeList.remFirst();
-    huffTreeList.remFirst();
-  }
+	while (trees.size() > 1)
+	{
+		auto t1 = trees.top();
+		trees.pop();
 
-  std::cout << "\n\n-------------------------------\n";
-  std::cout << "---------- HUFFMAN CODED ----------\n\n";
-  huffTreeList.printList();
+		auto t2 = trees.top();
+		trees.pop();
+
+		trees.push(&(*t1 + *t2));
+	}
+
+	std::cout << "\n\n-------------------------------\n";
+	std::cout << "---------- HUFFMAN CODED ----------\n\n";
+	std::cout << *trees.top();
 }
