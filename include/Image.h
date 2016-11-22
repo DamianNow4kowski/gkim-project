@@ -47,6 +47,7 @@ public:
   SDL_Surface* img();
   void setPixel(int x, int y, Uint8 R, Uint8 G, Uint8 B);
   SDL_Color getPixelSDL(int x, int y);
+  Image& toBW();
 };
 
 #endif // !IMAGE
