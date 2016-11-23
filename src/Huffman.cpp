@@ -1,14 +1,9 @@
 #include "Huffman.h"
 #include "ColorCounter.h"
-#include "List.h"
+#include "Tree.h"
 #include <iostream>
 #include <queue>
 
-// TODO:
-/*
-List.h / List.cpp - to delete
-Test new Huffman
-*/
 
 Huffman::Huffman(Image *image)
 {

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include "Node.h"
+#include "SingleColorData.h"
 
 template<class T>
 class Tree
@@ -54,6 +55,15 @@ public:
 			t->insert(t->getRoot(), *tree2.getRoot(), true);
 		}
 		return *t;
+	}
+};
+
+class TreesCmp
+{
+public:
+	bool operator()(const Tree<SingleColorData>* lhs, const Tree<SingleColorData>* rhs) const
+	{
+		return lhs->getRoot()->getVar().counter > rhs->getRoot()->getVar().counter;
 	}
 };
 
