@@ -7,6 +7,7 @@ class BMP : public Image
 {
 protected:
   SDL_Surface *loadImpl(const char *);
+  void saveImpl(SDL_Surface*, const char *);
 
 public:
   BMP();

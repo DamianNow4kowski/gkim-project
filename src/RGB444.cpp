@@ -20,7 +20,12 @@ SDL_Surface *RGB444::loadImpl(const char *file)
     throw RuntimeError("Not implemeted yet");
 }
 
+void RGB444::saveImpl(SDL_Surface *surface, const char *file) 
+{
+    throw RuntimeError("Not implemeted yet");
+}
+
 const char *RGB444::extension() const
 {
-    return "cst";
+    return "rgb4";
 }

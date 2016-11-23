@@ -3,6 +3,9 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+
+using namespace std;
+
 /**
  * PRIVATE
  */
@@ -88,6 +91,23 @@ void Image::load(const char *file, bool requireVaildExt)
 	}
 }
 
+void Image::save(const char *file) {
+	try {
+		const char *ext = this->extension();
+		if (!FileHandler::verifyExtension(file, ext)) {
+			std::ostringstream fn;
+			fn << file << '.' << ext;
+			this->saveImpl(this->surface, fn.str().c_str());
+		} else {
+			this->saveImpl(this->surface, file);
+		}
+	} 
+	catch (const RuntimeError &err)
+	{
+		std::cerr << "Error saving Image: " << err.what() << std::endl;
+	}
+}
+
 /**
  * @param x x-axis cordinate of wanted pixel
  * @param y y-axis
@@ -95,12 +115,11 @@ void Image::load(const char *file, bool requireVaildExt)
  */
 Uint32 Image::getPixel(const int &x, const int &y) const
 {
+	if(x < 0 || x >= this->w || y < 0 || y >= this->h)
+		throw RuntimeError("Error during getting pixel.");
+
 	Uint8 bpp, *pixel;
-
-	// Bytes per pixel in current loaded surface
 	bpp = this->surface->format->BytesPerPixel;
-
-	// Adres of pixel that we want to retrieve
 	pixel = (Uint8 *)this->surface->pixels + y * this->surface->pitch + x * bpp;
 
 	switch (bpp)
@@ -120,10 +139,18 @@ Uint32 Image::getPixel(const int &x, const int &y) const
 	case 4:
 		return *(Uint32 *)pixel;
 
-		// Should not happen, but avoids warnings
+	// Should not happen, but avoids warnings
 	default:
 		return 0;
 	}
+}
+
+SDL_Color Image::getPixelColorRGB(const int &x, const int &y) const
+{
+	Uint32 color = this->getPixel(x,y);
+	SDL_Color rgb;
+	SDL_GetRGB(color, this->surface->format, &rgb.r, &rgb.g, &rgb.b);
+	return rgb;
 }
 
 unsigned int Image::height() const
@@ -195,68 +222,51 @@ SDL_Surface *Image::img() {
 
 void Image::setPixel(int x, int y, Uint8 R, Uint8 G, Uint8 B)
 {
-	if ((x >= 0) && (x < this->surface->w) && (y >= 0) && (y < this->surface->h))
+	if(x < 0 || x >= this->w || y < 0 || y >= this->h)
+		throw RuntimeError("Error during getting pixel.");
+
+	Uint32 pixel;
+	Uint8 bpp, *p;
+
+	// Zamieniamy poszczególne skladowe koloru na format koloru pixela
+	pixel = SDL_MapRGB(this->surface->format, R, G, B);
+
+	// Pobieramy informacji ile bajtów zajmuje jeden pixel
+	bpp = this->surface->format->BytesPerPixel;
+
+	/// Obliczamy adres pixela
+	p = (Uint8 *)this->surface->pixels + y * this->surface->pitch + x * bpp;
+
+	// Ustawiamy wartosc pixela, w zale¿znosci od formatu powierzchni
+	switch (bpp)
 	{
-		/* Zamieniamy poszczególne sk³adowe koloru na format koloru pixela */
-		Uint32 pixel = SDL_MapRGB(this->surface->format, R, G, B);
-
-		/* Pobieramy informacji ile bajtów zajmuje jeden pixel */
-		int bpp = this->surface->format->BytesPerPixel;
-
-		/* Obliczamy adres pixela */
-		Uint8 *p = (Uint8 *)this->surface->pixels + y * this->surface->pitch + x * bpp;
-
-		/* Ustawiamy wartoœæ pixela, w zale¿noœci od formatu powierzchni*/
-		switch (bpp)
-		{
-		case 1: //8-bit
-			*p = pixel;
-			break;
-
-		case 2: //16-bit
-			*(Uint16 *)p = pixel;
-			break;
-
-		case 3: //24-bit
-			if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
-				p[0] = (pixel >> 16) & 0xff;
-				p[1] = (pixel >> 8) & 0xff;
-				p[2] = pixel & 0xff;
-			}
-			else {
-				p[0] = pixel & 0xff;
-				p[1] = (pixel >> 8) & 0xff;
-				p[2] = (pixel >> 16) & 0xff;
-			}
-			break;
-
-		case 4: //32-bit
-			*(Uint32 *)p = pixel;
-			break;
-
+	// 8-bit
+	case 1:
+		*p = pixel;
+		break;
+	// 16-bit
+	case 2:
+		*(Uint16 *)p = pixel;
+		break;
+	// 24-bit
+	case 3:
+		if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+			p[0] = (pixel >> 16) & 0xff;
+			p[1] = (pixel >> 8) & 0xff;
+			p[2] = pixel & 0xff;
 		}
-		/* update the screen (aka double buffering) */
-	}
-}
+		else {
+			p[0] = pixel & 0xff;
+			p[1] = (pixel >> 8) & 0xff;
+			p[2] = (pixel >> 16) & 0xff;
+		}
+		break;
+	// 32-bit
+	case 4:
+		*(Uint32 *)p = pixel;
+		break;
 
-SDL_Color Image::getPixelSDL(int x, int y)
-{
-	SDL_Color color;
-	Uint32 col = 0;
-	if ((x >= 0) && (x < this->w) && (y >= 0) && (y < this->h))
-	{
-		//determine position
-		char *pPosition = (char *)this->surface->pixels;
-		//offset by y
-		pPosition += (this->surface->pitch * y);
-		//offset by x
-		pPosition += (this->surface->format->BytesPerPixel * x);
-		//copy pixel data
-		memcpy(&col, pPosition, this->surface->format->BytesPerPixel);
-		//convert color
-		SDL_GetRGB(col, this->surface->format, &color.r, &color.g, &color.b);
 	}
-	return (color);
 }
 
 void Image::makeSurface(int w, int h)
@@ -266,19 +276,24 @@ void Image::makeSurface(int w, int h)
 	this->h = h;
 }
 
-Image& Image::toBW()
+void Image::convertToGreyScale()
 {
-	SDL_Color pixel;
-	unsigned char color;
-	for (int i = 0; i < this->w; i++)
+	unsigned int x, y;
+	SDL_Color color;
+	Uint8 bw;
+	for (x = 0; x < this->w; ++x)
 	{
-		for (int j = 0; j < this->h; j++)
+		for (y = 0; y < this->h; ++y)
 		{
-			pixel = this->getPixelSDL(i, j);
-			color = pixel.r*0.299 + pixel.g*0.587 + pixel.b*0.114;
-			this->setPixel(i, j, color, color, color);
+			color = this->getPixelColorRGB(x, y);
+			
+			/**
+			 * Greyscale standard?
+			 * @link https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
+			 */
+			// bw = color.r*0.299 + color.g*0.587 + color.b*0.114;
+			bw = 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b;
+			this->setPixel(x, y, bw, bw, bw);
 		}
 	}
-
-	return *this;
 }

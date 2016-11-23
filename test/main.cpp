@@ -62,6 +62,26 @@ void testSDL_RGB444()
     delete bmp_surface;
 }
 
+void test_GreyScale() {
+    BMP *bmp_surface = new BMP();
+    bmp_surface->load("test/togrey.bmp");
+    bmp_surface->preview();
+    bmp_surface->convertToGreyScale();
+    bmp_surface->preview();
+    delete bmp_surface;
+}
+
+void test_openSaveOpen() {
+    BMP *bmp_surface = new BMP();
+    bmp_surface->load("test/togrey.bmp");
+    bmp_surface->preview();
+    bmp_surface->convertToGreyScale();
+    bmp_surface->save("test/saved");
+    bmp_surface->load("test/saved.bmp");
+    bmp_surface->preview();
+    delete bmp_surface;
+}
+
 int main()
 {
     // Initialize SDL
@@ -75,6 +95,8 @@ int main()
         return 1;
     }
     cout << "Testing.." << endl;
-    testFileHandler();
-    testSDL_RGB444();
+    //testFileHandler();
+    //testSDL_RGB444();
+    //test_GreyScale();
+    test_openSaveOpen();
 }

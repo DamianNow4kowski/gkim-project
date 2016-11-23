@@ -1,5 +1,5 @@
-#ifndef OWN
-#define OWN
+#ifndef OWN_H
+#define OWN_H
 
 #include "Image.h"
 #include <string>
@@ -18,13 +18,11 @@ private:
 	void setColorOfPixel(SDL_Color &pixel, int c, unsigned char value);
 
 protected:
-	SDL_Surface *loadImpl(const char *) {return nullptr;}
+	SDL_Surface *loadImpl(const char *);
+	void saveImpl(SDL_Surface *, const char *);
 public:
 	Own();
 	Own(SDL_Surface *);
-	const char *extension() const {return nullptr;}
-
-	Own &readFile(std::string name);
-	Own &saveFile(std::string name);
+	const char *extension() const;
 };
-#endif // !OWN
+#endif // !OWN_H

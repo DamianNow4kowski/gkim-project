@@ -4,10 +4,13 @@ Own::Own(SDL_Surface* surface) : Image(surface) {};
 
 Own::Own() : Image() {};
 
+const char *Own::extension() const {
+	return "own";
+}
 
-Own &Own::readFile(std::string name)
+SDL_Surface *Own::loadImpl(const char *file)
 {
-	this->file.open(name, std::ios::binary | std::ios::in);
+	this->file.open(file, std::ios::binary | std::ios::in);
 	this->readHeader();
 	int colorToCode = 0;
 	int pixelUse = 0;
@@ -40,12 +43,12 @@ Own &Own::readFile(std::string name)
 
 
 	this->file.close();
-	return *this;
+	return nullptr;
 }
 
-Own &Own::saveFile(std::string name)
+void Own::saveImpl(SDL_Surface* surface, const char *file)
 {
-	this->file.open(name, std::ios::binary| std::ios::out);
+	this->file.open(file, std::ios::binary| std::ios::out);
 	this->writeHeader();
 	bool isSpace = true;
 	bool firstHalf = true;
@@ -58,12 +61,12 @@ Own &Own::saveFile(std::string name)
 			{
 				if (firstHalf)
 				{
-					usedChar = (getColorOfPixel(this->getPixelSDL(j, i), k) >> 4) << 4;
+					usedChar = (getColorOfPixel(this->getPixelColorRGB(j, i), k) >> 4) << 4;
 					firstHalf = false;
 				}
 				else
 				{
-					usedChar |= getColorOfPixel(this->getPixelSDL(j, i), k) >> 4;
+					usedChar |= getColorOfPixel(this->getPixelColorRGB(j, i), k) >> 4;
 					firstHalf = true;
 					isSpace = false;
 				}
@@ -77,7 +80,6 @@ Own &Own::saveFile(std::string name)
 		}
 	}
 	this->file.close();
-	return *this;
 }
 
 void Own::readHeader()
