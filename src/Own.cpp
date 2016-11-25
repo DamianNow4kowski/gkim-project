@@ -53,9 +53,9 @@ void Own::saveImpl(SDL_Surface* surface, const char *file)
 	bool isSpace = true;
 	bool firstHalf = true;
 	char usedChar = 0;
-	for (int i = 0; i < this->height(); i++)
+	for (unsigned int i = 0; i < this->height(); i++)
 	{
-		for (int j = 0; j < this->width(); j++)
+		for (unsigned int j = 0; j < this->width(); j++)
 		{
 			for (int k = 0; k < 3; k++)
 			{

@@ -42,10 +42,10 @@ int main(int argc, char *argv[])
 	//Własny format
 	//Own own(bmp_surface->img());
 	//own.saveFile("test.f");
-	Own own;
-	own.readFile("test.f").preview();
+	//Own own;
+	//own.readFile("test.f").preview();
 
-	Huffman *huff = new Huffman(&own);
+	Huffman *huff = new Huffman(bmp_surface);
 	huff->runHoffman();
 
 

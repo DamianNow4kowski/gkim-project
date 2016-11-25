@@ -4,9 +4,6 @@
 #include <fstream>
 
 template<typename T>
-class List;
-
-template<typename T>
 class Tree;
 
 template<class T>
@@ -21,13 +18,13 @@ public:
 	Node();
 	Node(const T &var);
 	void setVar(const T &var);
-	T getVar() const;
+	T& getVar();
 
-	friend std::ostream& operator<<(std::ostream &op, Node<T> &node)
-	{
-		op << node.var;
-		return op;
-	}
+	//friend std::ostream& operator<<(std::ostream &op, Node<T> &node)
+	//{
+	//	op << node.var;
+	//	return op;
+	//}
 
 	friend Node<T>& operator+(Node<T> node1, Node<T> node2)
 	{
@@ -35,7 +32,6 @@ public:
 		return *n;
 	}
 
-	friend class List<T>;
 	friend class Tree<T>;
 };
 
@@ -61,7 +57,7 @@ void Node<T>::setVar(const T &var)
 }
 
 template<class T>
-T Node<T>::getVar() const
+T& Node<T>::getVar()
 {
 	return this->var;
 }

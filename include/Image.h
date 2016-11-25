@@ -40,9 +40,9 @@ public:
   void init(SDL_Surface *);
   void load(const char *, bool = true);
   void save(const char *);
-  Uint32 getPixel(const int &x, const int &y) const;
+  Uint32 getPixel(const unsigned int &x, const unsigned int &y) const;
   SDL_Color getPixelColorRGB(const int &x, const int &y) const;
-  void setPixel(int x, int y, Uint8 R, Uint8 G, Uint8 B);
+  void setPixel(const unsigned int &x, const unsigned int &y, Uint8 R, Uint8 G, Uint8 B);
   void convertToGreyScale();
   unsigned int width() const;
   unsigned int height() const;

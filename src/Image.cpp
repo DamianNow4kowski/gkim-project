@@ -113,7 +113,7 @@ void Image::save(const char *file) {
  * @param y y-axis
  * @return full pixel data in Uint32 format
  */
-Uint32 Image::getPixel(const int &x, const int &y) const
+Uint32 Image::getPixel(const unsigned int &x, const unsigned int &y) const
 {
 	if(x < 0 || x >= this->w || y < 0 || y >= this->h)
 		throw RuntimeError("Error during getting pixel.");
@@ -220,7 +220,7 @@ SDL_Surface *Image::img() {
 }
 
 
-void Image::setPixel(int x, int y, Uint8 R, Uint8 G, Uint8 B)
+void Image::setPixel(const unsigned int &x, const unsigned int &y, Uint8 R, Uint8 G, Uint8 B)
 {
 	if(x < 0 || x >= this->w || y < 0 || y >= this->h)
 		throw RuntimeError("Error during getting pixel.");
@@ -292,7 +292,7 @@ void Image::convertToGreyScale()
 			 * @link https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
 			 */
 			// bw = color.r*0.299 + color.g*0.587 + color.b*0.114;
-			bw = 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b;
+			bw = static_cast<Uint8>(0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b);
 			this->setPixel(x, y, bw, bw, bw);
 		}
 	}
