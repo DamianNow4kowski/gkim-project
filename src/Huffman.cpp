@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <iterator>
 
+#include <fstream>
+
 Huffman::Huffman(Image *image)
 {
 	this->image = image;
@@ -16,15 +18,24 @@ Huffman::~Huffman()
 
 void Huffman::encode()
 {
-	ColorCounter *colorCntr = new ColorCounter(this->image);
-	int numColors = colorCntr->countColors();
-	colorCntr->sort();
-	std::cout << "Number of colors in image: " << numColors << std::endl;
+	this->countFreq();
+	this->buildTree();
+	this->saveHuffHeader();
+}
 
+void Huffman::decode()
+{
+	this->readHuffHeader();
+	this->buildTree();
+}
+
+void Huffman::buildTree()
+{
+	std::cout << "Building Huffman tree..." << std::endl;
 	std::priority_queue<Tree<SingleColorData>*, std::vector<Tree<SingleColorData>*>, TreesCmp> trees;
 
-	for (int i = 0; i < numColors; i++)
-		trees.push(new Tree<SingleColorData>(*(new Node<SingleColorData>(colorCntr->getColor(i)))));
+	for (unsigned int i = 0; i < this->clrCntr->getCountClr(); i++)
+		trees.push(new Tree<SingleColorData>(*(new Node<SingleColorData>(clrCntr->getColor(i)))));
 
 	while (trees.size() > 1)
 	{
@@ -37,14 +48,15 @@ void Huffman::encode()
 		trees.push(&(*t1 + *t2));
 	}
 
-	std::vector<bool> code;
-	this->generateCodes(trees.top()->getRoot(), code, *this->codeMap, true);
+	std::cout << "Huffman tree has been built." << std::endl;
 
+	std::vector<bool> codes;
+	this->generateCodes(trees.top()->getRoot(), codes, *this->codeMap);
 	this->printCodes();
 }
 
 void Huffman::generateCodes(Node<SingleColorData>* node, std::vector<bool>& code, 
-	std::map<Uint32, std::vector<bool>>& map, bool left)
+	std::map<Uint32, std::vector<bool>>& map)
 {
 	if (node == nullptr)
 		return;
@@ -54,11 +66,11 @@ void Huffman::generateCodes(Node<SingleColorData>* node, std::vector<bool>& code
 	{
 		auto leftPref = code;
 		leftPref.push_back(false);
-		this->generateCodes(node->prev, leftPref, map, true);
+		this->generateCodes(node->prev, leftPref, map);
 
 		auto rightPref = code;
 		rightPref.push_back(true);
-		this->generateCodes(node->next, rightPref, map, false);
+		this->generateCodes(node->next, rightPref, map);
 	}
 }
 
@@ -73,4 +85,70 @@ void Huffman::printCodes() const
 			std::ostream_iterator<bool>(std::cout));
 		std::cout << std::endl;
 	}
+
+	//for(unsigned int i = 0; i < this->clrCntr->getCountClr(); i++)
+	//	std::cout << std::hex << std::setfill('0') << std::setw(6) << this->clrCntr->getColor(i).color
+	//	<< "   " << std::dec << this->clrCntr->getColor(i).counter << std::endl;
 }
+
+void Huffman::countFreq()
+{
+	std::cout << "Counting colors..." << std::endl;
+
+	this->clrCntr = new ColorCounter(this->image);
+	this->clrCntr->countColors();
+	this->clrCntr->sort();
+
+	std::cout << "Finished counting." << std::endl;
+	std::cout << "Number of colors in image: " << this->clrCntr->getCountClr() << std::endl;
+}
+
+void Huffman::saveHuffHeader()
+{
+	// save general image header here
+	// then Huffman header
+	std::fstream file;
+	file.open("huff", std::ios::binary | std::ios::out | std::fstream::app);
+
+	Uint32 clr;
+	unsigned int cntr;
+	unsigned int cnt = this->clrCntr->getCountClr();
+
+	file.write((char*)(&cnt), sizeof(this->clrCntr->getCountClr()));
+
+	for (unsigned int i = 0; i < this->clrCntr->getCountClr(); i++)
+	{
+		clr = this->clrCntr->getColor(i).color;
+		cntr = this->clrCntr->getColor(i).counter;
+		file.write((char*)(&clr), sizeof(clr));
+		file.write((char*)(&cntr), sizeof(cntr));
+	}
+
+	file.close();
+}
+
+void Huffman::readHuffHeader()
+{
+	// ? read general header
+	std::fstream file;
+	file.open("huff", std::ios::binary | std::ios::in);
+
+	Uint32 clr;
+	unsigned int cntr;
+	unsigned int numOfCol;
+
+	file.read((char*)(&numOfCol), sizeof(numOfCol));
+	this->clrCntr = new ColorCounter(numOfCol);
+
+	for (unsigned int i = 0; i < numOfCol; i++)
+	{
+		file.read((char*)(&clr), sizeof(clr));
+		file.read((char*)(&cntr), sizeof(cntr));
+
+		this->clrCntr->colors[i].color = clr;
+		this->clrCntr->colors[i].counter = cntr;
+	}
+
+	file.close();
+}
+

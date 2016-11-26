@@ -7,6 +7,13 @@ ColorCounter::ColorCounter(Image *img)
 	this->index = 0;
 }
 
+ColorCounter::ColorCounter(const unsigned int &size)
+{
+	this->img = nullptr;
+	this->colors = new SingleColorData[size];
+	this->index = size;
+}
+
 ColorCounter::~ColorCounter()
 {
 	delete this->colors;
@@ -54,13 +61,13 @@ void ColorCounter::quickSort(Uint32 p, Uint32 q)
 
 int ColorCounter::ifExists(const Uint32 & key)
 {
-	for (int i = 0; i < this->index; i++)
+	for (unsigned int i = 0; i < this->index; i++)
 		if (this->colors[i].color == key)
 			return i;
 	return -1;
 }
 
-Uint32 ColorCounter::countColors()
+void ColorCounter::countColors()
 {
 	Uint32 clr;
 	int boolIndex;
@@ -81,7 +88,6 @@ Uint32 ColorCounter::countColors()
 			else
 				this->colors[boolIndex].counter++;
 		}
-	return this->index;
 }
 
 void ColorCounter::sort()
@@ -91,11 +97,23 @@ void ColorCounter::sort()
 
 void ColorCounter::printColors() const
 {
-	for (int i = 0; i < this->index; i++)
+	for (unsigned int i = 0; i < this->index; i++)
 		std::cout << std::setw(6) << std::setfill('0') << std::hex << this->colors[i].color << std::dec << "   " << this->colors[i].counter << std::endl;
 }
 
 SingleColorData& ColorCounter::getColor(const int &pos) const
 {
 	return this->colors[pos];
+}
+
+void ColorCounter::setColor(const SingleColorData & scd)
+{
+	this->colors[this->index].color = scd.color;
+	this->colors[this->index].counter = scd.counter;
+	this->index++;
+}
+
+unsigned int ColorCounter::getCountClr() const
+{
+	return this->index;
 }

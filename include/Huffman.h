@@ -12,15 +12,22 @@ class Huffman
 {
 private:
 	Image *image;
-	std::map<Uint32, std::vector<bool> > *codeMap;
+	std::map<Uint32, std::vector<bool>> *codeMap;
+	ColorCounter *clrCntr;
 
 public:
 	Huffman(Image *image);
 	~Huffman();
 
 	void encode();
-	void generateCodes(Node<SingleColorData> *node, std::vector<bool> &code, std::map<Uint32, std::vector<bool> > &map, bool left);
+	void decode();
+	void buildTree();
+	void generateCodes(Node<SingleColorData> *node, std::vector<bool> &code, std::map<Uint32, std::vector<bool>> &map);
 	void printCodes() const;
+	void countFreq();
+
+	void saveHuffHeader();
+	void readHuffHeader();
 };
 
 

@@ -8,7 +8,7 @@ class ColorCounter
 {
 private:
 	Image *img;
-	int index;
+	unsigned int index;
 
 	Uint32 partition(Uint32 p, Uint32 q);
 	void quickSort(Uint32 p, Uint32 q);
@@ -16,13 +16,16 @@ private:
 
 public:
 	SingleColorData *colors;
+	ColorCounter(const unsigned int &size);
 	ColorCounter(Image *img);
 	~ColorCounter();
 
-	Uint32 countColors();
+	void countColors();
 	void sort();
 	void printColors() const;
 	SingleColorData& getColor(const int &pos) const;
+	void setColor(const SingleColorData &scd);
+	unsigned int getCountClr() const;
 };
 
 #endif // !COLOR_COUNTER_H
