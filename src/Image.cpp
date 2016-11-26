@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <fstream>
 
 using namespace std;
 
@@ -48,7 +49,7 @@ Image::~Image()
 
 void Image::init(SDL_Surface *surface)
 {
-	if (surface == nullptr)
+	if (surface == nullptr || surface == NULL)
 		throw RuntimeError();
 
 	if (this->initialized())
@@ -67,9 +68,9 @@ void Image::init(SDL_Surface *surface)
  */
 void Image::load(const char *file, bool requireVaildExt)
 {
-	SDL_Surface *temp = nullptr;
 	try
 	{
+		// Verifying extension
 		const char *ext = this->extension();
 		if (!FileHandler::verifyExtension(file, ext))
 		{
@@ -82,8 +83,10 @@ void Image::load(const char *file, bool requireVaildExt)
 			else
 				std::cerr << "Warning: Loaded extension is invaild." << std::endl;
 		}
-		temp = this->loadImpl(file);
-		this->init(temp);
+
+		// Opening a file
+		this->init(this->loadImpl(file));
+
 	}
 	catch (const RuntimeError &err)
 	{
@@ -296,4 +299,96 @@ void Image::convertToGreyScale()
 			this->setPixel(x, y, bw, bw, bw);
 		}
 	}
+}
+
+/**
+ * Copies this->surface in particular format
+ * @param SDL_PixelFormat* format [=nullptr_t]
+ * 	@see https://wiki.libsdl.org/SDL_PixelFormat
+ * @return SDL_Surface* pointer to newly created SDL_Surface()
+ */
+SDL_Surface *Image::getSurface(const SDL_PixelFormat* format) 
+{
+	SDL_Surface *surf = nullptr;
+	try {
+		if(!this->initialized())
+			throw RuntimeError("Cannot get uninitialized surface.");
+
+		if(format == nullptr)
+			format = this->surface->format;
+
+		if((surf = SDL_ConvertSurface(this->surface, format, 0)) == NULL) 
+			throw RuntimeError();
+
+	} catch (const RuntimeError &e) {
+		std::cerr << "Error while copying surface: " << e.what() << std::endl;
+	}
+	return surf;
+}
+
+/**
+ * Copies this->surface in particular format
+ * @param Uint32 sdl pixel format id  
+ * 	@see https://wiki.libsdl.org/SDL_ConvertSurfaceFormat#format
+ * @return SDL_Surface* pointer to newly created SDL_Surface()
+ */
+SDL_Surface *Image::getSurface(Uint32 format_id) 
+{
+	SDL_Surface *surf = nullptr;
+	try {
+		if(!this->initialized())
+			throw RuntimeError("Cannot get uninitialized surface.");
+
+		if((surf = SDL_ConvertSurfaceFormat(this->surface, format_id, 0)) == NULL)
+			throw RuntimeError();
+
+	} catch (const RuntimeError &e) {
+		std::cerr << "Error while copying surface: " << e.what() << std::endl;
+	}
+	return surf;
+}
+
+void Image::readHeader(std::ifstream &f, unsigned int &w, unsigned int &h, unsigned int &bpp) 
+{
+    size_t size;
+    char *buf;
+
+    // Verify header
+    f.read(reinterpret_cast<char *>(&size), sizeof(size));
+    buf = new char[size + 1];
+    buf[size] = '\0'; // finish cstring
+    f.read(buf, size);
+    // by.. comparing extension
+    if(strcmp(buf, this->extension()) != 0)
+        throw RuntimeError("Cannot load file due to not vaild format.");
+    delete buf;
+
+    // Load dimensions
+    f.read(reinterpret_cast<char *>(&w), sizeof(w));
+    f.read(reinterpret_cast<char *>(&h), sizeof(h));
+    f.read(reinterpret_cast<char *>(&bpp), sizeof(bpp));
+}
+
+void Image::writeHeader(std::ofstream &f) 
+{
+    unsigned int w, h, bpp;
+    size_t ext_size;
+    w = this->width();
+    h = this->height();
+    bpp = this->surface->format->BytesPerPixel;
+    ext_size = strlen(this->extension());
+
+    /**
+     * Saving..
+     * @var size_t the size of extension cstring
+     * @var char* extension cstring
+     * @var unsigned int width
+     * @var unsigned int height
+     * @var unsigned int bytes per pixel
+     */
+    f.write(reinterpret_cast<const char *>(&ext_size), sizeof(ext_size));
+    f.write(this->extension(), ext_size);
+    f.write(reinterpret_cast<const char *>(&w), sizeof(w));
+    f.write(reinterpret_cast<const char *>(&h), sizeof(h));
+    f.write(reinterpret_cast<const char *>(&bpp), sizeof(bpp));
 }

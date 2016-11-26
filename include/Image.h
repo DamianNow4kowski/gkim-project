@@ -3,6 +3,7 @@
 
 #include "SDL.h"
 #include "RuntimeError.h"
+#include <fstream>
 
 class Image
 {
@@ -21,6 +22,8 @@ protected:
   virtual SDL_Surface *loadImpl(const char *) = 0;
   virtual void saveImpl(SDL_Surface *, const char *) = 0;
   void makeSurface(int w, int h);
+  void writeHeader(std::ofstream &);
+  void readHeader(std::ifstream &, unsigned int &, unsigned int &, unsigned int &);
 
 public:
   // Construct
@@ -40,6 +43,10 @@ public:
   void init(SDL_Surface *);
   void load(const char *, bool = true);
   void save(const char *);
+  void preview();
+  bool initialized();
+  SDL_Surface *getSurface(const SDL_PixelFormat* = nullptr);
+  SDL_Surface *getSurface(Uint32);  
   Uint32 getPixel(const unsigned int &x, const unsigned int &y) const;
   SDL_Color getPixelColorRGB(const int &x, const int &y) const;
   void setPixel(const unsigned int &x, const unsigned int &y, Uint8 R, Uint8 G, Uint8 B);
@@ -47,8 +54,11 @@ public:
   unsigned int width() const;
   unsigned int height() const;
   unsigned int size() const;
-  bool initialized();
-  void preview();
+  
+  /**
+   * @unsafe
+   * Only for tests
+   */
   SDL_Surface* img();
 };
 

@@ -12,14 +12,14 @@ class Huffman
 {
 private:
 	Image *image;
-	std::map<Uint32, std::vector<bool>> *codeMap;
+	std::map<Uint32, std::vector<bool> > *codeMap;
 
 public:
 	Huffman(Image *image);
 	~Huffman();
 
 	void encode();
-	void Huffman::generateCodes(Node<SingleColorData> *node, std::vector<bool> &code, std::map<Uint32, std::vector<bool>> &map, bool left);
+	void generateCodes(Node<SingleColorData> *node, std::vector<bool> &code, std::map<Uint32, std::vector<bool> > &map, bool left);
 	void printCodes() const;
 };
 

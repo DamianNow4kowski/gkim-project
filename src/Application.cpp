@@ -55,8 +55,12 @@ int main(int argc, char *argv[])
 	delete huff;
 	delete bmp_surface;
 
+	// I don't want it on linux, sorry
+	#ifndef __linux
+		cin.ignore();
+		cin.get();
+	#endif
+	
 	// Return sucess
-	cin.ignore();
-	cin.get();
 	return EXIT_SUCCESS;
 }

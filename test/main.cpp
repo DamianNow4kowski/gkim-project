@@ -7,6 +7,7 @@
 #include "SDL.h"
 #include "Huffman.h"
 #include "BMP.h"
+#include "RGB444.h"
 
 using namespace std;
 
@@ -41,7 +42,7 @@ void testSDL_RGB444()
     const char* pxformatName = SDL_GetPixelFormatName(pxformat->format);
     cout << "Pixel format name: " << pxformatName << endl;
     Huffman *alg = new Huffman(bmp_surface);
-    alg->runHoffman();
+    alg->printCodes();
     delete alg;
     //bmp_surface->preview();
 
@@ -57,7 +58,7 @@ void testSDL_RGB444()
     cout << "Pixel format name: " << pxformatName << endl;
     //bmp_surface->preview();
     alg = new Huffman(bmp_surface);
-    alg->runHoffman();
+    alg->printCodes();
     delete alg;
     delete bmp_surface;
 }
@@ -71,7 +72,7 @@ void test_GreyScale() {
     delete bmp_surface;
 }
 
-void test_openSaveOpen() {
+void test_openSaveOpenBMP() {
     BMP *bmp_surface = new BMP();
     bmp_surface->load("test/togrey.bmp");
     bmp_surface->preview();
@@ -80,6 +81,37 @@ void test_openSaveOpen() {
     bmp_surface->load("test/saved.bmp");
     bmp_surface->preview();
     delete bmp_surface;
+}
+
+void test_RGB444Conversion() {
+    BMP *bmp = new BMP();
+    bmp->load("test/rgbcube.bmp");
+
+    SDL_Surface *surface = bmp->getSurface(SDL_PIXELFORMAT_RGB444);
+    RGB444 *test = new RGB444(surface);
+    test->preview();
+    test->convertToGreyScale();
+    test->preview();
+
+    bmp->preview();
+
+    delete bmp;
+    delete test;
+}
+
+void test_openBMPsaveRGB444view() {
+    BMP *bmp = new BMP();
+    bmp->load("test/rgbcube.bmp");
+    bmp->preview();
+
+    RGB444 *rgb = new RGB444(bmp->getSurface(SDL_PIXELFORMAT_RGB444));
+    delete bmp;
+
+    rgb->preview();
+    rgb->save("test/file");
+    rgb->load("test/file.rgb4");
+
+    delete rgb;
 }
 
 int main()
@@ -98,5 +130,7 @@ int main()
     //testFileHandler();
     //testSDL_RGB444();
     //test_GreyScale();
-    test_openSaveOpen();
+    //test_openSaveOpenBMP();
+    //test_RGB444Conversion();
+    test_openBMPsaveRGB444view();
 }

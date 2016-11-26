@@ -1,14 +1,15 @@
 #ifndef RGB444_H
 #define RGB444_H
 
+#include <fstream>
 #include "Image.h"
 //#include "BMP.h"
 
 class RGB444 : public Image
 {
   protected:
-    SDL_Surface *loadImpl(const char *);
-    void saveImpl(SDL_Surface *, const char *);
+    SDL_Surface *loadImpl(const char*);
+    void saveImpl(SDL_Surface *, const char*);
 
   public:
     RGB444();
