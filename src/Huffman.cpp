@@ -1,20 +1,20 @@
 #include "Huffman.h"
-#include "ColorCounter.h"
-#include "Tree.h"
-#include <iostream>
-#include <queue>
 
+#include <iostream>
+#include <algorithm>
+#include <iterator>
 
 Huffman::Huffman(Image *image)
 {
 	this->image = image;
+	this->codeMap = new std::map<Uint32, std::vector<bool>>();
 }
 
 Huffman::~Huffman()
 {
 }
 
-void Huffman::runHoffman()
+void Huffman::encode()
 {
 	ColorCounter *colorCntr = new ColorCounter(this->image);
 	int numColors = colorCntr->countColors();
@@ -37,7 +37,40 @@ void Huffman::runHoffman()
 		trees.push(&(*t1 + *t2));
 	}
 
-	std::cout << "\n\n-------------------------------\n";
-	std::cout << "---------- HUFFMAN CODED ----------\n\n";
-	std::cout << *trees.top();
+	std::vector<bool> code;
+	this->generateCodes(trees.top()->getRoot(), code, *this->codeMap, true);
+
+	this->printCodes();
+}
+
+void Huffman::generateCodes(Node<SingleColorData>* node, std::vector<bool>& code, 
+	std::map<Uint32, std::vector<bool>>& map, bool left)
+{
+	if (node == nullptr)
+		return;
+	if (node->next == nullptr && node->prev == nullptr) // is leaf
+		map[node->getVar().color] = code;
+	else
+	{
+		auto leftPref = code;
+		leftPref.push_back(false);
+		this->generateCodes(node->prev, leftPref, map, true);
+
+		auto rightPref = code;
+		rightPref.push_back(true);
+		this->generateCodes(node->next, rightPref, map, false);
+	}
+}
+
+void Huffman::printCodes() const
+{
+	// auto = std::map<Uint32, std::vector<bool>>::const_iterator
+	std::cout << "Huffman encoding map:" << std::endl << std::endl;
+	for (auto it = codeMap->begin(); it != codeMap->end(); ++it)
+	{
+		std::cout << std::hex << std::setfill('0') << std::setw(6) << it->first << " ";
+		std::copy(it->second.begin(), it->second.end(),
+			std::ostream_iterator<bool>(std::cout));
+		std::cout << std::endl;
+	}
 }

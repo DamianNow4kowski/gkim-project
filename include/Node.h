@@ -33,6 +33,7 @@ public:
 	}
 
 	friend class Tree<T>;
+	friend class Huffman;
 };
 
 template<class T>

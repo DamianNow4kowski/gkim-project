@@ -23,11 +23,11 @@ public:
 
 	// Przeciazony operator strumienia wyjsciowego
 	// Wypisuje obiekt Tree.
-	friend std::ostream &operator<<(std::ostream &out, Tree<T> &tree)
-	{
-		tree.display_preorder(tree.getRoot(), true, "");
-		return out;
-	}
+	//friend std::ostream &operator<<(std::ostream &out, Tree<T> &tree)
+	//{
+	//	tree.display_preorder(tree.getRoot(), true, "");
+	//	return out;
+	//}
 
 	// Przeciazony operator '<'
 	// Porownuje dwa obiekty klasy Tree (porownuje dwa wezly)

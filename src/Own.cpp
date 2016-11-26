@@ -82,6 +82,7 @@ void Own::saveImpl(SDL_Surface* surface, const char *file)
 	this->file.close();
 }
 
+// do C++ casting?
 void Own::readHeader()
 {
 	int w, h, a;

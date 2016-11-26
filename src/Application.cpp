@@ -46,8 +46,10 @@ int main(int argc, char *argv[])
 	//own.readFile("test.f").preview();
 
 	Huffman *huff = new Huffman(bmp_surface);
-	huff->runHoffman();
+	huff->encode();
 
+
+	cout << "Finished" << endl;
 
 	// Clean
 	delete huff;
