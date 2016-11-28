@@ -10,6 +10,7 @@ class Image
 private:
   SDL_Surface *surface;
   unsigned int h, w;
+  uint8_t bitspp, bytespp;
   void free();
   SDL_Texture *texturize(SDL_Renderer *);
 
@@ -21,9 +22,7 @@ protected:
    */
   virtual SDL_Surface *loadImpl(const char *) = 0;
   virtual void saveImpl(SDL_Surface *, const char *) = 0;
-  void makeSurface(int w, int h);
-  void writeHeader(std::ofstream &);
-  void readHeader(std::ifstream &, unsigned int &, unsigned int &, unsigned int &);
+  SDL_Surface* makeSurface(int, int, int);
 
 public:
   // Construct
@@ -46,14 +45,18 @@ public:
   void preview();
   bool initialized();
   SDL_Surface *getSurface(const SDL_PixelFormat* = nullptr);
-  SDL_Surface *getSurface(Uint32);  
-  Uint32 getPixel(const unsigned int &x, const unsigned int &y) const;
+  SDL_Surface *getSurface(uint32_t);  
+  uint32_t getPixel(uint8_t *, uint8_t) const;
+  uint32_t getPixel(const unsigned int &x, const unsigned int &y) const;
   SDL_Color getPixelColorRGB(const int &x, const int &y) const;
-  void setPixel(const unsigned int &x, const unsigned int &y, Uint8 R, Uint8 G, Uint8 B);
+  void setPixel(SDL_Surface *, const unsigned int &, const unsigned int &, uint32_t, bool = false);
+  void setPixel(const unsigned int &x, const unsigned int &y, uint8_t R, uint8_t G, uint8_t B);
   void convertToGreyScale();
   unsigned int width() const;
   unsigned int height() const;
-  unsigned int size() const;
+  unsigned int bpp() const;
+  unsigned int depth() const;
+  size_t size() const;
   
   /**
    * @unsafe

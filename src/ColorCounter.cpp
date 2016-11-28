@@ -3,7 +3,7 @@
 ColorCounter::ColorCounter(Image *img)
 {
 	this->img = img;
-	this->colors = new SingleColorData[img->size()];
+	this->colors = new SingleColorData[img->height()*img->width()];
 	this->index = 0;
 }
 

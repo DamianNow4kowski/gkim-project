@@ -89,7 +89,7 @@ void Own::readHeader()
 	this->file.read((char *)(&w), sizeof(w));
 	this->file.read((char *)(&h), sizeof(h));
 	this->file.read((char *)(&a), sizeof(a));
-	this->makeSurface(w, h);
+	this->init(this->makeSurface(w, h, 32));
 }
 
 void Own::writeHeader()

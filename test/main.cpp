@@ -100,18 +100,28 @@ void test_RGB444Conversion() {
 }
 
 void test_openBMPsaveRGB444view() {
-    BMP *bmp = new BMP();
+    /*BMP *bmp = new BMP();
     bmp->load("test/rgbcube.bmp");
     bmp->preview();
 
-    RGB444 *rgb = new RGB444(bmp->getSurface(SDL_PIXELFORMAT_RGB444));
+    // SDL Conversion
+    RGB444 *rgb;
+    rgb = new RGB444(bmp->getSurface(SDL_PIXELFORMAT_RGB444));
     delete bmp;
 
     rgb->preview();
     rgb->save("test/file");
-    rgb->load("test/file.rgb4");
+    delete rgb; */
 
-    delete rgb;
+    //RGB444 rgb2("test/file.rgb4"); // doesnt work yet
+    BMP bmp;
+    bmp.load("test/togrey.bmp");
+    bmp.convertToGreyScale();
+    RGB444 rgb2;
+    rgb2.init(bmp.getSurface());
+    rgb2.save("test/file");
+    rgb2.load("test/file.rgb4");
+    rgb2.preview();
 }
 
 int main()

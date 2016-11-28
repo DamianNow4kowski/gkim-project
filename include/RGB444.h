@@ -10,6 +10,8 @@ class RGB444 : public Image
   protected:
     SDL_Surface *loadImpl(const char*);
     void saveImpl(SDL_Surface *, const char*);
+    void writeHeader(std::ofstream &, unsigned int &, unsigned int &, uint8_t &, uint8_t &);
+    void readHeader(std::ifstream &, unsigned int &, unsigned int &, uint8_t &, uint8_t &);
 
   public:
     RGB444();
