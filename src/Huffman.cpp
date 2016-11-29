@@ -134,26 +134,23 @@ void Huffman::saveHuffHeader(std::ofstream &ofile)
 void Huffman::readHuffHeader(std::ifstream &ifile)
 {
 	// ? read general header
-	std::fstream file;
-	file.open("huff", std::ios::binary | std::ios::in);
 
 	Uint32 clr;
 	unsigned int cntr;
 	unsigned int numOfCol;
 
-	file.read((char*)(&numOfCol), sizeof(numOfCol));
+	ifile.read((char*)(&numOfCol), sizeof(numOfCol));
 	this->clrCntr = new ColorCounter(numOfCol);
 
 	for (unsigned int i = 0; i < numOfCol; i++)
 	{
-		file.read((char*)(&clr), sizeof(clr));
-		file.read((char*)(&cntr), sizeof(cntr));
+		ifile.read((char*)(&clr), sizeof(clr));
+		ifile.read((char*)(&cntr), sizeof(cntr));
 
 		this->clrCntr->colors[i].color = clr;
 		this->clrCntr->colors[i].counter = cntr;
 	}
 
-	file.close();
 }
 
 void Huffman::saveCodes(std::ofstream &ofile)
@@ -175,8 +172,8 @@ void Huffman::saveCodes(std::ofstream &ofile)
 
 void Huffman::readCodes(std::ifstream &ifile)
 {
-	int w = 20;
-	int h = 20;
+	int w = 500;
+	int h = 500;
 	BMP *bmp = new BMP();
 	SDL_Surface *surf = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
 	bmp->init(surf);
@@ -204,7 +201,9 @@ void Huffman::readCodes(std::ifstream &ifile)
 					if (v->second == vec)
 					{
 						SDL_GetRGB(v->first, surf->format, &ccc.r, &ccc.g, &ccc.b);
+						//std::cout << ccc.r << " " << ccc.g << " " << ccc.b << std::endl;
 						found = true;
+						vec.clear();
 						break;
 					}
 				}

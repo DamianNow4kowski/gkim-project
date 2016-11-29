@@ -29,7 +29,8 @@ public:
 
 BitsToFile &BitsToFile::write()
 {
-	file << c;
+	//file << c;
+	file.write((char*)&c, sizeof(char));
 	c = 0;
 	pos = 0;
 
@@ -106,7 +107,8 @@ bool BitsFromFile::get()
 	{
 		if (!this->file.eof())
 		{
-			this->file >> c;
+			//this->file >> c;
+			file.read((char*)&c, sizeof(char));
 			this->pos = 0;
 		}
 		else
