@@ -86,33 +86,25 @@ void test_openSaveOpenBMP() {
 void test_RGB444Conversion() {
     BMP *bmp = new BMP();
     bmp->load("test/rgbcube.bmp");
+    bmp->preview();
 
+    // @unsafe here
     SDL_Surface *surface = bmp->getSurface(SDL_PIXELFORMAT_RGB444);
     RGB444 *test = new RGB444(surface);
-    test->preview();
+    delete bmp;
+
+    /**
+     * - Too much previews() causes segmentation fault ???
+     */
+
     test->convertToGreyScale();
     test->preview();
 
-    bmp->preview();
-
-    delete bmp;
     delete test;
 }
 
-void test_openBMPsaveRGB444view() {
-    /*BMP *bmp = new BMP();
-    bmp->load("test/rgbcube.bmp");
-    bmp->preview();
-
-    // SDL Conversion
-    RGB444 *rgb;
-    rgb = new RGB444(bmp->getSurface(SDL_PIXELFORMAT_RGB444));
-    delete bmp;
-
-    rgb->preview();
-    rgb->save("test/file");
-    delete rgb; */
-
+void test_openBMPGreysaveLoad() 
+{
     //RGB444 rgb2("test/file.rgb4"); // doesnt work yet
     BMP bmp;
     bmp.load("test/togrey.bmp");
@@ -142,5 +134,5 @@ int main()
     //test_GreyScale();
     //test_openSaveOpenBMP();
     //test_RGB444Conversion();
-    test_openBMPsaveRGB444view();
+    test_openBMPGreysaveLoad();
 }

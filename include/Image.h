@@ -44,10 +44,12 @@ public:
   void save(const char *);
   void preview();
   bool initialized();
+  // @unsafe
   SDL_Surface *getSurface(const SDL_PixelFormat* = nullptr);
+  // @unsafe
   SDL_Surface *getSurface(uint32_t);  
   uint32_t getPixel(uint8_t *, uint8_t) const;
-  uint32_t getPixel(const unsigned int &x, const unsigned int &y) const;
+  uint32_t getPixel(const unsigned int &x, const unsigned int &y, bool = false) const;
   SDL_Color getPixelColorRGB(const int &x, const int &y) const;
   void setPixel(SDL_Surface *, const unsigned int &, const unsigned int &, uint32_t, bool = false);
   void setPixel(const unsigned int &x, const unsigned int &y, uint8_t R, uint8_t G, uint8_t B);
