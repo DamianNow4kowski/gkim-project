@@ -1,7 +1,7 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include "SDL.h"
+#include "SDL_Local.h"
 #include "RuntimeError.h"
 #include <fstream>
 

@@ -1,7 +1,7 @@
 #ifndef SINGLE_COLOR_DATA_H
 #define SINGLE_COLOR_DATA_H 
 
-#include "SDL.h"
+#include "SDL_Local.h"
 #include <iostream>
 #include <iomanip>
 

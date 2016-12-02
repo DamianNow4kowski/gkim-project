@@ -3,7 +3,7 @@
 
 #include "Image.h"
 #include <string>
-#include "SDL.h"
+#include "SDL_Local.h"
 #include <fstream>
 #include <iostream>
 
