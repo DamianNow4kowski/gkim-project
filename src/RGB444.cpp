@@ -63,7 +63,7 @@ SDL_Surface *RGB444::loadImpl(const char *file)
 	}
 
 	// Clean an return loaded SDL_Surface
-    delete data;
+    delete[] data;
     return surf;
 }
 
@@ -172,7 +172,7 @@ void RGB444::readHeader(std::ifstream &f, unsigned int &w, unsigned int &h, uint
     // by.. comparing extension
     if(strcmp(buf, this->extension()) != 0)
         throw RuntimeError("Cannot load file due to not vaild header format.");
-    delete buf;
+    delete[] buf;
 
     // Load dimensions
     f.read(reinterpret_cast<char *>(&w), sizeof(w));

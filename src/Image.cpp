@@ -20,6 +20,7 @@ void Image::free()
 
 bool Image::empty(SDL_Surface * surf)
 {
+	// TODO: verify if nullptr == NULL ???
 	return surf == nullptr || surf == NULL;
 }
 
