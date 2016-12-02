@@ -4,7 +4,7 @@
 #include <chrono>
 #include <thread>
 #include "FileHandler.h"
-#include "SDL.h"
+#include "SDL_Local.h"
 #include "Huffman.h"
 #include "BMP.h"
 #include "RGB444.h"

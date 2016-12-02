@@ -1,5 +1,5 @@
 ﻿#include <iostream>
-#include "SDL.h"
+#include "SDL_Local.h"
 #include "BMP.h"
 #include "Huffman.h"
 #include "Own.h"

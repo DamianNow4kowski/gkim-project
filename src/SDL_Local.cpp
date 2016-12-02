@@ -1,4 +1,4 @@
-#include "SDL.h"
+#include "SDL_Local.h"
 
 SDL::SDL(Uint32 flags)
 {
