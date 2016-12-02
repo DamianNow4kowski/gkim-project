@@ -6,6 +6,7 @@
 #else
 	#include <SDL.h>
 #endif
+#undef main // this prevents including default main() from SDL
 
 #include "RuntimeError.h"
 

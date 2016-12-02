@@ -110,8 +110,15 @@ void test_openBMPGreysaveLoad()
     bmp.load("test/togrey.bmp");
     bmp.convertToGreyScale();
     RGB444 rgb2;
-    rgb2.init(bmp.getSurface());
-    rgb2.save("test/file");
+
+	try {
+		rgb2.init(bmp.getSurface());
+	}
+	catch (const RuntimeError &e) {
+		cout << "Error: " << e.what() << endl;
+	}
+
+    rgb2.save("test/file", 100);
     rgb2.load("test/file.rgb4");
     rgb2.preview();
 }
@@ -135,4 +142,7 @@ int main()
     //test_openSaveOpenBMP();
     //test_RGB444Conversion();
     test_openBMPGreysaveLoad();
+
+	system("PAUSE");
+	return 0;
 }

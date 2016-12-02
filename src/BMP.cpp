@@ -9,7 +9,10 @@ BMP::BMP(const char *file)
 
 SDL_Surface *BMP::loadImpl(const char *file)
 {
-    return SDL_LoadBMP(file);
+	SDL_Surface *ret = SDL_LoadBMP(file);
+	if (ret == NULL)
+		throw RuntimeError(); // SDL_GetError();
+    return ret;
 }
 
 void BMP::saveImpl(SDL_Surface *surface, const char *file) {

@@ -5,9 +5,13 @@
 
 namespace FileHandler
 {
-bool verifyExtension(const char *, std::size_t, const char *, std::size_t);
-bool verifyExtension(std::string &, std::string &);
-bool verifyExtension(const char *, const char *);
+	bool verifyExtension(const char *, std::size_t, const char *, std::size_t);
+	bool verifyExtension(const std::string &, const std::string &);
+	bool verifyExtension(const char *, const char *);
+	void ifopen(const char *, std::ifstream &);
+	void ifopen(const std::string &, std::ifstream &);
+	void ofopen(const char *, std::ofstream &);
+	void ofopen(const std::string &, std::ofstream &);
 }
 
 #endif // !FILE_HANDLER_H
