@@ -6,11 +6,13 @@
 #include <iomanip>
 
 RGB444::RGB444()
-    : Image() {}
+    : Image(), algorithm(0) {}
+RGB444::RGB444(uint8_t alg) 
+    : Image(), algorithm(alg) {}
 RGB444::RGB444(SDL_Surface *surface)
-    : Image(surface) {}
+    : Image(surface), algorithm(0) {}
 RGB444::RGB444(const char *file)
-    : Image(file) {}
+    : Image(file), algorithm(0) {}
 /**
  * @TODO
 RGB444::RGB444(BMP *img) {
@@ -29,8 +31,8 @@ SDL_Surface *RGB444::loadImpl(const char *file)
 {
     unsigned int x, y, w, h;
     Uint32 pixel;
-    long pos, size;
     char *data;
+    size_t size;
     uint8_t *data_ptr, bpp, depth;
     SDL_Surface *surf;
 
@@ -46,59 +48,38 @@ SDL_Surface *RGB444::loadImpl(const char *file)
     // Read header data
     this->readHeader(f, w, h, depth, bpp);
     
-    // Get current read byte position
-    pos = f.tellg();
-    
-    // Get number of img bytes
-    f.seekg(0, f.end);
-    size = f.tellg() - pos;
-    
-    // Go back to img bytes start
-    f.seekg(pos);
+    // We know exactly how much data we have to load from this: 
+    size = static_cast<size_t>(w*h*bpp);
 
     // Load whole data img data
     data = new char[size];
     f.read(data, size);
     f.close();
+    
+    // Sets one byte pointer type to data
     data_ptr = reinterpret_cast<uint8_t*>(data);
 
-    // Create new SDL Surface
-    // TODO: function
+    // Create new SDL Surface with default masks to save the pixels
     surf = this->makeSurface(w, h, depth);
-    /*else {
-        if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-            std::cout << "Big endian" << std::endl;
-        else
-            std::cout << "Little endian" << std::endl;
-        std::bitset<32> r(surface->format->Rmask);
-        std::bitset<32> g(surface->format->Gmask);
-        std::bitset<32> b3(surface->format->Bmask);
-        std::bitset<32> a(surface->format->Amask);
-        std::cout << std::setw(22) << "Rmask = " << r << std::endl;
-        std::cout << std::setw(22) << "Gmask = " << g << std::endl;
-        std::cout << std::setw(22) << "Bmask = " << b3 << std::endl;
-        std::cout << std::setw(22) << "Amask = " << a << std::endl;
-    }*/
     
+    /**
+     * Algorithm 0 - Default 
+     * Loading as it is without compression
+     * @todo make here switch with functions depending which this->readHeader(&algo..) is
+     */
     // Get pixels one by one
     for(x = 0; x < w; ++x) {
-        for(y = 0; y < h; ++y) 
+        for(y = 0; y < h; ++y, data_ptr += bpp) 
         {
             // Get pixel data in proper form
             pixel = this->getPixel(data_ptr, bpp);
 
-            if(x == w/2 && y < h) {
-                this->setPixel(surf, x, y, pixel, true);
-            } else {
-                this->setPixel(surf, x, y, pixel);
-            }
-
-            data_ptr += bpp;
+            // Debug 
+            this->setPixel(surf, x, y, pixel, (x == w/2));
         }
     }
+    // Caution: accessing *data_ptr after loop may be unsafe;
 
-    // Remeber to not acess data_ptr after,
-    // becouse it is 4 bytes out of range in memory
     delete data;
     return surf;
 }
@@ -110,6 +91,7 @@ void RGB444::saveImpl(SDL_Surface *surface, const char *file)
     uint32_t pixel;
     std::ofstream f;
 
+    // TODO: make FileHandler::function for this
     f.open(file, std::ios::out | std::ios::binary);
     if(!f.is_open()) {
         std::ostringstream os;
@@ -117,20 +99,25 @@ void RGB444::saveImpl(SDL_Surface *surface, const char *file)
         throw RuntimeError(os.str());
     }
 
+    // Save surface data 
+    // TODO: Make this function more global? (access private data from Image scope)
     w = static_cast<unsigned int>(surface->w);
     h = static_cast<unsigned int>(surface->h);
     bpp = surface->format->BytesPerPixel;
     depth = surface->format->BitsPerPixel;
     this->writeHeader(f, w, h, depth, bpp);
     
-
+    /**
+     * Algorithm 0 - Default 
+     * Saving as it is in surface without compression
+     * @todo make here switch with functions depending which this->algorithm is
+     */
+    // Save pixels one by one
     for(x = 0; x < w; ++x) {
         for(y = 0; y < h; ++y) {
-            if(x == w/2 && y < h) {
-                std::bitset<32> b(this->getPixel(x,y));
-                std::cout << "Pixel[x="  << x << "][y=" << y << "] = " << b << std::endl;
-            }
-            pixel = this->getPixel(x,y);
+
+            // Debug
+            pixel = this->getPixel(x, y, (x==w/2));
             f.write(reinterpret_cast<const char *>(&pixel), bpp);
         }
     }

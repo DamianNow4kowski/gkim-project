@@ -155,17 +155,20 @@ uint32_t Image::getPixel(uint8_t *pixel, uint8_t bpp) const {
  * @param y y-axis
  * @return full pixel data in Uint32 format
  */
-uint32_t Image::getPixel(const unsigned int &x, const unsigned int &y) const
+uint32_t Image::getPixel(const unsigned int &x, const unsigned int &y, bool debug) const
 {
-	if(x < 0 || x >= this->w || y < 0 || y >= this->h)
-		throw RuntimeError("Error during getting pixel.");
-
 	uint8_t *pixel, bpp;
 	bpp = this->surface->format->BytesPerPixel;
-	pixel = (uint8_t*)this->surface->pixels + y * this->surface->pitch + x * bpp;
-	//pixel = reinterpret_cast<uint8_t *>(this->surface->pixels) + y * this->surface->pitch + x * bpp;
+	pixel = reinterpret_cast<uint8_t *>(this->surface->pixels) + y * this->surface->pitch + x * bpp;
 
-	return this->getPixel(pixel, bpp);
+	if(!debug)
+		return this->getPixel(pixel, bpp);
+	
+	// Debugging
+	uint32_t ret = this->getPixel(pixel, bpp);
+	std::bitset<32> b(ret);
+	std::cout << "Pixel[x="  << x << "][y=" << y << "] = " << b << std::endl;
+	return ret;
 }
 
 SDL_Color Image::getPixelColorRGB(const int &x, const int &y) const
