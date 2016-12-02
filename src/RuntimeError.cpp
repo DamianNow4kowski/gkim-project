@@ -1,5 +1,5 @@
 #include "RuntimeError.h"
-#include "SDL.h"
+#include "SDL_Local.h"
 
 // @construct
 RuntimeError::RuntimeError()
