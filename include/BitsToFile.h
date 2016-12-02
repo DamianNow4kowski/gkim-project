@@ -3,11 +3,9 @@
 #include <exception>
 #include <vector>
 #include <iostream>
+#include <utility>
+#include "RuntimeError.h"
 
-using std::ofstream;
-using std::ifstream;
-using std::move;
-using std::exception;
 using namespace std;
 
 class BitsToFile
@@ -23,7 +21,6 @@ public:
 	BitsToFile &to(bool f);
 	BitsToFile &flush();
 	void to(std::vector<bool> &vec);
-	
 };
 
 
@@ -93,9 +90,9 @@ BitsFromFile::BitsFromFile(ifstream& f)
 	this->file = move(f);
 
 	if (!this->file.good())
-		throw exception("File is not good");
+		throw RuntimeError("File is not good");
 	if (this->file.eof())
-		throw exception("File is end");
+		throw RuntimeError("File is end");
 
 	this->pos = 8;
 	this->c = 0;
