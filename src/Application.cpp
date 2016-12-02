@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	bmp_surface->load(test_bmp.c_str(), false);
 	cout << "Loaded image dimensions: " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
 
-	bmp_surface->preview();
+	//bmp_surface->preview();
 
 	//Własny format
 	//Own own(bmp_surface->img());
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	//own.readFile("test.f").preview();
 
 	Huffman *huff = new Huffman(bmp_surface);
-	huff->encode();
+	huff->decode();
 
 
 	cout << "Finished" << endl;
@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
 	delete bmp_surface;
 
 	// I don't want it on linux, sorry
+	// We don't use linux, sorry
 	#ifndef __linux
 		cin.ignore();
 		cin.get();

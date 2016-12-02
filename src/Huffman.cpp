@@ -1,10 +1,12 @@
 #include "Huffman.h"
+#include "BitsToFile.h"
 
 #include <iostream>
 #include <algorithm>
 #include <iterator>
 
-#include <fstream>
+// ??
+#include "BMP.h"
 
 Huffman::Huffman(Image *image)
 {
@@ -18,15 +20,21 @@ Huffman::~Huffman()
 
 void Huffman::encode()
 {
+	std::ofstream ofile("huff", std::ios::binary);
 	this->countFreq();
 	this->buildTree();
-	this->saveHuffHeader();
+	this->saveHuffHeader(ofile);
+	this->saveCodes(ofile);
+	ofile.close();
 }
 
 void Huffman::decode()
 {
-	this->readHuffHeader();
+	std::ifstream ifile("huff", std::ios::binary);
+	this->readHuffHeader(ifile);
 	this->buildTree();
+	this->readCodes(ifile);
+	ifile.close();
 }
 
 void Huffman::buildTree()
@@ -52,7 +60,7 @@ void Huffman::buildTree()
 
 	std::vector<bool> codes;
 	this->generateCodes(trees.top()->getRoot(), codes, *this->codeMap);
-	this->printCodes();
+//	this->printCodes();
 }
 
 void Huffman::generateCodes(Node<SingleColorData>* node, std::vector<bool>& code, 
@@ -103,52 +111,109 @@ void Huffman::countFreq()
 	std::cout << "Number of colors in image: " << this->clrCntr->getCountClr() << std::endl;
 }
 
-void Huffman::saveHuffHeader()
+void Huffman::saveHuffHeader(std::ofstream &ofile)
 {
 	// save general image header here
 	// then Huffman header
-	std::fstream file;
-	file.open("huff", std::ios::binary | std::ios::out | std::fstream::app);
 
 	Uint32 clr;
 	unsigned int cntr;
 	unsigned int cnt = this->clrCntr->getCountClr();
 
-	file.write((char*)(&cnt), sizeof(this->clrCntr->getCountClr()));
+	ofile.write((char*)(&cnt), sizeof(this->clrCntr->getCountClr()));
 
 	for (unsigned int i = 0; i < this->clrCntr->getCountClr(); i++)
 	{
 		clr = this->clrCntr->getColor(i).color;
 		cntr = this->clrCntr->getColor(i).counter;
-		file.write((char*)(&clr), sizeof(clr));
-		file.write((char*)(&cntr), sizeof(cntr));
+		ofile.write((char*)(&clr), sizeof(clr));
+		ofile.write((char*)(&cntr), sizeof(cntr));
 	}
-
-	file.close();
 }
 
-void Huffman::readHuffHeader()
+void Huffman::readHuffHeader(std::ifstream &ifile)
 {
 	// ? read general header
-	std::fstream file;
-	file.open("huff", std::ios::binary | std::ios::in);
 
 	Uint32 clr;
 	unsigned int cntr;
 	unsigned int numOfCol;
 
-	file.read((char*)(&numOfCol), sizeof(numOfCol));
+	ifile.read((char*)(&numOfCol), sizeof(numOfCol));
 	this->clrCntr = new ColorCounter(numOfCol);
 
 	for (unsigned int i = 0; i < numOfCol; i++)
 	{
-		file.read((char*)(&clr), sizeof(clr));
-		file.read((char*)(&cntr), sizeof(cntr));
+		ifile.read((char*)(&clr), sizeof(clr));
+		ifile.read((char*)(&cntr), sizeof(cntr));
 
 		this->clrCntr->colors[i].color = clr;
 		this->clrCntr->colors[i].counter = cntr;
 	}
 
-	file.close();
+}
+
+void Huffman::saveCodes(std::ofstream &ofile)
+{
+	Uint32 clr;
+	BitsToFile btf(ofile);
+
+	for (int j = 0; j < this->image->height(); j++)
+	{
+		for (int i = 0; i < this->image->width(); i++)
+		{
+			clr = this->image->getPixel(i, j);
+			btf.to(this->codeMap->find(clr)->second);
+		}
+	}
+
+	btf.flush();
+}
+
+void Huffman::readCodes(std::ifstream &ifile)
+{
+	int w = 500;
+	int h = 500;
+	BMP *bmp = new BMP();
+	SDL_Surface *surf = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
+	bmp->init(surf);
+
+	BitsFromFile bff(ifile);
+
+	SDL_Color ccc;
+	int index = 0;
+	std::vector<bool> vec;
+
+	bool found = false;
+
+	for (int j = 0; j < h; j++)
+	{
+		for (int i = 0; i < w; i++)
+		{
+			found = false;
+
+			while (!found)
+			{
+				vec.push_back(bff.get());
+
+				for (auto v = this->codeMap->begin(); v != this->codeMap->end(); ++v)
+				{
+					if (v->second == vec)
+					{
+						SDL_GetRGB(v->first, surf->format, &ccc.r, &ccc.g, &ccc.b);
+						//std::cout << ccc.r << " " << ccc.g << " " << ccc.b << std::endl;
+						found = true;
+						vec.clear();
+						break;
+					}
+				}
+			}
+
+			bmp->setPixel(i, j, ccc.r, ccc.g, ccc.b);
+			vec.clear();
+		}
+	}
+
+	bmp->preview();
 }
 

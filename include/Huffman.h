@@ -3,6 +3,7 @@
 
 #include <queue>
 #include <map>
+#include <fstream>
 
 #include "Image.h"
 #include "ColorCounter.h"
@@ -26,8 +27,10 @@ public:
 	void printCodes() const;
 	void countFreq();
 
-	void saveHuffHeader();
-	void readHuffHeader();
+	void saveHuffHeader(std::ofstream &ofile);
+	void readHuffHeader(std::ifstream &ifile);
+	void saveCodes(std::ofstream &ofile);
+	void readCodes(std::ifstream &ifile);
 };
 
 
