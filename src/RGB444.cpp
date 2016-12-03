@@ -196,7 +196,7 @@ void RGB444::saveAlg444(SDL_Surface *surf, std::ofstream &f)
 {
 	int x, y, k;
 	bool isSpace, firstHalf;
-	uint8_t usedChar;
+	char usedChar;
 	SDL_Color color;
 
 	isSpace = true;
@@ -225,7 +225,8 @@ void RGB444::saveAlg444(SDL_Surface *surf, std::ofstream &f)
 
 				if (!isSpace)
 				{
-					f << usedChar;
+					// Binary save
+					f.write(&usedChar, sizeof(usedChar));
 					isSpace = true;
 					usedChar = 0;
 				}
@@ -290,7 +291,7 @@ void RGB444::readHeader(std::ifstream &f, unsigned int &w, unsigned int &h, uint
 
     // Verify header
     f.read(reinterpret_cast<char *>(&size), sizeof(size));
-	if(size <= 0 || size > 1000)
+	if(size > 1000)
 		throw RuntimeError("Cannot load header. Either it is not vaild or too long.");
     buf = new char[size + 1];
     buf[size] = '\0'; // finish cstring
@@ -327,11 +328,11 @@ void RGB444::writeHeader(int w, int h, uint8_t depth, uint8_t bpp, std::ofstream
 	ext_size = strlen(this->extension());
 
 	/**
-	* Saving..
+	* Binary saving..
 	* @var size_t the size of extension cstring
 	* @var char* extension cstring
 	* @var int width
-	* @var  int height
+	* @var int height
 	* @var uint_8 depth (bits per pixel)
 	* @var uint_8 bpp (bytes per pixel)
 	* @var uint_8 algorithm

@@ -103,24 +103,19 @@ void test_RGB444Conversion() {
     delete test;
 }
 
-void test_openBMPGreysaveLoad() 
+void test_openBMPtoGreySaveRGB44Load() 
 {
-    //RGB444 rgb2("test/file.rgb4"); // doesnt work yet
     BMP bmp;
     bmp.load("test/togrey.bmp");
-    bmp.convertToGreyScale();
-    RGB444 rgb2;
+	bmp.preview();
 
-	try {
-		rgb2.init(bmp.getSurface());
-	}
-	catch (const RuntimeError &e) {
-		cout << "Error: " << e.what() << endl;
-	}
-
+    RGB444 rgb2(bmp);
+	rgb2.convertToGreyScale();
     rgb2.save("test/file", 100);
-    rgb2.load("test/file.rgb4");
-    rgb2.preview();
+
+	RGB444 rgb3;
+    rgb3.load("test/file.rgb4");
+    rgb3.preview();
 }
 
 void test_saveOpen444()
@@ -129,14 +124,7 @@ void test_saveOpen444()
 	bmp.load("test/togrey.bmp");
 	bmp.convertToGreyScale();
 
-	RGB444 rgb2;
-	try {
-		rgb2.init(bmp.getSurface());
-	}
-	catch (const RuntimeError &e) {
-		cout << "Error: " << e.what() << endl;
-	}
-
+	RGB444 rgb2(bmp);
 	rgb2.save("test/file", 1);
 	rgb2.load("test/file.rgb4");
 	rgb2.preview();
@@ -175,9 +163,9 @@ int main()
     //test_GreyScale();
     //test_openSaveOpenBMP();
     //test_RGB444Conversion();
-    //test_openBMPGreysaveLoad();
-	//test_saveOpen444();
-	test_copyConstructors();
+	//test_openBMPtoGreySaveRGB44Load();
+	test_saveOpen444();
+	//test_copyConstructors();
 
 	system("PAUSE");
 	return 0;

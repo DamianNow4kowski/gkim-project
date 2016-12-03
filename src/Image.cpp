@@ -18,7 +18,7 @@ void Image::free()
 		SDL_FreeSurface(this->surface);
 }
 
-bool Image::empty(const SDL_Surface *surf)
+bool Image::empty(const SDL_Surface *surf) const
 {
 	return surf == NULL;
 }
@@ -212,19 +212,29 @@ SDL_Color Image::getPixelColor(unsigned int x, unsigned int y) const
 
 unsigned int Image::height() const
 {
+	if (!this->initialized())
+		return 0;
 	return static_cast<unsigned int>(this->surface->h);
 }
 
 unsigned int Image::width() const
 {
+	if(!this->initialized())
+		return 0;
 	return static_cast<unsigned int>(this->surface->w);
 }
 
-unsigned int Image::bpp() const {
+unsigned int Image::bpp() const 
+{
+	if (!this->initialized())
+		return 0;
 	return static_cast<unsigned int>(this->surface->format->BytesPerPixel);
 }
 
-unsigned int Image::depth() const {
+unsigned int Image::depth() const 
+{
+	if (!this->initialized())
+		return 0;
 	return static_cast<unsigned int>(this->surface->format->BitsPerPixel);
 }
 
@@ -233,7 +243,7 @@ size_t Image::size() const
 	return this->width() * this->height() * this->bpp();
 }
 
-bool Image::initialized()
+bool Image::initialized() const 
 {
 	return !this->empty(this->surface);
 }

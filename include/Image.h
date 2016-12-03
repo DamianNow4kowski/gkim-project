@@ -32,7 +32,7 @@ protected:
 	virtual void saveImpl(SDL_Surface *, const char *) = 0;
 
 	void free();
-	bool empty(const SDL_Surface* surf);
+	bool empty(const SDL_Surface* surf) const;
 	SDL_Surface* makeSurface(int, int, int);
 	SDL_Surface *copySurface(const SDL_Surface*);
 
@@ -56,11 +56,7 @@ public:
 	void load(const char *, bool = true);
 	void save(const char *);
 	void preview();
-	bool initialized();
-	// @unsafe
-	SDL_Surface *getSurface(const SDL_PixelFormat* = nullptr);
-	// @unsafe
-	SDL_Surface *getSurface(uint32_t);
+	bool initialized() const;
 
 	/**
 	 * Gets the full pixel data
@@ -92,10 +88,13 @@ public:
 	size_t size() const;
 
 	/**
-	 * @unsafe
-	 * Only for tests
+	 * !!! ATTENTION !!!
+	 * Marked for delete
+	 * !!! ATTENTION !!!
 	 */
 	SDL_Surface* img();
+	SDL_Surface *getSurface(const SDL_PixelFormat* = nullptr);
+	SDL_Surface *getSurface(uint32_t);
 };
 
-#endif // !IMAGE
+#endif // !IMAGE_H
