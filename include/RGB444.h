@@ -10,11 +10,12 @@ class RGB444 : public Image
 	uint8_t algorithm;
 protected:
 	void writeHeader(SDL_Surface *, std::ofstream &);
+	void writeHeader(int, int, uint8_t, uint8_t, std::ofstream &);
 	void readHeader(std::ifstream &, unsigned int &, unsigned int &, uint8_t &, uint8_t &, uint8_t &);
 
 	/**
-     * Load/Save methods 
-	 * !!! Include algorithms here (in switch) !!!
+     * Load/Save methods
+	 * Include your algorithms there in switch
 	 */
 	SDL_Surface *loadImpl(const char *);
 	void saveImpl(SDL_Surface *, const char *);
@@ -22,8 +23,16 @@ protected:
 	/**
 	 * Algorithms
 	 */
-	void loadAlgDefault(SDL_Surface*, char *);
+	void loadAlgDefault(SDL_Surface*, std::ifstream &);
 	void saveAlgDefault(SDL_Surface*, std::ofstream &);
+	void loadAlg444(SDL_Surface*, std::ifstream &);
+	void saveAlg444(SDL_Surface*, std::ofstream &);
+	
+	/**
+	 * Needed for algorithms
+	 */
+	uint8_t getColorOfPixel(SDL_Color, int c);
+	void setColorOfPixel(SDL_Color &, uint8_t, int);
 
 public:
 	RGB444();

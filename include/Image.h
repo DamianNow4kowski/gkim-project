@@ -51,10 +51,12 @@ public:
 	// @unsafe
 	SDL_Surface *getSurface(uint32_t);
 	uint32_t getPixel(uint8_t *, uint8_t) const;
-	uint32_t getPixel(const unsigned int &x, const unsigned int &y, bool = false) const;
-	SDL_Color getPixelColorRGB(const int &x, const int &y) const;
-	void setPixel(SDL_Surface *, const unsigned int &, const unsigned int &, uint32_t, bool = false);
-	void setPixel(const unsigned int &x, const unsigned int &y, uint8_t R, uint8_t G, uint8_t B);
+	uint32_t getPixel(SDL_Surface*, unsigned int, unsigned int, bool = false) const;
+	uint32_t getPixel(unsigned int, unsigned int, bool = false) const;
+	SDL_Color getPixelColor(SDL_Surface*, unsigned int, unsigned int) const;
+	SDL_Color getPixelColor(unsigned int, unsigned int) const;
+	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint32_t, bool = false);
+	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint8_t, uint8_t, uint8_t, bool = false);
 	void convertToGreyScale();
 	unsigned int width() const;
 	unsigned int height() const;

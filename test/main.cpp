@@ -123,6 +123,25 @@ void test_openBMPGreysaveLoad()
     rgb2.preview();
 }
 
+void test_saveOpen444()
+{
+	BMP bmp;
+	bmp.load("test/togrey.bmp");
+	bmp.convertToGreyScale();
+
+	RGB444 rgb2;
+	try {
+		rgb2.init(bmp.getSurface());
+	}
+	catch (const RuntimeError &e) {
+		cout << "Error: " << e.what() << endl;
+	}
+
+	rgb2.save("test/file", 1);
+	rgb2.load("test/file.rgb4");
+	rgb2.preview();
+}
+
 int main()
 {
     // Initialize SDL
@@ -141,7 +160,8 @@ int main()
     //test_GreyScale();
     //test_openSaveOpenBMP();
     //test_RGB444Conversion();
-    test_openBMPGreysaveLoad();
+    //test_openBMPGreysaveLoad();
+	test_saveOpen444();
 
 	system("PAUSE");
 	return 0;

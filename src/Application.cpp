@@ -2,7 +2,6 @@
 #include "SDL_Local.h"
 #include "BMP.h"
 #include "Huffman.h"
-#include "Own.h"
 
 using namespace std;
 
@@ -38,12 +37,6 @@ int main(int argc, char *argv[])
 	cout << "Loaded image dimensions: " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
 
 	//bmp_surface->preview();
-
-	//Własny format
-	//Own own(bmp_surface->img());
-	//own.saveFile("test.f");
-	//Own own;
-	//own.readFile("test.f").preview();
 
 	Huffman *huff = new Huffman(bmp_surface);
 	huff->decode();

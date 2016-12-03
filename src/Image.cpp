@@ -179,11 +179,11 @@ uint32_t Image::getPixel(uint8_t *pixel, uint8_t bpp) const {
  * @param y y-axis
  * @return full pixel data in Uint32 format
  */
-uint32_t Image::getPixel(const unsigned int &x, const unsigned int &y, bool debug) const
+uint32_t Image::getPixel(SDL_Surface *surf, unsigned int x, unsigned int y, bool debug) const
 {
 	uint8_t *pixel, bpp;
-	bpp = this->surface->format->BytesPerPixel;
-	pixel = reinterpret_cast<uint8_t *>(this->surface->pixels) + y * this->surface->pitch + x * bpp;
+	bpp = surf->format->BytesPerPixel;
+	pixel = reinterpret_cast<uint8_t *>(surf->pixels) + y * surf->pitch + x * bpp;
 
 	if (!debug)
 		return this->getPixel(pixel, bpp);
@@ -195,12 +195,22 @@ uint32_t Image::getPixel(const unsigned int &x, const unsigned int &y, bool debu
 	return ret;
 }
 
-SDL_Color Image::getPixelColorRGB(const int &x, const int &y) const
+uint32_t Image::getPixel(unsigned int x, unsigned int y, bool debug) const
 {
-	uint32_t color = this->getPixel(x, y);
+	return this->getPixel(this->surface, x, y, debug);
+}
+
+SDL_Color Image::getPixelColor(SDL_Surface *surf, unsigned int x, unsigned int y) const
+{
+	uint32_t color = this->getPixel(surf, x, y);
 	SDL_Color rgb;
-	SDL_GetRGB(color, this->surface->format, &rgb.r, &rgb.g, &rgb.b);
+	SDL_GetRGB(color, surf->format, &rgb.r, &rgb.g, &rgb.b);
 	return rgb;
+}
+
+SDL_Color Image::getPixelColor(unsigned int x, unsigned int y) const
+{
+	return this->getPixelColor(this->surface, x, y);
 }
 
 unsigned int Image::height() const
@@ -289,7 +299,7 @@ SDL_Surface *Image::img() {
 }
 
 
-void Image::setPixel(SDL_Surface *surface, const unsigned int &x, const unsigned int &y, uint32_t pixel, bool debug)
+void Image::setPixel(SDL_Surface *surface, unsigned int x, unsigned int y, uint32_t pixel, bool debug)
 {
 	if (x >= static_cast<unsigned int>(surface->w) || y >= static_cast<unsigned int>(surface->h))
 		throw RuntimeError("Specified coordinates are above the surface range.");
@@ -354,16 +364,13 @@ void Image::setPixel(SDL_Surface *surface, const unsigned int &x, const unsigned
 	}
 }
 
-void Image::setPixel(const unsigned int &x, const unsigned int &y, uint8_t R, uint8_t G, uint8_t B)
+void Image::setPixel(SDL_Surface *surf, unsigned int x, unsigned int y, uint8_t R, uint8_t G, uint8_t B, bool debug)
 {
-	if (x < 0 || x >= this->w || y < 0 || y >= this->h)
-		throw RuntimeError("Error during setting pixel.");
-
 	uint32_t pixel;
-	pixel = SDL_MapRGB(this->surface->format, R, G, B);
+	pixel = SDL_MapRGB(surf->format, R, G, B);
 
 	// Invoke main function
-	this->setPixel(this->surface, x, y, pixel);
+	this->setPixel(surf, x, y, pixel, debug);
 }
 
 SDL_Surface* Image::makeSurface(int w, int h, int depth)
@@ -383,7 +390,7 @@ void Image::convertToGreyScale()
 	{
 		for (y = 0; y < this->h; ++y)
 		{
-			color = this->getPixelColorRGB(x, y);
+			color = this->getPixelColor(x, y);
 
 			/**
 			 * Greyscale standard?
@@ -391,7 +398,7 @@ void Image::convertToGreyScale()
 			 */
 			 // bw = color.r*0.299 + color.g*0.587 + color.b*0.114;
 			bw = static_cast<uint8_t>(0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b);
-			this->setPixel(x, y, bw, bw, bw);
+			this->setPixel(this->surface, x, y, bw, bw, bw);
 		}
 	}
 }

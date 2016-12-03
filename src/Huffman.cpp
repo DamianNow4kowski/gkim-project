@@ -209,7 +209,7 @@ void Huffman::readCodes(std::ifstream &ifile)
 				}
 			}
 
-			bmp->setPixel(i, j, ccc.r, ccc.g, ccc.b);
+			bmp->setPixel(surf, i, j, ccc.r, ccc.g, ccc.b);
 			vec.clear();
 		}
 	}
