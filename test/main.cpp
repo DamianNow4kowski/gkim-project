@@ -142,6 +142,21 @@ void test_saveOpen444()
 	rgb2.preview();
 }
 
+void test_copyConstructors()
+{
+	BMP bmp, *bmpDyn;
+	bmp.load("test/togrey.bmp");
+
+	RGB444 rgb(bmp);
+	rgb.convertToGreyScale();
+	//rgb.preview();
+
+	bmp.preview();
+	bmpDyn = new BMP(rgb);
+	bmpDyn->preview();
+	delete bmpDyn;
+}
+
 int main()
 {
     // Initialize SDL
@@ -161,7 +176,8 @@ int main()
     //test_openSaveOpenBMP();
     //test_RGB444Conversion();
     //test_openBMPGreysaveLoad();
-	test_saveOpen444();
+	//test_saveOpen444();
+	test_copyConstructors();
 
 	system("PAUSE");
 	return 0;

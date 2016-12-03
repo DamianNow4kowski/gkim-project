@@ -40,7 +40,11 @@ RGB444::RGB444()
     : Image(), algorithm(0) {}
 RGB444::RGB444(uint8_t alg) 
     : Image(), algorithm(alg) {}
-RGB444::RGB444(SDL_Surface *surface)
+RGB444::RGB444(const Image &bempe)
+	: Image(bempe), algorithm(0)
+{
+}
+RGB444::RGB444(const SDL_Surface *surface)
     : Image(surface), algorithm(0) {}
 RGB444::RGB444(const char *file)
     : Image(file), algorithm(0) {}

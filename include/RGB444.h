@@ -3,7 +3,7 @@
 
 #include <fstream>
 #include "Image.h"
-//#include "BMP.h"
+#include "BMP.h"
 
 class RGB444 : public Image
 {
@@ -37,7 +37,9 @@ protected:
 public:
 	RGB444();
 	RGB444(uint8_t);
-	RGB444(SDL_Surface *);
+	RGB444(const Image &);
+	RGB444(const SDL_Surface *);
+
 	RGB444(const char *);
 	void save(const char *, uint8_t = 0);
 	//RGB444(BMP *);

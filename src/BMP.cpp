@@ -2,7 +2,9 @@
 
 BMP::BMP()
     : Image() {}
-BMP::BMP(SDL_Surface *surface)
+BMP::BMP(const Image &img)
+	: Image(img) {}
+BMP::BMP(const SDL_Surface *surface)
     : Image(surface) {}
 BMP::BMP(const char *file)
     : Image(file) {}

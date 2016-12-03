@@ -18,10 +18,9 @@ void Image::free()
 		SDL_FreeSurface(this->surface);
 }
 
-bool Image::empty(SDL_Surface * surf)
+bool Image::empty(const SDL_Surface *surf)
 {
-	// TODO: verify if nullptr == NULL ???
-	return surf == nullptr || surf == NULL;
+	return surf == NULL;
 }
 
 /**
@@ -30,17 +29,19 @@ bool Image::empty(SDL_Surface * surf)
 
  // construct
 Image::Image()
-	: surface(nullptr), w(0), h(0), bitspp(0), bytespp(0)
+	: surface(NULL), w(0), h(0), bitspp(0), bytespp(0)
 {}
 
-Image::Image(SDL_Surface *surface) : Image()
+Image::Image(const Image &img)
+	: surface(copySurface(img.surface)), w(img.w), h(img.h), bitspp(img.bitspp), bytespp(img.bytespp)
 {
-	try {
-		this->init(surface);
-	}
-	catch (const RuntimeError &err) {
-		std::cerr << "Error while loading to SDL_Surface*: " << err.what() << std::endl;
-	}
+	// throws RuntimeError if surf == NULL
+}
+
+Image::Image(const SDL_Surface *surf) 
+	: surface(copySurface(surf)), w(surf->w), h(surf->h), bitspp(surf->format->BitsPerPixel), bytespp(surf->format->BytesPerPixel)
+{
+	// throws RuntimeError if surf == NULL
 }
 
 Image::Image(const char *file) : Image()
@@ -179,7 +180,7 @@ uint32_t Image::getPixel(uint8_t *pixel, uint8_t bpp) const {
  * @param y y-axis
  * @return full pixel data in Uint32 format
  */
-uint32_t Image::getPixel(SDL_Surface *surf, unsigned int x, unsigned int y, bool debug) const
+uint32_t Image::getPixel(const SDL_Surface *surf, unsigned int x, unsigned int y, bool debug) const
 {
 	uint8_t *pixel, bpp;
 	bpp = surf->format->BytesPerPixel;
@@ -200,7 +201,7 @@ uint32_t Image::getPixel(unsigned int x, unsigned int y, bool debug) const
 	return this->getPixel(this->surface, x, y, debug);
 }
 
-SDL_Color Image::getPixelColor(SDL_Surface *surf, unsigned int x, unsigned int y) const
+SDL_Color Image::getPixelColor(const SDL_Surface *surf, unsigned int x, unsigned int y) const
 {
 	uint32_t color = this->getPixel(surf, x, y);
 	SDL_Color rgb;
@@ -375,10 +376,39 @@ void Image::setPixel(SDL_Surface *surf, unsigned int x, unsigned int y, uint8_t 
 
 SDL_Surface* Image::makeSurface(int w, int h, int depth)
 {
-	SDL_Surface *surf;
-	if ((surf = SDL_CreateRGBSurface(0, w, h, depth, 0, 0, 0, 0)) == NULL)
+	SDL_Surface *surf = SDL_CreateRGBSurface(0, w, h, depth, 0, 0, 0, 0);
+	if(empty(surf))
 		throw RuntimeError();
 	return surf;
+}
+
+/**
+ * Creates copy of SDL_Surface
+ * @param SDL_Surface* pointer to surface that is being copied
+ * @return SDL_Surface* pointer to newly created surface
+ */
+SDL_Surface * Image::copySurface(const SDL_Surface *surf)
+{
+	if (this->empty(surf))
+		throw RuntimeError("Cannot copy not existing surface.");
+
+	uint32_t pix;
+	int x, y, w, h;
+	SDL_Surface* new_surface;
+	w = surf->w;
+	h = surf->h;
+
+	new_surface = this->makeSurface(w, h, surf->format->BitsPerPixel);
+
+	// Simple copying algorithm
+	for (y = 0; y < h; ++y) {
+		for (x = 0; x < w; ++x) {
+			pix = this->getPixel(surf, x, y);
+			this->setPixel(new_surface, x, y, pix);
+		}
+	}
+
+	return new_surface;
 }
 
 void Image::convertToGreyScale()

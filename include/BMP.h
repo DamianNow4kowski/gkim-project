@@ -11,7 +11,8 @@ protected:
 
 public:
   BMP();
-  BMP(SDL_Surface *);
+  BMP(const Image &);
+  BMP(const SDL_Surface *);
   BMP(const char *);
   const char *extension() const;
 };
