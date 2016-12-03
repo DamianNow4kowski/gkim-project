@@ -8,9 +8,12 @@
 class Image
 {
 private:
+	// Default container for pixels
 	SDL_Surface *surface;
-	unsigned int w, h;
-	uint8_t bitspp, bytespp;
+
+	/**
+	 * Needed for Image::preview()
+	 */
 	SDL_Texture *texturize(SDL_Renderer *);
 
 protected:
@@ -59,14 +62,29 @@ public:
 	// @unsafe
 	SDL_Surface *getSurface(uint32_t);
 
+	/**
+	 * Gets the full pixel data
+	 */
 	uint32_t getPixel(uint8_t *, uint8_t) const;
 	uint32_t getPixel(const SDL_Surface*, unsigned int, unsigned int, bool = false) const;
 	uint32_t getPixel(unsigned int, unsigned int, bool = false) const;
+
+	/**
+	 * Gets SDL_Color of pixel
+	 */
 	SDL_Color getPixelColor(const SDL_Surface*, unsigned int, unsigned int) const;
 	SDL_Color getPixelColor(unsigned int, unsigned int) const;
+
+	/**
+	 * Sets pixel
+	 */
 	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint32_t, bool = false);
 	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint8_t, uint8_t, uint8_t, bool = false);
 	void convertToGreyScale();
+
+	/**
+	 * Gets information of the surface
+	 */
 	unsigned int width() const;
 	unsigned int height() const;
 	unsigned int bpp() const;

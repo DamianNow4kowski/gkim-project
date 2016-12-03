@@ -29,17 +29,17 @@ bool Image::empty(const SDL_Surface *surf)
 
  // construct
 Image::Image()
-	: surface(NULL), w(0), h(0), bitspp(0), bytespp(0)
+	: surface(NULL)
 {}
 
 Image::Image(const Image &img)
-	: surface(copySurface(img.surface)), w(img.w), h(img.h), bitspp(img.bitspp), bytespp(img.bytespp)
+	: surface(copySurface(img.surface))
 {
 	// throws RuntimeError if surf == NULL
 }
 
 Image::Image(const SDL_Surface *surf) 
-	: surface(copySurface(surf)), w(surf->w), h(surf->h), bitspp(surf->format->BitsPerPixel), bytespp(surf->format->BytesPerPixel)
+	: surface(copySurface(surf))
 {
 	// throws RuntimeError if surf == NULL
 }
@@ -78,10 +78,6 @@ void Image::init(SDL_Surface *surface)
 		this->free();
 
 	this->surface = surface;
-	this->w = static_cast<unsigned int>(surface->w);
-	this->h = static_cast<unsigned int>(surface->h);
-	this->bitspp = surface->format->BitsPerPixel;
-	this->bytespp = surface->format->BytesPerPixel;
 }
 
 /**
@@ -216,25 +212,25 @@ SDL_Color Image::getPixelColor(unsigned int x, unsigned int y) const
 
 unsigned int Image::height() const
 {
-	return this->h;
+	return static_cast<unsigned int>(this->surface->h);
 }
 
 unsigned int Image::width() const
 {
-	return this->w;
+	return static_cast<unsigned int>(this->surface->w);
 }
 
 unsigned int Image::bpp() const {
-	return static_cast<unsigned int>(this->bytespp);
+	return static_cast<unsigned int>(this->surface->format->BytesPerPixel);
 }
 
 unsigned int Image::depth() const {
-	return static_cast<unsigned int>(this->bitspp);
+	return static_cast<unsigned int>(this->surface->format->BitsPerPixel);
 }
 
 size_t Image::size() const
 {
-	return static_cast<size_t>(this->w * this->h * this->bytespp);
+	return this->width() * this->height() * this->bpp();
 }
 
 bool Image::initialized()
@@ -262,7 +258,7 @@ void Image::preview()
 		return;
 	}
 
-	SDL_Window *window = SDL_CreateWindow("Preview Image", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, this->w, this->h, SDL_WINDOW_SHOWN);
+	SDL_Window *window = SDL_CreateWindow("Preview Image", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, this->surface->w, this->surface->h, SDL_WINDOW_SHOWN);
 	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	SDL_Texture* texture = this->texturize(renderer);
 	SDL_Event e;
@@ -413,12 +409,14 @@ SDL_Surface * Image::copySurface(const SDL_Surface *surf)
 
 void Image::convertToGreyScale()
 {
-	unsigned int x, y;
+	unsigned int x, y, w, h;
 	SDL_Color color;
 	uint8_t bw;
-	for (x = 0; x < this->w; ++x)
+	w = this->width();
+	h = this->height();
+	for (x = 0; x < w; ++x)
 	{
-		for (y = 0; y < this->h; ++y)
+		for (y = 0; y < h; ++y)
 		{
 			color = this->getPixelColor(x, y);
 
