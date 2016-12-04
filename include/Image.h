@@ -36,12 +36,15 @@ protected:
 	SDL_Surface* makeSurface(int, int, int);
 	SDL_Surface *copySurface(const SDL_Surface*);
 
+	// Directly attach SDL_Surface (like for move constructor or RGB444 convert)
+	Image(SDL_Surface *);
+
 public:
 	// Construct
 	Image();
 	Image(const Image &);
 	Image(const SDL_Surface *);
-	Image(const char *);
+	//Image(const char *); TODO: Discuss if we need this, coz it's hard to make it work
 
 	// Virtual desctruct due to abstraction of this class
 	virtual ~Image();
@@ -52,7 +55,7 @@ public:
 	virtual const char *extension() const = 0;
 
 	// Functions
-	void init(SDL_Surface *);
+	void init(SDL_Surface *); // !!!soon will be private
 	void load(const char *, bool = true);
 	void save(const char *);
 	void preview();
@@ -76,11 +79,13 @@ public:
 	 */
 	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint32_t, bool = false);
 	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint8_t, uint8_t, uint8_t, bool = false);
+	void setPixel(unsigned int, unsigned int, uint8_t, uint8_t, uint8_t, bool = false);
 	void convertToGreyScale();
 
 	/**
 	 * Gets information of the surface
 	 */
+	const SDL_Surface* img() const;
 	unsigned int width() const;
 	unsigned int height() const;
 	unsigned int bpp() const;
@@ -92,7 +97,6 @@ public:
 	 * Marked for delete
 	 * !!! ATTENTION !!!
 	 */
-	SDL_Surface* img();
 	SDL_Surface *getSurface(const SDL_PixelFormat* = nullptr);
 	SDL_Surface *getSurface(uint32_t);
 };

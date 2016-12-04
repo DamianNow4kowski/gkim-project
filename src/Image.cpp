@@ -12,10 +12,16 @@ using namespace std;
 /**
  * PRIVATE
  */
+
+/**
+ * Deallocate object's dynamic memory
+ */
 void Image::free()
 {
-	if (this->initialized())
-		SDL_FreeSurface(this->surface);
+	// Note: it is safe to pass NULL to this function
+	// @see https://wiki.libsdl.org/SDL_FreeSurface#Remarks
+	SDL_FreeSurface(this->surface);
+	this->surface = NULL;
 }
 
 bool Image::empty(const SDL_Surface *surf) const
@@ -35,25 +41,22 @@ Image::Image()
 Image::Image(const Image &img)
 	: surface(copySurface(img.surface))
 {
-	// throws RuntimeError if surf == NULL
+	// copySurface() throws RuntimeError if surf == NULL
+}
+
+// Directly attach SDL_Surface (like for move constructor or RGB444 convert)
+Image::Image(SDL_Surface *surf)
+	: surface(surf)
+{
+	std::cout << "Not copy SDL_Surface*" << std::endl;
+	// copySurface() throws RuntimeError if surf == NULL
 }
 
 Image::Image(const SDL_Surface *surf) 
 	: surface(copySurface(surf))
 {
-	// throws RuntimeError if surf == NULL
-}
-
-Image::Image(const char *file) : Image()
-{
-	if (!this->initialized())
-	{
-		std::cerr << "Cannot preview uninitialized image." << std::endl;
-		// throw RuntimeError("Cannot preview uninitialized image.");
-		return;
-	}
-
-	this->load(file);
+	std::cout << "Copy SDL_Surface*" << std::endl;
+	// copySurface() throws RuntimeError if surf == NULL
 }
 
 // destruct
@@ -74,6 +77,7 @@ void Image::init(SDL_Surface *surface)
 		return;
 	}
 
+	// Deallocate memory before initializing again
 	if (this->initialized())
 		this->free();
 
@@ -104,9 +108,8 @@ void Image::load(const char *file, bool requireVaildExt)
 				std::cerr << "Warning: Loaded extension is invaild." << std::endl;
 		}
 
-		// Opening a file
+		// Load surface
 		this->init(this->loadImpl(file));
-
 	}
 	catch (const RuntimeError &err)
 	{
@@ -298,7 +301,7 @@ void Image::preview()
 	SDL_DestroyWindow(window);
 }
 
-SDL_Surface *Image::img() {
+const SDL_Surface *Image::img() const {
 	if (!this->initialized())
 		throw RuntimeError("Trying to access uninitialized surface.");
 
@@ -380,6 +383,11 @@ void Image::setPixel(SDL_Surface *surf, unsigned int x, unsigned int y, uint8_t 
 	this->setPixel(surf, x, y, pixel, debug);
 }
 
+void Image::setPixel(unsigned int x, unsigned int y, uint8_t r, uint8_t g, uint8_t b, bool debug)
+{
+	this->setPixel(this->surface, x, y, r, g, b, debug);
+}
+
 SDL_Surface* Image::makeSurface(int w, int h, int depth)
 {
 	SDL_Surface *surf = SDL_CreateRGBSurface(0, w, h, depth, 0, 0, 0, 0);
@@ -393,8 +401,9 @@ SDL_Surface* Image::makeSurface(int w, int h, int depth)
  * @param SDL_Surface* pointer to surface that is being copied
  * @return SDL_Surface* pointer to newly created surface
  */
-SDL_Surface * Image::copySurface(const SDL_Surface *surf)
+SDL_Surface *Image::copySurface(const SDL_Surface *surf)
 {
+	std::cout << "- Original copy surface" << std::endl;
 	if (this->empty(surf))
 		throw RuntimeError("Cannot copy not existing surface.");
 

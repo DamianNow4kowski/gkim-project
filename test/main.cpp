@@ -31,7 +31,7 @@ void testFileHandler()
     cout << "Test 6 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
 }
 
-void testSDL_RGB444()
+/*void testSDL_RGB444()
 {
     cout << "Testing original SDL_Convert from BMP to RGB444" << endl;
     BMP *bmp_surface = new BMP();
@@ -61,7 +61,7 @@ void testSDL_RGB444()
     alg->printCodes();
     delete alg;
     delete bmp_surface;
-}
+}*/
 
 void test_GreyScale() {
     BMP *bmp_surface = new BMP();
@@ -145,6 +145,36 @@ void test_copyConstructors()
 	delete bmpDyn;
 }
 
+void test_converSurface() 
+{
+	BMP bmp;
+	bmp.load("test/togrey.bmp");
+
+	// Convert then not copy
+	RGB444 rgb(bmp.img());
+	rgb.preview();
+
+	// Convert then not copy
+	RGB444 rgb2(bmp);
+	rgb2.preview();
+
+	// Copy then not copy
+	SDL_Surface* copy = bmp.getSurface(SDL_PIXELFORMAT_RGB444);
+	RGB444 rgb3(copy);
+	rgb3.preview();
+
+	// Copy
+	BMP *dynbmp = new BMP(bmp);
+	BMP bmp2(*dynbmp);
+	delete dynbmp;
+	bmp2.preview();
+	
+	// Copy
+	RGB444 rgb4(rgb3);
+	rgb4.convertToGreyScale();
+	rgb4.preview();
+}
+
 int main()
 {
     // Initialize SDL
@@ -164,8 +194,9 @@ int main()
     //test_openSaveOpenBMP();
     //test_RGB444Conversion();
 	//test_openBMPtoGreySaveRGB44Load();
-	test_saveOpen444();
+	//test_saveOpen444();
 	//test_copyConstructors();
+	test_converSurface();
 
 	system("PAUSE");
 	return 0;

@@ -12,6 +12,7 @@ protected:
 	void writeHeader(SDL_Surface *, std::ofstream &);
 	void writeHeader(int, int, uint8_t, uint8_t, std::ofstream &);
 	void readHeader(std::ifstream &, unsigned int &, unsigned int &, uint8_t &, uint8_t &, uint8_t &);
+	SDL_Surface * convertSurface(const SDL_Surface*);
 
 	/**
      * Load/Save methods
@@ -36,13 +37,11 @@ protected:
 
 public:
 	RGB444();
-	RGB444(uint8_t);
+	RGB444(const RGB444 &);
 	RGB444(const Image &);
 	RGB444(const SDL_Surface *);
 
-	RGB444(const char *);
 	void save(const char *, uint8_t = 0);
-	//RGB444(BMP *);
 	const char *extension() const;
 };
 

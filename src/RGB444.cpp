@@ -37,17 +37,28 @@ void RGB444::setColorOfPixel(SDL_Color &color, uint8_t value, int which)
 }
 
 RGB444::RGB444()
-    : Image(), algorithm(0) {}
-RGB444::RGB444(uint8_t alg) 
-    : Image(), algorithm(alg) {}
+    : Image(), algorithm(0) 
+{}
+
 RGB444::RGB444(const Image &bempe)
-	: Image(bempe), algorithm(0)
+	: Image(convertSurface(bempe.img())), algorithm(0)
 {
+	// convertSurface() throws RuntimeError if surf == NULL
+	std::cout << "Should convert Surface" << std::endl;
 }
+
+RGB444::RGB444(const RGB444 &rgbe)
+	: Image(rgbe), algorithm(rgbe.algorithm)
+{
+	std::cout << "Should ONLY copy Surface" << std::endl;
+}
+
 RGB444::RGB444(const SDL_Surface *surface)
-    : Image(surface), algorithm(0) {}
-RGB444::RGB444(const char *file)
-    : Image(file), algorithm(0) {}
+    : Image(convertSurface(surface)), algorithm(0)
+{
+	// convertSurface() throws RuntimeError if surf == NULL
+	std::cout << "Depth != 12 should convert else only copy; BPP = " << (int)surface->format->BitsPerPixel << std::endl;
+}
 
 void RGB444::save(const char *file, uint8_t alg)
 {
@@ -315,6 +326,40 @@ void RGB444::readHeader(std::ifstream &f, unsigned int &w, unsigned int &h, uint
     std::cout << "- Height: " << h << std::endl;
     std::cout << "- Depth: " << (int)depth << std::endl;
     std::cout << "- BPP: " << (int)bpp << std::endl;
+}
+
+/**
+ * Creates copy of SDL_Surface converted to RGB444 format
+ * @param SDL_Surface* pointer to surface that is being converted
+ * @return SDL_Surface* pointer to newly created surface
+ */
+SDL_Surface *RGB444::convertSurface(const SDL_Surface *surf)
+{
+	if (surf->format->BitsPerPixel == 12)
+		return this->copySurface(surf);
+
+	std::cout << "- Convert surface" << std::endl;
+	if (this->empty(surf))
+		throw RuntimeError("Cannot copy not existing surface.");
+
+	uint32_t pix;
+	int x, y, w, h;
+	SDL_Surface* new_surface;
+	w = surf->w;
+	h = surf->h;
+
+	new_surface = this->makeSurface(w, h, surf->format->BitsPerPixel);
+
+	// TODO: Finish this
+	// Simple copying algorithm
+	for (y = 0; y < h; ++y) {
+		for (x = 0; x < w; ++x) {
+			pix = this->getPixel(surf, x, y);
+			this->setPixel(new_surface, x, y, pix);
+		}
+	}
+
+	return new_surface;
 }
 
 void RGB444::writeHeader(SDL_Surface *surf, std::ofstream &f)
