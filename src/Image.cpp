@@ -41,21 +41,22 @@ Image::Image()
 Image::Image(const Image &img)
 	: surface(copySurface(img.surface))
 {
+	std::cout << "[Image]: Public const Image& constructor. (COPIED SURFACE)" << std::endl;
 	// copySurface() throws RuntimeError if surf == NULL
 }
 
-// Directly attach SDL_Surface (like for move constructor or RGB444 convert)
+// Directly attach SDL_Surface (like for planned move constructor or RGB444 convert)
 Image::Image(SDL_Surface *surf)
 	: surface(surf)
 {
-	std::cout << "Not copy SDL_Surface*" << std::endl;
-	// copySurface() throws RuntimeError if surf == NULL
+	std::cout << "[Image]: Protected [not const] SDL_Surface* constructor. (DIDN'T COPY SURFACE)" << std::endl;
+	// it is safe to pass NULL as *surf
 }
 
 Image::Image(const SDL_Surface *surf) 
 	: surface(copySurface(surf))
 {
-	std::cout << "Copy SDL_Surface*" << std::endl;
+	std::cout << "[Image]: Public const SDL_Surface* constructor. (COPIED SURFACE)" << std::endl;
 	// copySurface() throws RuntimeError if surf == NULL
 }
 
@@ -403,7 +404,7 @@ SDL_Surface* Image::makeSurface(int w, int h, int depth)
  */
 SDL_Surface *Image::copySurface(const SDL_Surface *surf)
 {
-	std::cout << "- Original copy surface" << std::endl;
+	std::cout << "[Debug]: *** Copying surface." << std::endl;
 	if (this->empty(surf))
 		throw RuntimeError("Cannot copy not existing surface.");
 

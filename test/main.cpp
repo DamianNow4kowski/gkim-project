@@ -83,22 +83,16 @@ void test_openSaveOpenBMP() {
     delete bmp_surface;
 }
 
-void test_RGB444Conversion() {
+void test_RGB444Conversion() 
+{
     BMP *bmp = new BMP();
     bmp->load("test/rgbcube.bmp");
     bmp->preview();
 
-    // @unsafe here
-    SDL_Surface *surface = bmp->getSurface(SDL_PIXELFORMAT_RGB444);
-    RGB444 *test = new RGB444(surface);
+    RGB444 *test = new RGB444(bmp->img());
     delete bmp;
 
-    /**
-     * - Too much previews() causes segmentation fault ???
-     */
-
-    test->convertToGreyScale();
-    test->preview();
+	test->preview();
 
     delete test;
 }
@@ -122,12 +116,13 @@ void test_saveOpen444()
 {
 	BMP bmp;
 	bmp.load("test/togrey.bmp");
-	bmp.convertToGreyScale();
 
 	RGB444 rgb2(bmp);
+	//rgb2.convertToGreyScale();
 	rgb2.save("test/file", 1);
 	rgb2.load("test/file.rgb4");
 	rgb2.preview();
+	bmp.preview();
 }
 
 void test_copyConstructors()
@@ -145,10 +140,11 @@ void test_copyConstructors()
 	delete bmpDyn;
 }
 
-void test_converSurface() 
+void test_convertSurface() 
 {
 	BMP bmp;
 	bmp.load("test/togrey.bmp");
+	bmp.preview();
 
 	// Convert then not copy
 	RGB444 rgb(bmp.img());
@@ -165,6 +161,7 @@ void test_converSurface()
 
 	// Copy
 	BMP *dynbmp = new BMP(bmp);
+	//BMP bmp2(std::move(*dynbmp)); todo
 	BMP bmp2(*dynbmp);
 	delete dynbmp;
 	bmp2.preview();
@@ -196,7 +193,7 @@ int main()
 	//test_openBMPtoGreySaveRGB44Load();
 	//test_saveOpen444();
 	//test_copyConstructors();
-	test_converSurface();
+	test_convertSurface();
 
 	system("PAUSE");
 	return 0;

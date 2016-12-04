@@ -44,20 +44,21 @@ RGB444::RGB444(const Image &bempe)
 	: Image(convertSurface(bempe.img())), algorithm(0)
 {
 	// convertSurface() throws RuntimeError if surf == NULL
-	std::cout << "Should convert Surface" << std::endl;
+	std::cout << "[RGB444]: Convert surface then run public Image(SDL_Surface*) constructor." << std::endl;
 }
 
 RGB444::RGB444(const RGB444 &rgbe)
 	: Image(rgbe), algorithm(rgbe.algorithm)
 {
-	std::cout << "Should ONLY copy Surface" << std::endl;
+	std::cout << "[RBG444]: Public const RGB444& constructor run public Image(const Image&) constructor." << std::endl;
 }
 
 RGB444::RGB444(const SDL_Surface *surface)
     : Image(convertSurface(surface)), algorithm(0)
 {
 	// convertSurface() throws RuntimeError if surf == NULL
-	std::cout << "Depth != 12 should convert else only copy; BPP = " << (int)surface->format->BitsPerPixel << std::endl;
+	std::cout << "[RGB444]: " << ((surface->format->BitsPerPixel == 12) ? "Copy" : "Convert") 
+		<< " surface then run protected Image(SDL_Surface*) constructor. [Depth = " << (int)surface->format->BitsPerPixel << "]" << std::endl;
 }
 
 void RGB444::save(const char *file, uint8_t alg)
@@ -177,8 +178,11 @@ void RGB444::loadAlg444(SDL_Surface *surf, std::ifstream &f)
 	{
 		for (k = 0; k < 2; ++k)
 		{
-			if (k == 0)
+			if (k == 0) 
+			{
+				//this->setColorOfPixel(pixel, usedChar, colorToCode); // works just fine?
 				this->setColorOfPixel(pixel, ((usedChar >> 4) << 4), colorToCode);
+			}
 			else
 				this->setColorOfPixel(pixel, (usedChar << 4), colorToCode);
 
@@ -329,7 +333,7 @@ void RGB444::readHeader(std::ifstream &f, unsigned int &w, unsigned int &h, uint
 }
 
 /**
- * Creates copy of SDL_Surface converted to RGB444 format
+ * Creates copy of SDL_Surface converted to RGB444 format (every color has 4 siginificant bits)
  * @param SDL_Surface* pointer to surface that is being converted
  * @return SDL_Surface* pointer to newly created surface
  */
@@ -338,24 +342,29 @@ SDL_Surface *RGB444::convertSurface(const SDL_Surface *surf)
 	if (surf->format->BitsPerPixel == 12)
 		return this->copySurface(surf);
 
-	std::cout << "- Convert surface" << std::endl;
+	std::cout << "[Debug]: *** Converting surface." << std::endl;
 	if (this->empty(surf))
 		throw RuntimeError("Cannot copy not existing surface.");
 
-	uint32_t pix;
 	int x, y, w, h;
 	SDL_Surface* new_surface;
+	SDL_Color color;
 	w = surf->w;
 	h = surf->h;
 
-	new_surface = this->makeSurface(w, h, surf->format->BitsPerPixel);
+	new_surface = this->makeSurface(w, h, 12);
 
-	// TODO: Finish this
-	// Simple copying algorithm
 	for (y = 0; y < h; ++y) {
-		for (x = 0; x < w; ++x) {
-			pix = this->getPixel(surf, x, y);
-			this->setPixel(new_surface, x, y, pix);
+		for (x = 0; x < w; ++x) 
+		{
+			color = this->getPixelColor(surf, x, y);
+
+			// Convert each color to have 4 siginificant bits
+			color.r = (color.r >> 4) << 4;
+			color.g = (color.g >> 4) << 4;
+			color.b = (color.b >> 4) << 4;
+
+			this->setPixel(new_surface, x, y, color.r, color.g, color.b);
 		}
 	}
 
