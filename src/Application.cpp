@@ -3,6 +3,9 @@
 #include "BMP.h"
 #include "Huffman.h"
 
+#include "CodeHandler.h"
+#include <array>
+
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -41,11 +44,10 @@ int main(int argc, char *argv[])
 	Huffman *huff = new Huffman(bmp_surface);
 	huff->decode();
 
-
 	cout << "Finished" << endl;
 
 	// Clean
-	delete huff;
+//	delete huff;
 	delete bmp_surface;
 
 	// I don't want it on linux, sorry

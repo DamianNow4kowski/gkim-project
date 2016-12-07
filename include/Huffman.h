@@ -2,8 +2,9 @@
 #define HUFFMAN_H
 
 #include <queue>
-#include <map>
 #include <fstream>
+#include <array>
+#include <utility>
 
 #include "Image.h"
 #include "ColorCounter.h"
@@ -13,8 +14,9 @@ class Huffman
 {
 private:
 	Image *image;
-	std::map<Uint32, std::vector<bool>> *codeMap;
 	ColorCounter *clrCntr;
+
+	std::vector <std::pair<Uint32, std::vector<bool>>> codeVec;
 
 public:
 	Huffman(Image *image);
@@ -23,7 +25,7 @@ public:
 	void encode();
 	void decode();
 	void buildTree();
-	void generateCodes(Node<SingleColorData> *node, std::vector<bool> &code, std::map<Uint32, std::vector<bool>> &map);
+	void generateCodes(Node<SingleColorData> *node, std::vector<bool> &code);
 	void printCodes() const;
 	void countFreq();
 

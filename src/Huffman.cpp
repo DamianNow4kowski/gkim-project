@@ -11,7 +11,8 @@
 Huffman::Huffman(Image *image)
 {
 	this->image = image;
-	this->codeMap = new std::map<Uint32, std::vector<bool>>();
+//	this->codeMap = new std::map<Uint32, std::vector<bool>>();
+	this->codeVec = std::vector <std::pair<Uint32, std::vector<bool>>>();
 }
 
 Huffman::~Huffman()
@@ -59,26 +60,46 @@ void Huffman::buildTree()
 	std::cout << "Huffman tree has been built." << std::endl;
 
 	std::vector<bool> codes;
-	this->generateCodes(trees.top()->getRoot(), codes, *this->codeMap);
+	this->generateCodes(trees.top()->getRoot(), codes);
+
+	std::sort(codeVec.begin(), codeVec.end(),
+		[](const std::pair<Uint32, std::vector<bool>> &p1, const std::pair<Uint32, std::vector<bool>> &p2)
+		{
+		if (p1.second.size() < p2.second.size())
+			return true;
+		if (p1.second.size() > p2.second.size())
+			return false;
+		for (size_t i = 0; i < p1.second.size(); i++)
+		{
+			if (p1.second[i] < p2.second[i])
+				return true;
+			else if (p1.second[i] > p2.second[i])
+				return false;
+		}
+		return !false;
+	}
+	);
+		
+
 //	this->printCodes();
 }
 
-void Huffman::generateCodes(Node<SingleColorData>* node, std::vector<bool>& code, 
-	std::map<Uint32, std::vector<bool>>& map)
+void Huffman::generateCodes(Node<SingleColorData>* node, std::vector<bool>& code)
 {
 	if (node == nullptr)
 		return;
 	if (node->next == nullptr && node->prev == nullptr) // is leaf
-		map[node->getVar().color] = code;
+		this->codeVec.push_back(std::pair<Uint32, std::vector<bool>>(node->getVar().color, code));
+	//	map[node->getVar().color] = code;
 	else
 	{
 		auto leftPref = code;
 		leftPref.push_back(false);
-		this->generateCodes(node->prev, leftPref, map);
+		this->generateCodes(node->prev, leftPref);
 
 		auto rightPref = code;
 		rightPref.push_back(true);
-		this->generateCodes(node->next, rightPref, map);
+		this->generateCodes(node->next, rightPref);
 	}
 }
 
@@ -86,17 +107,18 @@ void Huffman::printCodes() const
 {
 	// auto = std::map<Uint32, std::vector<bool>>::const_iterator
 	std::cout << "Huffman encoding map:" << std::endl << std::endl;
-	for (auto it = codeMap->begin(); it != codeMap->end(); ++it)
+	for (const auto &v : codeVec)
 	{
-		std::cout << std::hex << std::setfill('0') << std::setw(6) << it->first << " ";
-		std::copy(it->second.begin(), it->second.end(),
-			std::ostream_iterator<bool>(std::cout));
+		std::cout << std::hex << std::setfill('0') << std::setw(6) << v.first << "   ";
+		for (const auto &vv : v.second)
+			std::cout << vv;
 		std::cout << std::endl;
 	}
 
-	//for(unsigned int i = 0; i < this->clrCntr->getCountClr(); i++)
-	//	std::cout << std::hex << std::setfill('0') << std::setw(6) << this->clrCntr->getColor(i).color
-	//	<< "   " << std::dec << this->clrCntr->getColor(i).counter << std::endl;
+	std::cout << std::endl;
+	for(unsigned int i = 0; i < this->clrCntr->getCountClr(); i++)
+		std::cout << std::hex << std::setfill('0') << std::setw(6) << this->clrCntr->getColor(i).color
+		<< "   " << std::dec << this->clrCntr->getColor(i).counter << std::endl;
 }
 
 void Huffman::countFreq()
@@ -158,12 +180,18 @@ void Huffman::saveCodes(std::ofstream &ofile)
 	Uint32 clr;
 	BitsToFile btf(ofile);
 
-	for (int j = 0; j < this->image->height(); j++)
+	for (size_t j = 0; j < this->image->height(); j++)
 	{
-		for (int i = 0; i < this->image->width(); i++)
+		for (size_t i = 0; i < this->image->width(); i++)
 		{
 			clr = this->image->getPixel(i, j);
-			btf.to(this->codeMap->find(clr)->second);
+	//		btf.to(this->codeMap->find(clr)->second);
+			for(auto &v : this->codeVec)
+				if (v.first == clr)
+				{
+					btf.to(v.second);
+					break;
+				}
 		}
 	}
 
@@ -172,8 +200,8 @@ void Huffman::saveCodes(std::ofstream &ofile)
 
 void Huffman::readCodes(std::ifstream &ifile)
 {
-	int w = 500;
-	int h = 500;
+	int w = 259;
+	int h = 213;
 	BMP *bmp = new BMP();
 	SDL_Surface *surf = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
 	bmp->init(surf);
@@ -196,11 +224,11 @@ void Huffman::readCodes(std::ifstream &ifile)
 			{
 				vec.push_back(bff.get());
 
-				for (auto v = this->codeMap->begin(); v != this->codeMap->end(); ++v)
+				for (auto v = this->codeVec.begin(); v != this->codeVec.end(); ++v)
 				{
 					if (v->second == vec)
 					{
-						SDL_GetRGB(v->first, surf->format, &ccc.r, &ccc.g, &ccc.b);
+						SDL_GetRGB(v->first, this->image->img()->format, &ccc.r, &ccc.g, &ccc.b);
 						//std::cout << ccc.r << " " << ccc.g << " " << ccc.b << std::endl;
 						found = true;
 						vec.clear();
