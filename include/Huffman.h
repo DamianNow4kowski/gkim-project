@@ -1,9 +1,8 @@
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
 
-#include <queue>
+#include <vector>
 #include <fstream>
-#include <array>
 #include <utility>
 
 #include "Image.h"
@@ -18,7 +17,7 @@ private:
 	std::vector<std::pair<Uint32, Uint32>> colorFreqs;
 
 	void countFreq();
-	void generateCodes(Node *node, std::vector<bool> &code);
+	void generateCodes(const Node *node, std::vector<bool> &code);
 	void buildTree();
 
 	void printCodes() const;

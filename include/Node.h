@@ -7,25 +7,18 @@
 
 class Node
 {
-public:
+private:
 	std::pair<Uint32, Uint32> colorData;
 	Node *right;
 	Node *left;
 
-	Node(std::pair<Uint32, Uint32> colorData)
-		: colorData(colorData), right(nullptr), left(nullptr) {}
+public:
+	Node(std::pair<Uint32, Uint32> colorData);
+	Node(Node *l, Node *r);
+	~Node();
 
-	Node(Node *l, Node *r)
-		: left(l), right(r)
-	{
-		std::pair<Uint32, Uint32> clrData;
-		clrData.first = -1;
-		clrData.second = l->colorData.second + r->colorData.second;
-		colorData = clrData;
-	}
-
-	~Node() 
-		{ delete right; delete left; }
+	friend class Huffman;
+	friend struct NodeCmp;
 };
 
 struct NodeCmp

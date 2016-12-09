@@ -9,6 +9,11 @@
 
 using namespace std;
 
+/*
+USING NAMESPACE STD - DO USUNIECIA
+NULL --> NULLPTR
+*/
+
 /**
  * PRIVATE
  */
@@ -127,14 +132,17 @@ void Image::save(const char *file)
 		return;
 	}
 
-	try {
+	try 
+	{
 		const char *ext = this->extension();
-		if (!FileHandler::verifyExtension(file, ext)) {
+		if (!FileHandler::verifyExtension(file, ext))
+		{
 			std::ostringstream fn;
 			fn << file << '.' << ext;
 			this->saveImpl(this->surface, fn.str().c_str());
 		}
-		else {
+		else 
+		{
 			this->saveImpl(this->surface, file);
 		}
 	}

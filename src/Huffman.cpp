@@ -1,13 +1,13 @@
 #include "Huffman.h"
+
 #include "BitsToFile.h"
+#include "BMP.h"
 
 #include <iostream>
-#include <algorithm>
-#include <iterator>
 #include <iomanip>
-
-// ??
-#include "BMP.h"
+#include <queue>
+#include <iterator>
+#include <algorithm>
 
 Huffman::Huffman(Image *image)
 	: image(image), 
@@ -25,7 +25,6 @@ void Huffman::encode()
 	std::ofstream ofile("huff", std::ios::binary);
 	this->countFreq();
 	this->buildTree();
-	this->printCodes();
 	this->saveHuffHeader(ofile);
 	this->saveCodes(ofile);
 	ofile.close();
@@ -49,7 +48,7 @@ void Huffman::decode()
 void Huffman::countFreq()
 {
 	Uint32 clr = -1;
-	bool found = false;
+	bool found = false; 
 	for (size_t i = 0; i < this->image->height(); i++)
 	{
 		for (size_t j = 0; j < this->image->width(); j++)
@@ -58,7 +57,7 @@ void Huffman::countFreq()
 			found = false;
 			for (auto &v : this->colorFreqs) // check if already appeared
 			{
-				if (v.first == clr) // increment frequency
+				if (v.first == clr) // if found - increment frequency
 				{
 					v.second++;
 					found = true;
@@ -74,27 +73,27 @@ void Huffman::countFreq()
 	}
 }
 
-void Huffman::generateCodes(Node *node, std::vector<bool>& code)
+void Huffman::generateCodes(const Node *node, std::vector<bool>& code)
 {
 	if (node == nullptr)
 		return;
-	if (node->right == nullptr && node->left == nullptr) // is leaf
+	if (node->right == nullptr && node->left == nullptr) // is leaf - save code of node
 		this->codeVec.push_back(std::pair<Uint32, std::vector<bool>>(node->colorData.first, code));
 	else
 	{
 		auto leftPref = code;
 		leftPref.push_back(false);
-		this->generateCodes(node->left, leftPref);
+		this->generateCodes(node->left, leftPref); // add 0 and go left
 
 		auto rightPref = code;
 		rightPref.push_back(true);
-		this->generateCodes(node->right, rightPref);
+		this->generateCodes(node->right, rightPref); // add 1 and go right
 	}
 }
 
 void Huffman::buildTree()
 {
-	std::priority_queue<Node*, std::vector<Node*>, NodeCmp> trees;
+	std::priority_queue<Node*, std::vector<Node*>, NodeCmp> trees; // Add all colors as single nodes
 	for (auto &v : this->colorFreqs)
 		trees.push(new Node(v));
 
@@ -114,8 +113,9 @@ void Huffman::buildTree()
 	auto root = trees.top();
 
 	std::vector<bool> codes; // code for each color
-
 	this->generateCodes(root, codes);
+
+	delete root; // no longer needed
 
 	// sort codes before writing to file
 	// speed up decoding - most frequent codes are in the beginning
@@ -146,7 +146,7 @@ void Huffman::printCodes() const
 		std::cout << std::hex << std::setfill('0') << std::setw(6) << v.first << "   ";
 		for (const auto &vv : v.second)
 			std::cout << vv;
-		std::cout << std::endl;
+		std::cout << std::dec << std::endl;
 	}
 }
 
@@ -199,7 +199,6 @@ void Huffman::saveCodes(std::ofstream &ofile)
 		for (size_t i = 0; i < this->image->width(); i++)
 		{
 			clr = this->image->getPixel(i, j);
-			//		btf.to(this->codeMap->find(clr)->second);
 			for (auto &v : this->codeVec)
 				if (v.first == clr)
 				{
@@ -214,8 +213,8 @@ void Huffman::saveCodes(std::ofstream &ofile)
 
 void Huffman::readCodes(std::ifstream &ifile)
 {
-	int w = 960;
-	int h = 960;
+	int w = 200;
+	int h = 200;
 	BMP *bmp = new BMP();
 	SDL_Surface *surf = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
 	bmp->init(surf);
@@ -243,7 +242,6 @@ void Huffman::readCodes(std::ifstream &ifile)
 					if (v->second == vec)
 					{
 						SDL_GetRGB(v->first, this->image->img()->format, &ccc.r, &ccc.g, &ccc.b);
-						//std::cout << ccc.r << " " << ccc.g << " " << ccc.b << std::endl;
 						found = true;
 						vec.clear();
 						break;
