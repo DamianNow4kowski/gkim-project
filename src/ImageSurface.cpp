@@ -47,29 +47,28 @@ uint32_t ImageSurface::getPixel(uint8_t *pixel, uint8_t bpp) const
 {
 	switch (bpp)
 	{
-		// 8bit integer
+	// 8bit integer
 	case 1:
 		return *pixel;
 
-		// 16bit integer
+	// 16bit integer
 	case 2:
 		return *reinterpret_cast<uint16_t *>(pixel);
 
-		// 24bit integer
+	// 24bit integer
 	case 3:
 		if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
 			return pixel[0] << 16 | pixel[1] << 8 | pixel[2];
 		else
 			return pixel[0] | pixel[1] << 8 | pixel[2] << 16;
 
-		// 32bit integer
+	// 32bit integer
 	case 4:
 		return *reinterpret_cast<uint32_t *>(pixel);
 
-		// Should not happen, but avoids warnings
+	// Should not happen, but avoids warnings
 	default:
 		throw RuntimeError("Couldn't get pixel. BytesPerPixel set to 0.");
-		return 0;
 	}
 }
 
@@ -160,7 +159,7 @@ void ImageSurface::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, ui
 
 	switch (bpp)
 	{
-		// 8-bit
+	// 8-bit
 	case 1:
 		*p = pixel;
 
@@ -171,7 +170,7 @@ void ImageSurface::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, ui
 			std::cout << std::setw(22) << "Bitmap = " << std::setw(32) << b1 << std::endl;
 		}
 		break;
-		// 16-bit
+	// 16-bit
 	case 2:
 		*reinterpret_cast<uint16_t*>(p) = pixel;
 
@@ -182,7 +181,7 @@ void ImageSurface::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, ui
 			std::cout << std::setw(22) << "Bitmap = " << std::setw(32) << b1 << std::endl;
 		}
 		break;
-		// 24-bit
+	// 24-bit
 	case 3:
 		if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
 			p[0] = (pixel >> 16) & 0xff;
@@ -204,7 +203,7 @@ void ImageSurface::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, ui
 			std::cout << std::setw(22) << "Bitmap = " << std::setw(16) << b1 << b2 << b3 << std::endl;
 		}
 		break;
-		// 32-bit
+	// 32-bit
 	case 4:
 		*reinterpret_cast<uint32_t*>(p) = pixel;
 
@@ -340,37 +339,27 @@ SDL_Texture * ImageSurface::texture(SDL_Renderer *renderer) const
 
 unsigned int ImageSurface::width() const
 {
-	if (empty())
-		return 0;
-	return static_cast<unsigned int>(surface->w);
+	return empty() ? 0 : static_cast<unsigned int>(surface->w);
 }
 
 unsigned int ImageSurface::height() const
 {
-	if (empty())
-		return 0;
-	return static_cast<unsigned int>(surface->h);
+	return empty() ? 0 : static_cast<unsigned int>(surface->h);
 }
 
 unsigned int ImageSurface::bpp() const
 {
-	if (empty())
-		return 0;
-	return static_cast<unsigned int>(surface->format->BytesPerPixel);
+	return empty() ? 0 : static_cast<unsigned int>(surface->format->BytesPerPixel);
 }
 
 unsigned int ImageSurface::depth() const
 {
-	if (empty())
-		return 0;
-	return static_cast<unsigned int>(surface->format->BitsPerPixel);
+	return empty() ? 0 : static_cast<unsigned int>(surface->format->BitsPerPixel);
 }
 
 size_t ImageSurface::size() const
 {
-	if (empty())
-		return 0;
-	return width() * height() * bpp();
+	return empty() ? 0 : width() * height() * bpp();
 }
 
 bool ImageSurface::empty() const
