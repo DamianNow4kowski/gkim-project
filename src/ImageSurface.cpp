@@ -7,8 +7,10 @@
 
 void ImageSurface::free()
 {
-	if (!empty())
-		SDL_FreeSurface(surface);
+	// Note: it is safe to pass NULL to this function
+	// @see https://wiki.libsdl.org/SDL_FreeSurface#Remarks
+	SDL_FreeSurface(surface);
+	surface = nullptr;
 }
 
 SDL_Surface * ImageSurface::create(int w, int h, int depth) const
@@ -236,9 +238,10 @@ void ImageSurface::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, ui
 	setPixel(img, x, y, rgb, debug);
 }
 
-void ImageSurface::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, const SDL_Color &component, bool debug) const
+uint8_t ImageSurface::toGreyScale(const SDL_Color &color)
 {
-	setPixel(img, x, y, component.r, component.g, component.b, debug);
+	//return static_cast<uint8_t>(color.r * 0.299 + color.g * 0.587 + color.b * 0.114);
+	return static_cast<uint8_t>(0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b);
 }
 
 ImageSurface::ImageSurface()
@@ -283,33 +286,90 @@ ImageSurface::~ImageSurface()
 	free();
 }
 
+void ImageSurface::toGreyScale()
+{
+	unsigned int x, y;
+	uint8_t grey;
+	for (y = 0; y < height(); ++y)
+	{
+		for (x = 0; x < width(); ++x)
+		{
+			grey = toGreyScale(getPixelColor(x, y));
+			setPixel(x, y, grey, grey, grey);
+		}
+	}
+}
+
+uint32_t ImageSurface::getPixel(unsigned int x, unsigned int y, bool debug)
+{
+	return getPixel(surface, x, y, debug);
+}
+
+SDL_Color ImageSurface::getPixelColor(unsigned int x, unsigned int y, bool debug)
+{
+	return getPixelColor(surface, x, y, debug);
+}
+
+void ImageSurface::setPixel(unsigned int x, unsigned int y, uint32_t pixel, bool debug)
+{
+	setPixel(surface, x, y, pixel, debug);
+}
+
+void ImageSurface::setPixel(unsigned int x, unsigned int y, uint8_t r, uint8_t g, uint8_t b, bool debug)
+{
+	setPixel(surface, x, y, r, g, b, debug);
+}
+
+void ImageSurface::setPixel(unsigned int x, unsigned int y, const SDL_Color &color, bool debug)
+{
+	setPixel(surface, x, y, color.r, color.g, color.b, debug);
+}
+
 const SDL_Surface * ImageSurface::img() const
 {
 	return surface;
 }
 
+SDL_Texture * ImageSurface::texture(SDL_Renderer *renderer) const
+{
+	SDL_Texture *text = SDL_CreateTextureFromSurface(renderer, surface);
+	if (text == nullptr)
+		throw RuntimeError();
+	return text;
+}
+
 unsigned int ImageSurface::width() const
 {
+	if (empty())
+		return 0;
 	return static_cast<unsigned int>(surface->w);
 }
 
 unsigned int ImageSurface::height() const
 {
+	if (empty())
+		return 0;
 	return static_cast<unsigned int>(surface->h);
 }
 
 unsigned int ImageSurface::bpp() const
 {
+	if (empty())
+		return 0;
 	return static_cast<unsigned int>(surface->format->BytesPerPixel);
 }
 
 unsigned int ImageSurface::depth() const
 {
+	if (empty())
+		return 0;
 	return static_cast<unsigned int>(surface->format->BitsPerPixel);
 }
 
 size_t ImageSurface::size() const
 {
+	if (empty())
+		return 0;
 	return width() * height() * bpp();
 }
 

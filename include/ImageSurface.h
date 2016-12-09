@@ -6,7 +6,7 @@ class ImageSurface
 {
 private:
 
-	// Deallocates whole data
+	// Deallocates whole previously allocated data
 	void free();
 
 protected:
@@ -96,14 +96,13 @@ protected:
 
 
 	/**
-	 * Sets pixel's color's data to SDL_Surface
-	 * @param pointer to structure with pixel data
-	 * @param x x-axis
-	 * @param y y-axis cordinate of chosen pixel
-	 * @param SDL_Color structure
-	 * @param bool turns on debuging when true
+	 * Converts RGB color to grey scale component
+	 * @param SDL_Color structure that stores RGB component colors
+	 * @return uint8_t grey scale color made from these RGB components
+	 * Standard:
+	 * @link https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
 	 */
-	void setPixel(SDL_Surface *, unsigned int, unsigned int, const SDL_Color &, bool = false) const;
+	uint8_t toGreyScale(const SDL_Color &);
 
 public:
 
@@ -122,20 +121,36 @@ public:
 	// Move constructor
 	ImageSurface(ImageSurface &&);
 
-	// Copy assigment operator overload
+	// Copy assigment
 	ImageSurface& operator=(const ImageSurface &);
 
-	// Move assigment operator overload
+	// Move assigment
 	ImageSurface& operator=(ImageSurface &&);
 
 	// Destructor
 	~ImageSurface();
+
+	/// Public functions
+	void toGreyScale();
+	uint32_t getPixel(unsigned int, unsigned int, bool = false);
+	SDL_Color getPixelColor(unsigned int, unsigned int, bool = false);
+	void setPixel(unsigned int, unsigned int, uint32_t, bool = false);
+	void setPixel(unsigned int, unsigned int, uint8_t, uint8_t, uint8_t, bool = false);
+	void setPixel(unsigned int, unsigned int, const SDL_Color &, bool = false);
 
 	/**
 	 * @return pointer to constant SDL_Structure which
 	 * allows to access data, but won't let to modify it
 	 */
 	const SDL_Surface* img() const;
+
+	/**
+	 * @param rendering context
+	 * @return pointer to newly render texture from this surface
+	 * Note: Surface is not freed or modified upon invoking that method
+	 * @throws RuntimError on failure
+	 */
+	SDL_Texture* texture(SDL_Renderer *) const;
 
 	/**
 	 * @return number of pixels in horizontal line
