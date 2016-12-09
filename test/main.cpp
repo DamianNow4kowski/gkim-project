@@ -5,7 +5,7 @@
 #include <thread>
 #include <cstdlib>
 #include <ctime>
-#include "SDL_Utils.h"
+#include "FileHandler.h"
 #include "SDL_Local.h"
 #include "Huffman.h"
 #include "BMP.h"
@@ -19,17 +19,17 @@ void testSDL_Utils()
 {
     bool e;
     string filename("file.txt"), extension("txt"), wrong("bmp");
-    e = SDL_Utils::verifyExtension(filename, extension);
+    e = FileHandler::verifyExtension(filename, extension);
     cout << "Test 1 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = SDL_Utils::verifyExtension(filename.c_str(), extension.c_str());
+    e = FileHandler::verifyExtension(filename.c_str(), extension.c_str());
     cout << "Test 2 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = !(SDL_Utils::verifyExtension(filename.c_str(), strlen(filename.c_str()), wrong.c_str(), strlen(wrong.c_str())));
+    e = !(FileHandler::verifyExtension(filename.c_str(), strlen(filename.c_str()), wrong.c_str(), strlen(wrong.c_str())));
     cout << "Test 3 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = SDL_Utils::verifyExtension(".txt", "txt");
+    e = FileHandler::verifyExtension(".txt", "txt");
     cout << "Test 4 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = !(SDL_Utils::verifyExtension("txt", "txt"));
+    e = !(FileHandler::verifyExtension("txt", "txt"));
     cout << "Test 5 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = !(SDL_Utils::verifyExtension(".dtxt", "txt"));
+    e = !(FileHandler::verifyExtension(".dtxt", "txt"));
     cout << "Test 6 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
 }
 
@@ -183,7 +183,7 @@ void test_Huffman() {
 	huff->decode();
 }
 
-void test_setPixel_getPixel() 
+/*void test_setPixel_getPixel() 
 {
 	BMP bmp, bmp2;
 	bmp.load("test/rgbcube.bmp");
@@ -191,21 +191,21 @@ void test_setPixel_getPixel()
 	bmp.preview();
 
 	const int w = 200, h = 200;
-	SDL_Surface *new_surface = SDL_Utils::makeSurface(w, h, 32);
+	SDL_Surface *new_surface = FileHandler::makeSurface(w, h, 32);
 	SDL_Color component;
 
 	for (unsigned int y = 0; y < bmp.height() && y < h; ++y)
 	{
 		for (unsigned int x = 0; x < bmp.width() && x < h; ++x)
 		{
-			component = SDL_Utils::getPixelColor(bmp.img(), x, y, y == 20);
-			SDL_Utils::setPixel(new_surface, x, y, component, y == 20);
+			component = FileHandler::getPixelColor(bmp.img(), x, y, y == 20);
+			FileHandler::setPixel(new_surface, x, y, component, y == 20);
 		}
 	}
 
 	bmp2.init(new_surface);
 	bmp2.preview();
-}
+}*/
 
 int main()
 {
@@ -232,7 +232,7 @@ int main()
 	//test_copyConstructors();
 	//test_convertSurface();
 	//test_Huffman();
-	test_setPixel_getPixel();
+	///test_setPixel_getPixel();
 
 	system("PAUSE");
 	return 0;

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <bitset>
 #include <iomanip>
-#include "SDL_Utils.h"
+#include "FileHandler.h"
 
 uint8_t RGB444::getColorOfPixel(SDL_Color color, int which)
 {
@@ -75,7 +75,7 @@ SDL_Surface *RGB444::loadImpl(const char *file)
     SDL_Surface *surf;
 
 	// Open input file in binary mode
-	SDL_Utils::ifopen(file, f);
+	FileHandler::ifopen(file, f);
 
     // Read header data
     this->readHeader(f, w, h, depth, bpp, alg);
@@ -114,7 +114,7 @@ void RGB444::saveImpl(SDL_Surface *surface, const char *file)
 	std::ofstream f;
 
 	// Load file to save data in binary mode
-	SDL_Utils::ofopen(file, f);
+	FileHandler::ofopen(file, f);
 
 	// Choose algorithm
 	switch (this->algorithm) 

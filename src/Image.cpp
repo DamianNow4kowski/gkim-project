@@ -1,5 +1,5 @@
 ﻿#include "Image.h"
-#include "SDL_Utils.h"
+#include "FileHandler.h"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -102,7 +102,7 @@ void Image::load(const char *file, bool requireVaildExt)
 	{
 		// Verifying extension
 		const char *ext = this->extension();
-		if (!SDL_Utils::verifyExtension(file, ext))
+		if (!FileHandler::verifyExtension(file, ext))
 		{
 			if (requireVaildExt)
 			{
@@ -135,12 +135,8 @@ void Image::save(const char *file)
 	try 
 	{
 		const char *ext = this->extension();
-<<<<<<< HEAD
-		if (!SDL_Utils::verifyExtension(file, ext)) {
-=======
 		if (!FileHandler::verifyExtension(file, ext))
 		{
->>>>>>> 7f47648622f74364120cdb138e9fced0aa3ffd9d
 			std::ostringstream fn;
 			fn << file << '.' << ext;
 			this->saveImpl(this->surface, fn.str().c_str());

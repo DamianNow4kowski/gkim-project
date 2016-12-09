@@ -77,5 +77,5 @@ bool BitsFromFile::get()
 	help >>= 7;
 	this->c <<= 1;
 	this->pos++;
-	return static_cast<bool>(help);
+	return static_cast<bool>(help); // TODO: Fix performance warning!
 }
