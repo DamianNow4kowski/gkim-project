@@ -252,7 +252,7 @@ void Huffman::readCodes(std::ifstream &ifile)
 
 	BitsFromFile bff(ifile);
 
-	SDL_Color ccc;
+	SDL_Color ccc = {0, 0, 0}; // analyzis had show 'using unitialized memory ccc'
 	int index = 0;
 	std::vector<bool> vec;
 

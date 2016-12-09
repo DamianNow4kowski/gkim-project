@@ -3,7 +3,7 @@
 BitsToFile &BitsToFile::write()
 {
 	//file << c;
-	file.write((char*)&c, sizeof(char));
+	file.write(reinterpret_cast<char *>(&c), sizeof(c));
 	c = 0;
 	pos = 0;
 
@@ -67,7 +67,7 @@ bool BitsFromFile::get()
 		if (!this->file.eof())
 		{
 			//this->file >> c;
-			file.read((char*)&c, sizeof(char));
+			file.read(reinterpret_cast<char*>(&c), sizeof(c)); // why not change c type from unsigned char to char? (no need casting)
 			this->pos = 0;
 		}
 		else
