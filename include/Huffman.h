@@ -7,16 +7,26 @@
 #include <utility>
 
 #include "Image.h"
-#include "ColorCounter.h"
-#include "Tree.h"
+#include "Node.h"
+
 
 class Huffman
 {
 private:
 	Image *image;
-	ColorCounter *clrCntr;
+	std::vector<std::pair<Uint32, std::vector<bool>>> codeVec;
+	std::vector<std::pair<Uint32, Uint32>> colorFreqs;
 
-	std::vector <std::pair<Uint32, std::vector<bool>>> codeVec;
+	void countFreq();
+	void generateCodes(Node *node, std::vector<bool> &code);
+	void buildTree();
+
+	void printCodes() const;
+
+	void saveHuffHeader(std::ofstream &ofile);
+	void readHuffHeader(std::ifstream &ifile);
+	void saveCodes(std::ofstream &ofile);
+	void readCodes(std::ifstream &ifile);
 
 public:
 	Huffman(Image *image);
@@ -24,15 +34,6 @@ public:
 
 	void encode();
 	void decode();
-	void buildTree();
-	void generateCodes(Node<SingleColorData> *node, std::vector<bool> &code);
-	void printCodes() const;
-	void countFreq();
-
-	void saveHuffHeader(std::ofstream &ofile);
-	void readHuffHeader(std::ifstream &ifile);
-	void saveCodes(std::ofstream &ofile);
-	void readCodes(std::ifstream &ifile);
 };
 
 

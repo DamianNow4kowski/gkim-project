@@ -2,8 +2,6 @@
 #include "SDL_Local.h"
 #include "BMP.h"
 #include "Huffman.h"
-
-#include "CodeHandler.h"
 #include <array>
 
 using namespace std;
@@ -42,12 +40,13 @@ int main(int argc, char *argv[])
 	//bmp_surface->preview();
 
 	Huffman *huff = new Huffman(bmp_surface);
+	huff->encode();
 	huff->decode();
 
 	cout << "Finished" << endl;
 
 	// Clean
-//	delete huff;
+	delete huff;
 	delete bmp_surface;
 
 	// I don't want it on linux, sorry

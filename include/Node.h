@@ -2,66 +2,39 @@
 #define NODE_H
 
 #include <fstream>
+#include <utility>
+#include "SDL_Local.h"
 
-template<typename T>
-class Tree;
-
-template<class T>
 class Node
 {
-private:
-	Node<T> *next;
-	Node<T> *prev;
-	T var;
-
 public:
-	Node();
-	Node(const T &var);
-	void setVar(const T &var);
-	T& getVar();
+	std::pair<Uint32, Uint32> colorData;
+	Node *right;
+	Node *left;
 
-	//friend std::ostream& operator<<(std::ostream &op, Node<T> &node)
-	//{
-	//	op << node.var;
-	//	return op;
-	//}
+	Node(std::pair<Uint32, Uint32> colorData)
+		: colorData(colorData), right(nullptr), left(nullptr) {}
 
-	friend Node<T>& operator+(Node<T> node1, Node<T> node2)
+	Node(Node *l, Node *r)
+		: left(l), right(r)
 	{
-		Node<T>*n = new Node<T>(node1.var + node2.var);
-		return *n;
+		std::pair<Uint32, Uint32> clrData;
+		clrData.first = -1;
+		clrData.second = l->colorData.second + r->colorData.second;
+		colorData = clrData;
 	}
 
-	friend class Tree<T>;
-	friend class Huffman;
+	~Node() 
+		{ delete right; delete left; }
 };
 
-template<class T>
-Node<T>::Node()
+struct NodeCmp
 {
-	this->next = nullptr;
-	this->prev = nullptr;
-}
-
-template<class T>
-Node<T>::Node(const T &var)
-{
-	this->var = var;
-	this->next = nullptr;
-	this->prev = nullptr;
-}
-
-template<class T>
-void Node<T>::setVar(const T &var)
-{
-	this->var = var;
-}
-
-template<class T>
-T& Node<T>::getVar()
-{
-	return this->var;
-}
+	bool operator() (const Node *lhs, const Node *rhs) const
+	{
+		return lhs->colorData.second > rhs->colorData.second;
+	}
+};
 
 #endif // ! NODE_H
 
