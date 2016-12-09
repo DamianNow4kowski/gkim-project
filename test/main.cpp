@@ -3,7 +3,9 @@
 #include <cstring>
 #include <chrono>
 #include <thread>
-#include "FileHandler.h"
+#include <cstdlib>
+#include <ctime>
+#include "SDL_Utils.h"
 #include "SDL_Local.h"
 #include "Huffman.h"
 #include "BMP.h"
@@ -13,21 +15,21 @@ using namespace std;
 
 const string bmp_test("test/test.bmp");
 
-void testFileHandler()
+void testSDL_Utils()
 {
     bool e;
     string filename("file.txt"), extension("txt"), wrong("bmp");
-    e = FileHandler::verifyExtension(filename, extension);
+    e = SDL_Utils::verifyExtension(filename, extension);
     cout << "Test 1 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = FileHandler::verifyExtension(filename.c_str(), extension.c_str());
+    e = SDL_Utils::verifyExtension(filename.c_str(), extension.c_str());
     cout << "Test 2 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = !(FileHandler::verifyExtension(filename.c_str(), strlen(filename.c_str()), wrong.c_str(), strlen(wrong.c_str())));
+    e = !(SDL_Utils::verifyExtension(filename.c_str(), strlen(filename.c_str()), wrong.c_str(), strlen(wrong.c_str())));
     cout << "Test 3 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = FileHandler::verifyExtension(".txt", "txt");
+    e = SDL_Utils::verifyExtension(".txt", "txt");
     cout << "Test 4 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = !(FileHandler::verifyExtension("txt", "txt"));
+    e = !(SDL_Utils::verifyExtension("txt", "txt"));
     cout << "Test 5 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = !(FileHandler::verifyExtension(".dtxt", "txt"));
+    e = !(SDL_Utils::verifyExtension(".dtxt", "txt"));
     cout << "Test 6 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
 }
 
@@ -143,7 +145,7 @@ void test_copyConstructors()
 void test_convertSurface() 
 {
 	BMP bmp;
-	bmp.load("test/togrey.bmp");
+	bmp.load("test/smalltest_8bit.bmp");
 	bmp.preview();
 
 	// Convert then not copy
@@ -172,6 +174,39 @@ void test_convertSurface()
 	rgb4.preview();
 }
 
+void test_Huffman() {
+	BMP bmp;
+	bmp.load("test/smalltest_8bit.bmp");
+	bmp.preview();
+	Huffman *huff = new Huffman(&bmp);
+	huff->encode();
+	huff->decode();
+}
+
+void test_setPixel_getPixel() 
+{
+	BMP bmp, bmp2;
+	bmp.load("test/rgbcube.bmp");
+	bmp.load("test/smalltest_8bit.bmp");
+	bmp.preview();
+
+	const int w = 200, h = 200;
+	SDL_Surface *new_surface = SDL_Utils::makeSurface(w, h, 32);
+	SDL_Color component;
+
+	for (unsigned int y = 0; y < bmp.height() && y < h; ++y)
+	{
+		for (unsigned int x = 0; x < bmp.width() && x < h; ++x)
+		{
+			component = SDL_Utils::getPixelColor(bmp.img(), x, y, y == 20);
+			SDL_Utils::setPixel(new_surface, x, y, component, y == 20);
+		}
+	}
+
+	bmp2.init(new_surface);
+	bmp2.preview();
+}
+
 int main()
 {
     // Initialize SDL
@@ -184,8 +219,10 @@ int main()
         cerr << "Error while initializing SDL:  " << err.what() << endl;
         return 1;
     }
+	srand(static_cast<unsigned int>(time(NULL)));
+
     cout << "Testing.." << endl;
-    //testFileHandler();
+    //testSDL_Utils();
     //testSDL_RGB444();
     //test_GreyScale();
     //test_openSaveOpenBMP();
@@ -193,7 +230,9 @@ int main()
 	//test_openBMPtoGreySaveRGB44Load();
 	//test_saveOpen444();
 	//test_copyConstructors();
-	test_convertSurface();
+	//test_convertSurface();
+	//test_Huffman();
+	test_setPixel_getPixel();
 
 	system("PAUSE");
 	return 0;

@@ -7,3 +7,9 @@ bin/*
 
 # Ignore some system specific files
 .DS_Store
+
+# Ingore debug files
+huff
+
+# Ingore IDE specific files
+.vscode
