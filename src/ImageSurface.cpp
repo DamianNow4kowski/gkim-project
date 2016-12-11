@@ -1,12 +1,15 @@
 #include "ImageSurface.h"
 
-#include <iostream> // debug
 #include <bitset>	// debug
 #include <iomanip>  // debug
 #include <sstream>  // thrown errors' messages
 
 void ImageSurface::free()
 {
+	// For debug to see when really memory is deallocated
+	if(surface != nullptr)
+		std::cout << "[ImageSurface]-> Deallocated surface." << std::endl;
+
 	// Note: it is safe to pass NULL to this function
 	// @see https://wiki.libsdl.org/SDL_FreeSurface#Remarks
 	SDL_FreeSurface(surface);
@@ -15,6 +18,7 @@ void ImageSurface::free()
 
 SDL_Surface * ImageSurface::create(int w, int h, int depth) const
 {
+	std::cout << "[ImageSurface]-> Creating surface." << std::endl;
 	SDL_Surface *img = SDL_CreateRGBSurface(0, w, h, depth, 0, 0, 0, 0);
 	if (img == nullptr)
 		throw RuntimeError();
@@ -23,21 +27,19 @@ SDL_Surface * ImageSurface::create(int w, int h, int depth) const
 
 SDL_Surface * ImageSurface::copy(const SDL_Surface *img) const
 {
-	std::cout << "[Debug]: *** Copying surface." << std::endl;
+	std::cout << "[ImageSurface]-> Copying surface." << std::endl;
 	if (img == nullptr)
 		throw RuntimeError("Cannot copy not existing surface.");
 
-	int x, y, w, h;
 	SDL_Surface* new_img;
-	w = img->w;
-	h = img->h;
+	int w = img->w, h = img->h;
 
 	// Allocate empty surface
 	new_img = create(w, h, img->format->BitsPerPixel);
 
 	// Simple copying algorithm
-	for (y = 0; y < h; ++y)
-		for (x = 0; x < w; ++x)
+	for (int y = 0; y < h; ++y)
+		for (int x = 0; x < w; ++x)
 			setPixel(new_img, x, y, getPixel(img, x, y));
 
 	return new_img;
@@ -245,28 +247,38 @@ uint8_t ImageSurface::toGreyScale(const SDL_Color &color)
 
 ImageSurface::ImageSurface()
 	: surface(nullptr)
-{}
+{
+	std::cout << "[ImageSurface]: Called default constructor." << std::endl;
+}
 
 ImageSurface::ImageSurface(SDL_Surface *img)
 	:surface(img)
-{}
+{
+	std::cout << "[ImageSurface]: Called SDL_Surface* constructor." << std::endl;
+}
 
 ImageSurface::ImageSurface(const SDL_Surface *img)
 	: surface(copy(img))
-{}
+{
+	std::cout << "[ImageSurface]: Called const SDL_Surface* constructor." << std::endl;
+}
 
 ImageSurface::ImageSurface(const ImageSurface &img)
 	: surface(copy(img.surface))
-{}
+{
+	std::cout << "[ImageSurface]: Called copy constructor." << std::endl;
+}
 
 ImageSurface::ImageSurface(ImageSurface &&img)
 	: surface(img.surface)
 {
+	std::cout << "[ImageSurface]: Called move constructor." << std::endl;
 	img.surface = nullptr;
 }
 
 ImageSurface & ImageSurface::operator=(const ImageSurface &img)
 {
+	std::cout << "[ImageSurface]: Called copy assigment operator." << std::endl;
 	free();
 	surface = copy(img.surface);
 	return *this;
@@ -274,6 +286,7 @@ ImageSurface & ImageSurface::operator=(const ImageSurface &img)
 
 ImageSurface & ImageSurface::operator=(ImageSurface &&img)
 {
+	std::cout << "[ImageSurface]: Called move assigment operator." << std::endl;
 	free();
 	surface = img.surface;
 	img.surface = nullptr;
@@ -282,16 +295,24 @@ ImageSurface & ImageSurface::operator=(ImageSurface &&img)
 
 ImageSurface::~ImageSurface()
 {
+	std::cout << "[ImageSurface]: Called destructor." << std::endl;
 	free();
+}
+
+void ImageSurface::allocate(int x, int y, int depth)
+{
+	std::cout << "[ImageSurface]-> Allocating new SDL_Surface." << std::endl;
+	free();
+	surface = create(x, y, depth);
 }
 
 void ImageSurface::toGreyScale()
 {
-	unsigned int x, y;
+	std::cout << "[ImageSurface]-> Converting ImageSurface to grey scale." << std::endl;
 	uint8_t grey;
-	for (y = 0; y < height(); ++y)
+	for (unsigned int y = 0; y < height(); ++y)
 	{
-		for (x = 0; x < width(); ++x)
+		for (unsigned int x = 0; x < width(); ++x)
 		{
 			grey = toGreyScale(getPixelColor(x, y));
 			setPixel(x, y, grey, grey, grey);
@@ -324,6 +345,15 @@ void ImageSurface::setPixel(unsigned int x, unsigned int y, const SDL_Color &col
 	setPixel(surface, x, y, color.r, color.g, color.b, debug);
 }
 
+void ImageSurface::printDetails(std::ostream &o)
+{
+	o << "[ImageSurface]-> Details:" << std::endl
+		<< " - Width: " << width() << std::endl
+		<< " - Height: " << height() << std::endl
+		<< " - Depth: " << depth() << std::endl
+		<< " - Size: " << size() << std::endl;
+}
+
 const SDL_Surface * ImageSurface::img() const
 {
 	return surface;
@@ -331,6 +361,7 @@ const SDL_Surface * ImageSurface::img() const
 
 SDL_Texture * ImageSurface::texture(SDL_Renderer *renderer) const
 {
+	std::cout << "[ImageSurface]-> Creating texture." << std::endl;
 	SDL_Texture *text = SDL_CreateTextureFromSurface(renderer, surface);
 	if (text == nullptr)
 		throw RuntimeError();

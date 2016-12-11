@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SDL_Local.h"
+#include <iostream>
 
 class ImageSurface
 {
@@ -130,13 +131,17 @@ public:
 	// Destructor
 	~ImageSurface();
 
-	/// Public functions
+	// Public interface functions [safetly modify SDL_Surface]
+	// @throws RuntimeError
+	// TODO: inline some of them
+	void allocate(int, int, int);
 	void toGreyScale();
 	uint32_t getPixel(unsigned int, unsigned int, bool = false);
 	SDL_Color getPixelColor(unsigned int, unsigned int, bool = false);
 	void setPixel(unsigned int, unsigned int, uint32_t, bool = false);
 	void setPixel(unsigned int, unsigned int, uint8_t, uint8_t, uint8_t, bool = false);
 	void setPixel(unsigned int, unsigned int, const SDL_Color &, bool = false);
+	void printDetails(std::ostream & = std::cout);
 
 	/**
 	 * @return pointer to constant SDL_Structure which

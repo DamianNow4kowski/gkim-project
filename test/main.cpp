@@ -10,6 +10,7 @@
 #include "Huffman.h"
 #include "BMP.h"
 #include "RGB444.h"
+#include "ImageHandler.h"
 
 using namespace std;
 
@@ -207,6 +208,47 @@ void test_Huffman() {
 	bmp2.preview();
 }*/
 
+class TestBMP : public ImageHandler
+{
+protected:
+
+	void store(const std::string &filename, const ImageSurface &image) const override
+	{
+		SDL_SaveBMP(const_cast<SDL_Surface*>(image.img()), filename.c_str());
+	}
+
+	ImageSurface recover(const std::string &filename) override
+	{
+		return ImageSurface(SDL_LoadBMP(filename.c_str()));
+	}
+
+
+public:
+	virtual string extension() const override 
+	{ 
+		return string(".bmp"); 
+	}
+
+	TestBMP(): ImageHandler() {}
+};
+
+void test_newBMP()
+{
+	TestBMP bmp;
+	bmp.load("test/smalltest_24bit.bmp");
+	bmp.preview(true);
+	try {
+		bmp.image.toGreyScale();
+	}
+	catch (const RuntimeError &e)
+	{
+		cerr << "Error: " << e.what() << endl;
+	}
+	bmp.save("lol");
+	bmp.load("lol.bmp");
+	bmp.preview(true);
+}
+
 int main()
 {
     // Initialize SDL
@@ -233,6 +275,7 @@ int main()
 	//test_convertSurface();
 	//test_Huffman();
 	///test_setPixel_getPixel();
+	test_newBMP();
 
 	system("PAUSE");
 	return 0;
