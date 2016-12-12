@@ -232,9 +232,13 @@ void Image::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, uint8_t R
 			| (B >> img->format->Bloss) << img->format->Bshift;
 		///| img->format->Amask; // I think it is unneseccary
 	}
-	else throw RuntimeError("Cannot set RGB components values of palettized surface.");
+
 	// if it has pallete have to use default SDL function (tried implement it but failed)
-	//rgb = SDL_MapRGB(img->format, r, g, b);
+	else 
+	{
+		rgb = SDL_MapRGB(img->format, R, G, B);
+		//throw RuntimeError("Cannot set RGB components values of palettized surface.");
+	}
 
 	setPixel(img, x, y, rgb, debug);
 }

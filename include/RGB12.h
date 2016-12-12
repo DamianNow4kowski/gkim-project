@@ -1,4 +1,6 @@
-#pragma once
+#ifndef RGB12_H
+#define RGB12_H
+
 #include "BMP.h"
 
 #include <tuple>
@@ -68,3 +70,4 @@ public:
 	virtual ~RGB12();
 };
 
+#endif // !RGB12_H

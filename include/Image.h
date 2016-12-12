@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IMAGE_H
+#define IMAGE_H
 
 #include "SDL_Local.h"
 #include <iostream>
@@ -193,3 +194,4 @@ public:
 	bool empty() const;
 };
 
+#endif // !IMAGE_H

@@ -1,5 +1,6 @@
 ﻿#include "SDL_Local.h"
 #include "Huffman.h"
+#include "RGB12.h"
 
 #include <iostream>
 #include <array>
@@ -25,18 +26,28 @@ int main(int argc, char *argv[])
 	else 
 	{
 		std::cout << "Podaj plik *.bmp do kompresji: "; 
-		std::getline(std::cin, test_bmp);
+		std::cin >> test_bmp;
 	}
 
-	/// TODO:
+	// Load image
+	BMP bmp;
+	bmp.load(test_bmp);
+	RGB12 rgb(std::move(bmp));
+	rgb.preview();
 
-	// I don't want it on linux, sorry
-	// We don't use linux, sorry
-	#ifndef __linux
-		std::cin.ignore();
-		std::cin.get();
-	#endif
-	
+	// Attach to huffman
+	Image &img = rgb.image;
+	Huffman huffman(&img);
+	huffman.encode();
+	huffman.decode();
+
+	// Preview decoded from huffman
+	rgb.preview();
+
+	#ifndef  __linux
+		system("PAUSE");
+	#endif // ! __linux
+
 	// Return sucess
 	return EXIT_SUCCESS;
 }

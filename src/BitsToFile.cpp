@@ -19,9 +19,9 @@ BitsToFile::BitsToFile(ofstream& f)
 
 BitsToFile& BitsToFile::flush()
 {
-	if (this->pos)
+	if (pos)
 	{
-		this->write();
+		write();
 	}
 
 	return *this;
@@ -30,7 +30,7 @@ BitsToFile& BitsToFile::flush()
 void BitsToFile::to(std::vector<bool>& vec)
 {
 	for (auto v : vec)
-		this->to(v);
+		to(v);
 }
 
 BitsToFile& BitsToFile::to(bool f)
@@ -42,7 +42,7 @@ BitsToFile& BitsToFile::to(bool f)
 		c |= 0;
 	pos++;
 	if (pos == 8)
-		this->write();
+		write();
 
 	return *this;
 }
@@ -51,31 +51,31 @@ BitsToFile& BitsToFile::to(bool f)
 BitsFromFile::BitsFromFile(ifstream& f)
 	: file(f)
 {
-	if (!this->file.good())
+	if (!file.good())
 		throw RuntimeError("File is not good");
-	if (this->file.eof())
+	if (file.eof())
 		throw RuntimeError("File is end");
 
-	this->pos = 8;
-	this->c = 0;
+	pos = 8;
+	c = 0;
 }
 
 bool BitsFromFile::get()
 {
-	if (this->pos == 8)
+	if (pos == 8)
 	{
-		if (!this->file.eof())
+		if (!file.eof())
 		{
-			//this->file >> c;
+			//file >> c;
 			file.read(reinterpret_cast<char*>(&c), sizeof(c)); // why not change c type from unsigned char to char? (no need casting)
-			this->pos = 0;
+			pos = 0;
 		}
 		else
 			cout << "EOF" << endl;
 	}
-	unsigned char help = this->c & 128;
+	unsigned char help = c & 128;
 	help >>= 7;
-	this->c <<= 1;
-	this->pos++;
+	c <<= 1;
+	pos++;
 	return static_cast<bool>(help); // TODO: Fix performance warning!
 }

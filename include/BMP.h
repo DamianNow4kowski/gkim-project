@@ -1,4 +1,6 @@
-#pragma once
+#ifndef BMP_H
+#define BMP_H
+
 #include "ImageHandler.h"
 class BMP : public ImageHandler
 {
@@ -15,3 +17,4 @@ public:
 	virtual ~BMP();
 };
 
+#endif // !BMP_H

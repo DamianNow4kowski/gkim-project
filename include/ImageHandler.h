@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IMAGE_HANDLER_H
+#define IMAGE_HANDLER_H
 
 #include <fstream>
 #include <string>
@@ -87,3 +88,4 @@ public:
 
 };
 
+#endif // !IMAGE_HANDLER_H

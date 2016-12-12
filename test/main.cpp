@@ -140,6 +140,27 @@ void test_saveLoadRGB12()
 
 }
 
+void testHuffman()
+{
+	BMP bmp;
+	bmp.load("test/rgbcube.bmp");
+	//bmp.load("test/test.bmp");
+	//bmp.load("test/smalltest_24bit.bmp");
+	//bmp.load("test/smalltest_8bit.bmp");
+	bmp.preview();
+
+	RGB12 rgb(bmp);
+	rgb.preview();
+
+	Image &img = rgb.image;
+	
+	Huffman huffman(&img);
+	huffman.encode();
+	huffman.decode();
+
+	rgb.preview();
+}
+
 int main()
 {
     // Initialize SDL
@@ -157,7 +178,8 @@ int main()
     cout << "Testing.." << endl;
 	//test_BMPHandler();
 	//test_RGB12Handler();
-	test_saveLoadRGB12();
+	//test_saveLoadRGB12();
+	testHuffman();
 
 	system("PAUSE");
 	return 0;
