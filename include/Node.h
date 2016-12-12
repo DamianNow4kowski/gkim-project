@@ -2,66 +2,32 @@
 #define NODE_H
 
 #include <fstream>
+#include <utility>
+#include "SDL_Local.h"
 
-template<typename T>
-class Tree;
-
-template<class T>
 class Node
 {
 private:
-	Node<T> *next;
-	Node<T> *prev;
-	T var;
+	std::pair<Uint32, Uint32> colorData;
+	Node *right;
+	Node *left;
 
 public:
-	Node();
-	Node(const T &var);
-	void setVar(const T &var);
-	T& getVar();
+	Node(std::pair<Uint32, Uint32> colorData);
+	Node(Node *l, Node *r);
+	~Node();
 
-	//friend std::ostream& operator<<(std::ostream &op, Node<T> &node)
-	//{
-	//	op << node.var;
-	//	return op;
-	//}
-
-	friend Node<T>& operator+(Node<T> node1, Node<T> node2)
-	{
-		Node<T>*n = new Node<T>(node1.var + node2.var);
-		return *n;
-	}
-
-	friend class Tree<T>;
 	friend class Huffman;
+	friend struct NodeCmp;
 };
 
-template<class T>
-Node<T>::Node()
+struct NodeCmp
 {
-	this->next = nullptr;
-	this->prev = nullptr;
-}
-
-template<class T>
-Node<T>::Node(const T &var)
-{
-	this->var = var;
-	this->next = nullptr;
-	this->prev = nullptr;
-}
-
-template<class T>
-void Node<T>::setVar(const T &var)
-{
-	this->var = var;
-}
-
-template<class T>
-T& Node<T>::getVar()
-{
-	return this->var;
-}
+	bool operator() (const Node *lhs, const Node *rhs) const
+	{
+		return lhs->colorData.second > rhs->colorData.second;
+	}
+};
 
 #endif // ! NODE_H
 

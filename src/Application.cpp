@@ -1,14 +1,13 @@
-﻿#include <iostream>
-#include "SDL_Local.h"
-#include "BMP.h"
+﻿#include "SDL_Local.h"
 #include "Huffman.h"
-#include "Own.h"
+#include "RGB12.h"
 
-using namespace std;
+#include <iostream>
+#include <array>
 
 int main(int argc, char *argv[])
 {
-	string test_bmp;
+	std::string test_bmp;
 
 	// Initialize SDL
 	try
@@ -17,7 +16,7 @@ int main(int argc, char *argv[])
 	}
 	catch (const RuntimeError &err)
 	{
-		cerr << "Error while initializing SDL:  " << err.what() << endl;
+		std::cerr << "Error while initializing SDL:  " << err.what() << std::endl;
 		return 1;
 	}
 
@@ -26,42 +25,29 @@ int main(int argc, char *argv[])
 		test_bmp = argv[2];
 	else 
 	{
-		cout << "Podaj plik *.bmp do kompresji: "; 
-		cin >> test_bmp;
+		std::cout << "Podaj plik *.bmp do kompresji: "; 
+		std::cin >> test_bmp;
 	}
 
-	// Load BMP
-	BMP *bmp_surface = new BMP();
-	//bmp_surface->load("bird.bmp");
-	//cout << "Hardcoded image dimensions: " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
-	bmp_surface->load(test_bmp.c_str(), false);
-	cout << "Loaded image dimensions: " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
+	// Load image
+	BMP bmp;
+	bmp.load(test_bmp);
+	RGB12 rgb(std::move(bmp));
+	rgb.preview();
 
-	//bmp_surface->preview();
+	// Attach to huffman
+	Image &img = rgb.image;
+	Huffman huffman(&img);
+	huffman.encode();
+	huffman.decode();
 
-	//Własny format
-	//Own own(bmp_surface->img());
-	//own.saveFile("test.f");
-	//Own own;
-	//own.readFile("test.f").preview();
+	// Preview decoded from huffman
+	rgb.preview();
 
-	Huffman *huff = new Huffman(bmp_surface);
-	huff->decode();
+	#ifndef  __linux
+		system("PAUSE");
+	#endif // ! __linux
 
-
-	cout << "Finished" << endl;
-
-	// Clean
-	delete huff;
-	delete bmp_surface;
-
-	// I don't want it on linux, sorry
-	// We don't use linux, sorry
-	#ifndef __linux
-		cin.ignore();
-		cin.get();
-	#endif
-	
 	// Return sucess
 	return EXIT_SUCCESS;
 }
