@@ -201,6 +201,8 @@ int main()
 	//testHuffman();
 	test_LZ77();
 
-	system("PAUSE");
+	#ifdef __linux
+		system("PAUSE");
+	#endif
 	return 0;
 }
