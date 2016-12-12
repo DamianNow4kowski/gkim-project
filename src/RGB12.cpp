@@ -1,4 +1,6 @@
 #include "RGB12.h"
+#include "LZ77.h"
+#include "Huffman.h"
 
 #include <iostream>
 #include <utility>
@@ -125,6 +127,18 @@ void RGB12::save444(std::ofstream &f, const Image &img) const
 	}
 }
 
+void RGB12::saveLZ77(std::ofstream &of, const Image &img) const
+{
+	LZ77 lz;
+	lz.encode(of, img);
+}
+
+void RGB12::loadLZ77(std::ifstream &ifs, Image &img)
+{
+	LZ77 lz;
+	lz.decode(ifs, img);
+}
+
 uint8_t RGB12::getColorOfPixel(SDL_Color color, int which) const
 {
 	switch (which)
@@ -167,6 +181,10 @@ void RGB12::store(const std::string & filename, const Image & img) const
 	uint8_t alg = algorithm;
 	switch (algorithm)
 	{
+	case 2:
+		writeHeader(f, img, alg, true);
+		saveLZ77(f, img);
+		break;
 	default:
 		std::cerr << "[RGB12]: RuntimeError(\"There is no such an algorithm: " << static_cast<unsigned int>(algorithm) << ". Calling default..\");" << std::endl;
 		alg = 0;

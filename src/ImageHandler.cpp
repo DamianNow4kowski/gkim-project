@@ -202,7 +202,7 @@ void ImageHandler::load(const std::string &filename)
 	}
 	catch (const RuntimeError &error)
 	{
-		std::cerr << "[ImageHandler]: Error while saving Image: " << error.what() << std::endl;
+		std::cerr << "[ImageHandler]: Error while loading Image: " << error.what() << std::endl;
 	}
 }
 

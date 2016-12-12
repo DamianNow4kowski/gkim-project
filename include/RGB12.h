@@ -59,6 +59,11 @@ public:
 	uint8_t algorithm;
 	virtual std::string extension() const override;
 
+	/**
+	 * 0 - Algorithm 'Bit density RGB 444'
+	 * 1 - Huffman
+	 * 2 - LZ77
+	 */
 	RGB12(uint8_t = 0);
 	RGB12(const BMP &, uint8_t = 0);
 	RGB12(const RGB12 &);

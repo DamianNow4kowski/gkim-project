@@ -10,6 +10,7 @@
 #include "Huffman.h"
 #include "BMP.h"
 #include "RGB12.h"
+#include "LZ77.h"
 
 using namespace std;
 
@@ -161,6 +162,24 @@ void testHuffman()
 	rgb.preview();
 }
 
+void test_LZ77()
+{
+	BMP bmp;
+	//bmp.load("test/rgbcube.bmp");
+	//bmp.load("test/test.bmp");
+	bmp.load("test/smalltest_24bit.bmp");
+	//bmp.load("test/smalltest_8bit.bmp");
+	bmp.preview();
+
+	// '2' indicates saving using LZ77
+	RGB12 rgb(bmp, 2);
+	rgb.preview();
+	rgb.save("test/lz77");
+	rgb.load("test/lz77.rgb12");
+	rgb.preview();
+
+}
+
 int main()
 {
     // Initialize SDL
@@ -179,7 +198,8 @@ int main()
 	//test_BMPHandler();
 	//test_RGB12Handler();
 	//test_saveLoadRGB12();
-	testHuffman();
+	//testHuffman();
+	test_LZ77();
 
 	system("PAUSE");
 	return 0;
