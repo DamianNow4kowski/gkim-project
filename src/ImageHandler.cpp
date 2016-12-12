@@ -171,7 +171,8 @@ void ImageHandler::save(std::string &filename) const
 
 void ImageHandler::save(const char *str) const
 {
-	save(std::string(str));
+	std::string filename(str);
+	save(filename);
 }
 
 void ImageHandler::load(const std::string &filename)
