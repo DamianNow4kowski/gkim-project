@@ -1,6 +1,5 @@
 ﻿#include "SDL_Local.h"
 #include "Huffman.h"
-#include "BMP.h"
 
 #include <iostream>
 #include <array>
@@ -29,23 +28,7 @@ int main(int argc, char *argv[])
 		std::getline(std::cin, test_bmp);
 	}
 
-	// Load BMP
-	BMP *bmp_surface = new BMP();
-	//bmp_surface->load("bird.bmp");
-	//cout << "Hardcoded image dimensions: " << bmp_surface->width() << "x" << bmp_surface->height() << endl;
-	bmp_surface->load(test_bmp.c_str(), false);
-	std::cout << "Loaded image dimensions: " << bmp_surface->width() << "x" << bmp_surface->height() << std::endl;
-
-	//bmp_surface->preview();
-
-	Huffman *huff = new Huffman(bmp_surface);
-	huff->encode();
-	huff->decode();
-	std::cout << "Finished" << std::endl;
-
-	// Clean
-	delete huff;
-	delete bmp_surface;
+	/// TODO:
 
 	// I don't want it on linux, sorry
 	// We don't use linux, sorry

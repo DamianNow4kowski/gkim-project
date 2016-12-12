@@ -33,14 +33,8 @@ void ImageHandler::openStream(const std::string &filename, std::ofstream &output
 	}
 }
 
-ImageHandler::ImageHandler(SDL_Surface *surface)
-	: image(ImageSurface(surface))
-{
-	std::cout << "[ImageHandler]: Called protected SDL_Surface* constructor." << std::endl;
-}
-
 ImageHandler::ImageHandler(const SDL_Surface *surface)
-	: image(ImageSurface(surface))
+	: image(Image(surface))
 {
 	std::cout << "[ImageHandler]: Called public const SDL_Surface* constructor." << std::endl;
 }
@@ -50,14 +44,14 @@ ImageHandler::ImageHandler()
 	std::cout << "[ImageHandler]: Called default constructor." << std::endl;
 }
 
-ImageHandler::ImageHandler(const ImageSurface &img)
+ImageHandler::ImageHandler(const Image &img)
 	:image(img)
 {
-	std::cout << "[ImageHandler]: Called const ImageSurface& constructor." << std::endl;
+	std::cout << "[ImageHandler]: Called const Image& constructor." << std::endl;
 }
 
 ImageHandler::ImageHandler(const ImageHandler &iop)
-	:image(ImageSurface(iop.image))
+	:image(Image(iop.image))
 {
 	std::cout << "[ImageHandler]: Called copy constructor." << std::endl;
 }
@@ -70,52 +64,57 @@ ImageHandler::ImageHandler(ImageHandler &&iop)
 
 ImageHandler & ImageHandler::operator=(const ImageHandler &iop)
 {
-	std::cout << "[ImageHandler]-> Called copy assigment." << std::endl;
+	std::cout << "[ImageHandler]-> Called copy assigment operator." << std::endl;
 	image = iop.image;
 	return *this;
 }
 
 ImageHandler & ImageHandler::operator=(ImageHandler &&iop)
 {
-	std::cout << "[ImageHandler]-> Called move assigment." << std::endl;
+	std::cout << "[ImageHandler]-> Called move assigment operator." << std::endl;
 	image = std::move(iop.image); // TODO: investigate beheviour
 	return *this;
 }
 
 void ImageHandler::preview(bool showDetails)
 {
-	std::cout << "[ImageHandler]-> Previewing ImageSurface." << std::endl;
+	std::cout << "[ImageHandler]-> Previewing Image." << std::endl;
 	if (showDetails)
-		image.printDetails();
+		image.printDetails(std::cout);
 
+	// Remarks: This function is more usefull when don't throws errors; simply finish execution
 	if (image.empty())
-		throw RuntimeError("Cannot preview uninitialized ImageSurface.");
+	{
+		std::cerr << "[ImageHandler]: RuntimeError(\"Cannot preview uninitialized Image.\");" << std::endl;
+		return;
+	}
 
 	// Calculate drawing area to be center inside window
 	SDL_Rect dest = {0, 0, 0, 0};
+	dest.w = static_cast<int>(image.width());
+	dest.h = static_cast<int>(image.height());
 
-	const int minWidth = 300, 
-		minHeight = 300;
+	const int minWidth = 300, minHeight = 300;
+	int windowWidth, windowHeight;
 
-	int width = image.img()->w, 
-		height = image.img()->h;
-
-	dest.w = width;
-	dest.h = height;
-	
-	if (width < minWidth)
+	// Calculate width and center x-axis offset
+	if (dest.w < minWidth)
 	{
-		dest.x = (minWidth - width) / 2;
-		width = minWidth;
+		dest.x = (minWidth - dest.w) / 2;
+		windowWidth = minWidth;
 	}
-	if (height < minHeight)
+	else windowWidth = dest.w;
+
+	// Calculate height and center y-axis offset
+	if (dest.h < minHeight)
 	{
-		dest.y = (minHeight - height) / 2;
-		height = minHeight;
+		dest.y = (minHeight - dest.h) / 2;
+		windowHeight = minHeight;
 	}
+	else windowHeight = dest.h;
 
 	// Allocate needed things to create window
-	SDL_Window *window = SDL_CreateWindow("Preview Image", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN);
+	SDL_Window *window = SDL_CreateWindow("Preview Image", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
 	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	SDL_Texture* texture = image.texture(renderer);
 	SDL_Event e;
@@ -148,12 +147,12 @@ void ImageHandler::preview(bool showDetails)
 
 void ImageHandler::save(std::string &filename) const
 {
-	std::cout << "[ImageHandler]-> Saving ImageSurface to file: " << filename << std::endl;
+	std::cout << "[ImageHandler]-> Saving Image to file: " << filename << std::endl;
 	try 
 	{
 		// Check wheter it is anything to save
 		if (image.empty())
-			throw RuntimeError("Cannot save unintialized ImageSurface.");
+			throw RuntimeError("Cannot save unintialized Image.");
 
 		// Add extension if there is not set (or not proper)
 		std::string ext = extension();
@@ -161,12 +160,12 @@ void ImageHandler::save(std::string &filename) const
 			filename.append(ext);
 
 		// Invoke implemented virtual function in derievec class
-		// to save the ImageSurface to file
+		// to save the Image to file
 		store(filename, image);
 	}
 	catch (const RuntimeError &error)
 	{
-		std::cerr << "[ImageHandler]: Error while saving ImageSurface: " << error.what() << std::endl;
+		std::cerr << "[ImageHandler]: Error while saving Image: " << error.what() << std::endl;
 	}
 }
 
@@ -177,7 +176,7 @@ void ImageHandler::save(const char *str) const
 
 void ImageHandler::load(const std::string &filename)
 {
-	std::cout << "[ImageHandler]-> Loading ImageSurface from file: " << filename << std::endl;
+	std::cout << "[ImageHandler]-> Loading Image from file: " << filename << std::endl;
 	try 
 	{
 		// Validate extension of filename
@@ -190,12 +189,12 @@ void ImageHandler::load(const std::string &filename)
 		}
 
 		// Invoke implemented virtual function in derieved class 
-		// to load the ImageSurface from file
-		ImageSurface recovered = recover(filename);
+		// to load the Image from file
+		Image recovered = recover(filename);
 
 		// Verify if the recovering process has succeed
 		if (recovered.empty())
-			throw RuntimeError("Loading ImageSurface has failed.");
+			throw RuntimeError("Loading Image has failed.");
 		
 		// Free current object and init recovered one (use move assigment to archieve this)
 		else image = std::move(recovered);
@@ -203,7 +202,7 @@ void ImageHandler::load(const std::string &filename)
 	}
 	catch (const RuntimeError &error)
 	{
-		std::cerr << "[ImageHandler]: Error while saving ImageSurface: " << error.what() << std::endl;
+		std::cerr << "[ImageHandler]: Error while saving Image: " << error.what() << std::endl;
 	}
 }
 

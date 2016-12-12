@@ -1,355 +1,189 @@
-﻿#include "Image.h"
-#include "FileHandler.h"
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <bitset>
-#include <fstream>
-#include <iomanip>
+#include "Image.h"
 
-using namespace std;
+#include <bitset>	// debug
+#include <iomanip>  // debug
+#include <sstream>  // thrown errors' messages
 
-/*
-USING NAMESPACE STD - DO USUNIECIA
-NULL --> NULLPTR
-*/
-
-/**
- * PRIVATE
- */
-
-/**
- * Deallocate object's dynamic memory
- */
 void Image::free()
 {
+	// For debug to see when really memory is deallocated
+	if(surface != nullptr)
+		std::cout << "[Image]-> Deallocated surface." << std::endl;
+
 	// Note: it is safe to pass NULL to this function
 	// @see https://wiki.libsdl.org/SDL_FreeSurface#Remarks
-	SDL_FreeSurface(this->surface);
-	this->surface = NULL;
+	SDL_FreeSurface(surface);
+	surface = nullptr;
 }
 
-bool Image::empty(const SDL_Surface *surf) const
+SDL_Surface * Image::create(int w, int h, int depth) const
 {
-	return surf == NULL;
+	std::cout << "[Image]-> Creating surface." << std::endl;
+	SDL_Surface *img = SDL_CreateRGBSurface(0, w, h, depth, 0, 0, 0, 0);
+	if (img == nullptr)
+		throw RuntimeError();
+	return img;
 }
 
-/**
- * PUBLIC
- */
-
- // construct
-Image::Image()
-	: surface(NULL)
-{}
-
-Image::Image(const Image &img)
-	: surface(copySurface(img.surface))
+SDL_Surface * Image::copy(const SDL_Surface *img) const
 {
-	std::cout << "[Image]: Public const Image& constructor. (COPIED SURFACE)" << std::endl;
-	// copySurface() throws RuntimeError if surf == NULL
+	std::cout << "[Image]-> Copying surface." << std::endl;
+	if (img == nullptr)
+		throw RuntimeError("Cannot copy not existing surface.");
+
+	SDL_Surface* new_img;
+	int w = img->w, h = img->h;
+
+	// Allocate empty surface
+	new_img = create(w, h, img->format->BitsPerPixel);
+
+	// Simple copying algorithm
+	for (int y = 0; y < h; ++y)
+		for (int x = 0; x < w; ++x)
+			setPixel(new_img, x, y, getPixel(img, x, y));
+
+	return new_img;
 }
 
-// Directly attach SDL_Surface (like for planned move constructor or RGB444 convert)
-Image::Image(SDL_Surface *surf)
-	: surface(surf)
+uint32_t Image::getPixel(uint8_t *pixel, uint8_t bpp) const
 {
-	std::cout << "[Image]: Protected [not const] SDL_Surface* constructor. (DIDN'T COPY SURFACE)" << std::endl;
-	// it is safe to pass NULL as *surf
-}
-
-Image::Image(const SDL_Surface *surf) 
-	: surface(copySurface(surf))
-{
-	std::cout << "[Image]: Public const SDL_Surface* constructor. (COPIED SURFACE)" << std::endl;
-	// copySurface() throws RuntimeError if surf == NULL
-}
-
-// destruct
-Image::~Image()
-{
-	this->free();
-}
-
-/**
- * @important Surround with try/catch block!
- */
-void Image::init(SDL_Surface *surface)
-{
-	if (this->empty(surface))
-	{
-		std::cerr << "Cannot initialize empty surface." << std::endl;
-		// throw RuntimeError("Cannot initialize empty surface.");
-		return;
-	}
-
-	// Deallocate memory before initializing again
-	if (this->initialized())
-		this->free();
-
-	this->surface = surface;
-}
-
-/**
- * Main function for loading image files
- * @param cstring image filename
- * @param bool if true throws error and terminates program
- *             when extension of image file is wrong
- */
-void Image::load(const char *file, bool requireVaildExt)
-{
-	try
-	{
-		// Verifying extension
-		const char *ext = this->extension();
-		if (!FileHandler::verifyExtension(file, ext))
-		{
-			if (requireVaildExt)
-			{
-				std::ostringstream error;
-				error << "Extension of loaded file, must be *." << ext;
-				throw RuntimeError(error.str());
-			}
-			else
-				std::cerr << "Warning: Loaded extension is invaild." << std::endl;
-		}
-
-		// Load surface
-		this->init(this->loadImpl(file));
-	}
-	catch (const RuntimeError &err)
-	{
-		std::cerr << "Error while loading to SDL_Surface*: " << err.what() << std::endl;
-	}
-}
-
-void Image::save(const char *file) 
-{
-	if (!this->initialized())
-	{
-		std::cerr << "Cannot save uninitialized image." << std::endl;
-		// throw RuntimeError("Cannot save uninitialized image.");
-		return;
-	}
-
-	try 
-	{
-		const char *ext = this->extension();
-		if (!FileHandler::verifyExtension(file, ext))
-		{
-			std::ostringstream fn;
-			fn << file << '.' << ext;
-			this->saveImpl(this->surface, fn.str().c_str());
-		}
-		else 
-		{
-			this->saveImpl(this->surface, file);
-		}
-	}
-	catch (const RuntimeError &err)
-	{
-		std::cerr << "Error saving Image: " << err.what() << std::endl;
-	}
-}
-
-
-/**
- * @param pixel pointer to wanted pixel data
- * @param bpp size of pixel in number of bytes
- * @return fully qualifed uint32_t pixel data
- */
-uint32_t Image::getPixel(uint8_t *pixel, uint8_t bpp) const {
 	switch (bpp)
 	{
+	// 8bit integer
 	case 1:
 		return *pixel;
 
+	// 16bit integer
 	case 2:
 		return *reinterpret_cast<uint16_t *>(pixel);
 
+	// 24bit integer
 	case 3:
 		if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
 			return pixel[0] << 16 | pixel[1] << 8 | pixel[2];
 		else
 			return pixel[0] | pixel[1] << 8 | pixel[2] << 16;
 
+	// 32bit integer
 	case 4:
 		return *reinterpret_cast<uint32_t *>(pixel);
 
-		// Should not happen, but avoids warnings
+	// Should not happen, but avoids warnings
 	default:
-		std::cerr << "Couldn't get pixel BytesPerPixel set to 0.";
-		return 0;
+		throw RuntimeError("Couldn't get pixel. BytesPerPixel set to 0.");
 	}
 }
 
-/**
- * @param x x-axis cordinate of wanted pixel
- * @param y y-axis
- * @return full pixel data in Uint32 format
- */
-uint32_t Image::getPixel(const SDL_Surface *surf, unsigned int x, unsigned int y, bool debug) const
+uint32_t Image::getPixel(const SDL_Surface *img, unsigned int x, unsigned int y, bool debug) const
 {
+	if (img == nullptr)
+		throw RuntimeError("Cannot get pixel data of uninitialized surface.");
+
+	// Verify coordinates
+	if (x >= static_cast<unsigned int>(img->w) || y >= static_cast<unsigned int>(img->h))
+	{
+		std::ostringstream os;
+		os << "Cannot get pixel. Out of surface range [w=" << img->w << ", h=" << img->h << "] was x=" << x << " y=" << y << '.';
+		throw RuntimeError(os.str());
+	}
+
 	uint8_t *pixel, bpp;
-	bpp = surf->format->BytesPerPixel;
-	pixel = reinterpret_cast<uint8_t *>(surf->pixels) + y * surf->pitch + x * bpp;
+	bpp = img->format->BytesPerPixel;
+	pixel = reinterpret_cast<uint8_t *>(img->pixels) + y * img->pitch + x * bpp;
+	uint32_t ret = getPixel(pixel, bpp);
 
-	if (!debug)
-		return this->getPixel(pixel, bpp);
-
-	// Debugging
-	uint32_t ret = this->getPixel(pixel, bpp);
-	std::bitset<32> b(ret);
-	std::cout << "Pixel[x=" << x << "][y=" << y << "] = " << b << std::endl;
+	// Print pixel bits when debugging
+	if (debug) {
+		std::bitset<32> b(ret);
+		std::cout << "Pixel[x=" << std::setw(3) << x << "][y=" << std::setw(3) << y << "] = " << b << std::endl;
+	}
 	return ret;
 }
 
-uint32_t Image::getPixel(unsigned int x, unsigned int y, bool debug) const
+SDL_Color Image::getPixelColor(const SDL_Surface *img, unsigned int x, unsigned int y, bool debug) const
 {
-	return this->getPixel(this->surface, x, y, debug);
-}
+	// Get pixel data
+	uint32_t pixel = getPixel(img, x, y);
 
-SDL_Color Image::getPixelColor(const SDL_Surface *surf, unsigned int x, unsigned int y) const
-{
-	uint32_t color = this->getPixel(surf, x, y);
-	SDL_Color rgb;
-	SDL_GetRGB(color, surf->format, &rgb.r, &rgb.g, &rgb.b);
+	// Get rgb color components
+	SDL_Color rgb = { 0, 0, 0, 0 };
+	if (img->format->palette == nullptr)
+	{
+		/** 
+		 * At first get interesting color component bits using mask 
+		 * from 32-bit integer containing wanted pixel data
+		 * then shift it down to 8-bit
+		 * at the end expand to full 8-bit number
+		 */
+		rgb.r = ((pixel & img->format->Rmask) >> img->format->Rshift) << img->format->Rloss;
+		rgb.g = ((pixel & img->format->Gmask) >> img->format->Gshift) << img->format->Gloss;
+		rgb.b = ((pixel & img->format->Bmask) >> img->format->Bshift) << img->format->Bloss;
+	}
+	// Pallette is used in SDL when depth <= 8-bit
+	else if (pixel < static_cast<uint32_t>(img->format->palette->ncolors))
+	{
+		rgb.r = img->format->palette->colors[pixel].r;
+		rgb.g = img->format->palette->colors[pixel].g;
+		rgb.b = img->format->palette->colors[pixel].b;
+	}
+	//SDL_GetRGB(pixel, img->format, &rgb.r, &rgb.g, &rgb.b);
+
+	// Print RGB bits when debugging
+	if (debug) {
+		std::bitset<8> r(rgb.r), g(rgb.g), b(rgb.b);
+		std::cout << "Pixel[x=" << std::setw(3) << x << "][y=" << std::setw(3) << y << "] = R[" << r << "] G[ " << g << "] B[" << b << "]" << std::endl;
+	}
 	return rgb;
 }
 
-SDL_Color Image::getPixelColor(unsigned int x, unsigned int y) const
+void Image::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, uint32_t pixel, bool debug) const
 {
-	return this->getPixelColor(this->surface, x, y);
-}
+	if (img == nullptr)
+		throw RuntimeError("Cannot set pixel data of uninitialized surface.");
 
-unsigned int Image::height() const
-{
-	if (!this->initialized())
-		return 0;
-	return static_cast<unsigned int>(this->surface->h);
-}
-
-unsigned int Image::width() const
-{
-	if(!this->initialized())
-		return 0;
-	return static_cast<unsigned int>(this->surface->w);
-}
-
-unsigned int Image::bpp() const 
-{
-	if (!this->initialized())
-		return 0;
-	return static_cast<unsigned int>(this->surface->format->BytesPerPixel);
-}
-
-unsigned int Image::depth() const 
-{
-	if (!this->initialized())
-		return 0;
-	return static_cast<unsigned int>(this->surface->format->BitsPerPixel);
-}
-
-size_t Image::size() const
-{
-	return this->width() * this->height() * this->bpp();
-}
-
-bool Image::initialized() const 
-{
-	return !this->empty(this->surface);
-}
-
-SDL_Texture *Image::texturize(SDL_Renderer* renderer) {
-	return SDL_CreateTextureFromSurface(renderer, this->surface);
-}
-
-void Image::preview()
-{ 
-
-	std::cout << "Preview Image's Details:" << std::endl;
-	std::cout << "- Width: " << this->width() << std::endl;
-	std::cout << "- Height: " << this->height() << std::endl;
-	std::cout << "- Depth: " << this->depth() << std::endl;
-	std::cout << "- Size (bytes): " << this->size() << std::endl;
-
-	if (!this->initialized())
+	// Verify coordinates
+	if (x >= static_cast<unsigned int>(img->w) || y >= static_cast<unsigned int>(img->h))
 	{
-		std::cerr << "Cannot preview uninitialized image." << std::endl;
-		// throw RuntimeError("Cannot preview uninitialized image.");
-		return;
+		std::ostringstream os;
+		os << "Cannot set pixel. Out of surface range [w=" << img->w << ", h=" << img->h << "] was x=" << x << " y=" << y << '.';
+		throw RuntimeError(os.str());
 	}
-
-	SDL_Window *window = SDL_CreateWindow("Preview Image", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, this->surface->w, this->surface->h, SDL_WINDOW_SHOWN);
-	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	SDL_Texture* texture = this->texturize(renderer);
-	SDL_Event e;
-	SDL_RenderClear(renderer);
-	SDL_RenderCopy(renderer, texture, NULL, NULL);
-	SDL_RenderPresent(renderer);
-
-	// Simple loop
-	std::cout << "Press key 'Q' or 'ESC' to exit view." << std::endl;
-	while (SDL_WaitEvent(&e))
-	{
-		if (e.type == SDL_KEYDOWN) {
-			std::cout << "Pressed key '" << SDL_GetKeyName(e.key.keysym.sym) << "'" << std::endl;
-			if (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_q) {
-				std::cout << "Exiting view.." << std::endl;
-				break;
-			}
-		}
-		else if (e.type == SDL_QUIT) {
-			std::cout << "User requested to close window." << std::endl;
-			break;
-		}
-	}
-
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-}
-
-const SDL_Surface *Image::img() const {
-	if (!this->initialized())
-		throw RuntimeError("Trying to access uninitialized surface.");
-
-	return this->surface;
-}
-
-
-void Image::setPixel(SDL_Surface *surface, unsigned int x, unsigned int y, uint32_t pixel, bool debug)
-{
-	if (x >= static_cast<unsigned int>(surface->w) || y >= static_cast<unsigned int>(surface->h))
-		throw RuntimeError("Specified coordinates are above the surface range.");
 
 	uint8_t *p, bpp;
-	bpp = surface->format->BytesPerPixel;
-	p = reinterpret_cast<uint8_t*>(surface->pixels) + y * surface->pitch + x * bpp;
+	bpp = img->format->BytesPerPixel;
+	p = reinterpret_cast<uint8_t*>(img->pixels) + y * img->pitch + x * bpp;
+
+	// Show setted pixel bits when debugging
+	if (debug) {
+		std::bitset<32> b(pixel);
+		std::cout << "Pixel[x=" << std::setw(3) << x << "][y=" << std::setw(3) << y << "] = " << b << std::endl;
+	}
 
 	switch (bpp)
 	{
-		// 8-bit
+	// 8-bit
 	case 1:
 		*p = pixel;
-		if (debug) {
-			std::bitset<32> b(pixel);
+
+		// Debug
+		if (debug)
+		{
 			std::bitset<8> b1(*p);
-			std::cout << "Pixel[x=" << std::setw(3) << x << "][y=" << std::setw(3) << y << "] = " << b << std::endl;
-			std::cout << setw(22) << "Bitmap = " << std::setw(32) << b1 << std::endl;
+			std::cout << std::setw(22) << "Bitmap = " << std::setw(32) << b1 << std::endl;
 		}
 		break;
-		// 16-bit
+	// 16-bit
 	case 2:
 		*reinterpret_cast<uint16_t*>(p) = pixel;
-		if (debug) {
-			std::bitset<32> b(pixel);
+
+		// Debug
+		if (debug)
+		{
 			std::bitset<16> b1(*reinterpret_cast<uint16_t*>(p));
-			std::cout << "Pixel[x=" << std::setw(3) << x << "][y=" << std::setw(3) << y << "] = " << b << std::endl;
-			std::cout << setw(22) << "Bitmap = " << std::setw(32) << b1 << std::endl;
+			std::cout << std::setw(22) << "Bitmap = " << std::setw(32) << b1 << std::endl;
 		}
 		break;
-		// 24-bit
+	// 24-bit
 	case 3:
 		if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
 			p[0] = (pixel >> 16) & 0xff;
@@ -361,149 +195,211 @@ void Image::setPixel(SDL_Surface *surface, unsigned int x, unsigned int y, uint3
 			p[1] = (pixel >> 8) & 0xff;
 			p[2] = (pixel >> 16) & 0xff;
 		}
-		if (debug) {
-			std::bitset<32> b(pixel);
+
+		// Debug
+		if (debug)
+		{
 			std::bitset<8> b1(p[0]);
 			std::bitset<8> b2(p[1]);
 			std::bitset<8> b3(p[2]);
-			std::cout << "Pixel[x=" << std::setw(3) << x << "][y=" << std::setw(3) << y << "] = " << b << std::endl;
-			std::cout << setw(22) << "Bitmap = " << std::setw(16) << b1 << b2 << b3 << std::endl;
+			std::cout << std::setw(22) << "Bitmap = " << std::setw(16) << b1 << b2 << b3 << std::endl;
 		}
 		break;
-		// 32-bit
+	// 32-bit
 	case 4:
 		*reinterpret_cast<uint32_t*>(p) = pixel;
-		if (debug) {
-			std::bitset<32> b(pixel);
+
+		// Debug
+		if (debug)
+		{
 			std::bitset<32> b1(*reinterpret_cast<uint32_t*>(p));
-			std::cout << "Pixel[x=" << std::setw(3) << x << "][y=" << std::setw(3) << y << "] = " << b << std::endl;
-			std::cout << setw(22) << "Bitmap = " << std::setw(32) << b1 << std::endl;
+			std::cout << std::setw(22) << "Bitmap = " << std::setw(32) << b1 << std::endl;
 		}
 		break;
 	}
 }
 
-void Image::setPixel(SDL_Surface *surf, unsigned int x, unsigned int y, uint8_t R, uint8_t G, uint8_t B, bool debug)
+void Image::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, uint8_t R, uint8_t G, uint8_t B, bool debug) const
 {
-	uint32_t pixel;
-	pixel = SDL_MapRGB(surf->format, R, G, B);
+	if (img == nullptr)
+		throw RuntimeError("Cannot set pixel data of uninitialized surface.");
 
-	// Invoke main function
-	this->setPixel(surf, x, y, pixel, debug);
+	uint32_t rgb;
+	if (img->format->palette == nullptr)
+	{
+		rgb = (R >> img->format->Rloss) << img->format->Rshift
+			| (G >> img->format->Gloss) << img->format->Gshift
+			| (B >> img->format->Bloss) << img->format->Bshift;
+		///| img->format->Amask; // I think it is unneseccary
+	}
+	else throw RuntimeError("Cannot set RGB components values of palettized surface.");
+	// if it has pallete have to use default SDL function (tried implement it but failed)
+	//rgb = SDL_MapRGB(img->format, r, g, b);
+
+	setPixel(img, x, y, rgb, debug);
+}
+
+uint8_t Image::toGreyScale(const SDL_Color &color)
+{
+	//return static_cast<uint8_t>(color.r * 0.299 + color.g * 0.587 + color.b * 0.114);
+	return static_cast<uint8_t>(0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b);
+}
+
+Image::Image()
+	: surface(nullptr)
+{
+	std::cout << "[Image]: Called default constructor." << std::endl;
+}
+
+Image::Image(int w, int h, int depth)
+	:surface(create(w, h, depth))
+{
+	std::cout << "[Image]: Called create empty surface constructor." << std::endl;
+}
+
+Image::Image(SDL_Surface *img)
+	:surface(img)
+{
+	std::cout << "[Image]: Called SDL_Surface* constructor." << std::endl;
+}
+
+Image::Image(const SDL_Surface *img)
+	: surface(copy(img))
+{
+	std::cout << "[Image]: Called const SDL_Surface* constructor." << std::endl;
+}
+
+Image::Image(const Image &img)
+	: surface(copy(img.surface))
+{
+	std::cout << "[Image]: Called copy constructor." << std::endl;
+}
+
+Image::Image(Image &&img)
+	: surface(img.surface)
+{
+	std::cout << "[Image]: Called move constructor." << std::endl;
+	img.surface = nullptr;
+}
+
+Image & Image::operator=(const Image &img)
+{
+	std::cout << "[Image]-> Called copy assigment operator." << std::endl;
+	free();
+	surface = copy(img.surface);
+	return *this;
+}
+
+Image & Image::operator=(Image &&img)
+{
+	std::cout << "[Image]-> Called move assigment operator." << std::endl;
+	free();
+	surface = img.surface;
+	img.surface = nullptr;
+	return *this;
+}
+
+Image::~Image()
+{
+	std::cout << "[Image]: Called destructor." << std::endl;
+	free();
+}
+
+void Image::allocate(int x, int y, int depth)
+{
+	std::cout << "[Image]-> Allocating new SDL_Surface." << std::endl;
+	free();
+	surface = create(x, y, depth);
+}
+
+void Image::toGreyScale()
+{
+	std::cout << "[Image]-> Converting Image to grey scale." << std::endl;
+	uint8_t grey;
+	for (unsigned int y = 0; y < height(); ++y)
+	{
+		for (unsigned int x = 0; x < width(); ++x)
+		{
+			grey = toGreyScale(getPixelColor(x, y));
+			setPixel(x, y, grey, grey, grey);
+		}
+	}
+}
+
+uint32_t Image::getPixel(unsigned int x, unsigned int y, bool debug) const
+{
+	return getPixel(surface, x, y, debug);
+}
+
+SDL_Color Image::getPixelColor(unsigned int x, unsigned int y, bool debug) const
+{
+	return getPixelColor(surface, x, y, debug);
+}
+
+void Image::setPixel(unsigned int x, unsigned int y, uint32_t pixel, bool debug)
+{
+	setPixel(surface, x, y, pixel, debug);
 }
 
 void Image::setPixel(unsigned int x, unsigned int y, uint8_t r, uint8_t g, uint8_t b, bool debug)
 {
-	this->setPixel(this->surface, x, y, r, g, b, debug);
+	setPixel(surface, x, y, r, g, b, debug);
 }
 
-SDL_Surface* Image::makeSurface(int w, int h, int depth)
+void Image::setPixel(unsigned int x, unsigned int y, const SDL_Color &color, bool debug)
 {
-	SDL_Surface *surf = SDL_CreateRGBSurface(0, w, h, depth, 0, 0, 0, 0);
-	if(empty(surf))
+	setPixel(surface, x, y, color.r, color.g, color.b, debug);
+}
+
+void Image::printDetails(std::ostream &o) const
+{
+	o << "[Image]-> Details:" << std::endl
+		<< " - Width: " << width() << std::endl
+		<< " - Height: " << height() << std::endl
+		<< " - Depth: " << depth() << std::endl
+		<< " - Size: " << size() << std::endl;
+}
+
+const SDL_Surface * Image::img() const
+{
+	return surface;
+}
+
+SDL_Texture * Image::texture(SDL_Renderer *renderer) const
+{
+	std::cout << "[Image]-> Creating texture." << std::endl;
+	SDL_Texture *text = SDL_CreateTextureFromSurface(renderer, surface);
+	if (text == nullptr)
 		throw RuntimeError();
-	return surf;
+	return text;
 }
 
-/**
- * Creates copy of SDL_Surface
- * @param SDL_Surface* pointer to surface that is being copied
- * @return SDL_Surface* pointer to newly created surface
- */
-SDL_Surface *Image::copySurface(const SDL_Surface *surf)
+unsigned int Image::width() const
 {
-	std::cout << "[Debug]: *** Copying surface." << std::endl;
-	if (this->empty(surf))
-		throw RuntimeError("Cannot copy not existing surface.");
-
-	uint32_t pix;
-	int x, y, w, h;
-	SDL_Surface* new_surface;
-	w = surf->w;
-	h = surf->h;
-
-	new_surface = this->makeSurface(w, h, surf->format->BitsPerPixel);
-
-	// Simple copying algorithm
-	for (y = 0; y < h; ++y) {
-		for (x = 0; x < w; ++x) {
-			pix = this->getPixel(surf, x, y);
-			this->setPixel(new_surface, x, y, pix);
-		}
-	}
-
-	return new_surface;
+	return empty() ? 0 : static_cast<unsigned int>(surface->w);
 }
 
-void Image::convertToGreyScale()
+unsigned int Image::height() const
 {
-	unsigned int x, y, w, h;
-	SDL_Color color;
-	uint8_t bw;
-	w = this->width();
-	h = this->height();
-	for (x = 0; x < w; ++x)
-	{
-		for (y = 0; y < h; ++y)
-		{
-			color = this->getPixelColor(x, y);
-
-			/**
-			 * Greyscale standard?
-			 * @link https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
-			 */
-			 // bw = color.r*0.299 + color.g*0.587 + color.b*0.114;
-			bw = static_cast<uint8_t>(0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b);
-			this->setPixel(this->surface, x, y, bw, bw, bw);
-		}
-	}
+	return empty() ? 0 : static_cast<unsigned int>(surface->h);
 }
 
-/**
- * Copies this->surface in particular format
- * @param SDL_PixelFormat* format [=nullptr_t]
- *   @see https://wiki.libsdl.org/SDL_PixelFormat
- * @return SDL_Surface* pointer to newly created SDL_Surface()
- */
-SDL_Surface *Image::getSurface(const SDL_PixelFormat* format)
+unsigned int Image::bpp() const
 {
-	SDL_Surface *surf = nullptr;
-	try {
-		if (!this->initialized())
-			throw RuntimeError("Cannot get uninitialized surface.");
-
-		if (format == nullptr)
-			format = this->surface->format;
-
-		if ((surf = SDL_ConvertSurface(this->surface, format, 0)) == NULL)
-			throw RuntimeError();
-
-	}
-	catch (const RuntimeError &e) {
-		std::cerr << "Error while copying surface: " << e.what() << std::endl;
-	}
-	return surf;
+	return empty() ? 0 : static_cast<unsigned int>(surface->format->BytesPerPixel);
 }
 
-/**
- * Copies this->surface in particular format
- * @param Uint32 sdl pixel format id
- * 	@see https://wiki.libsdl.org/SDL_ConvertSurfaceFormat#format
- * @return SDL_Surface* pointer to newly created SDL_Surface()
- */
-SDL_Surface *Image::getSurface(uint32_t format_id)
+unsigned int Image::depth() const
 {
-	SDL_Surface *surf = nullptr;
-	try {
-		if (!this->initialized())
-			throw RuntimeError("Cannot get uninitialized surface.");
+	return empty() ? 0 : static_cast<unsigned int>(surface->format->BitsPerPixel);
+}
 
-		if ((surf = SDL_ConvertSurfaceFormat(this->surface, format_id, 0)) == NULL)
-			throw RuntimeError();
+size_t Image::size() const
+{
+	return empty() ? 0 : width() * height() * bpp();
+}
 
-	}
-	catch (const RuntimeError &e) {
-		std::cerr << "Error while copying surface: " << e.what() << std::endl;
-	}
-	return surf;
+bool Image::empty() const
+{
+	return surface == nullptr;
 }

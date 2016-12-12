@@ -1,19 +1,17 @@
-#ifndef BMP_H
-#define BMP_H
-
-#include "Image.h"
-
-class BMP : public Image
+#pragma once
+#include "ImageHandler.h"
+class BMP : public ImageHandler
 {
 protected:
-	SDL_Surface *loadImpl(const char *);
-	void saveImpl(SDL_Surface*, const char *);
-
+	virtual void store(const std::string &, const Image &) const override;
+	virtual Image recover(const std::string &) override;
 public:
+	virtual std::string extension() const override;
 	BMP();
-	BMP(const Image &);
-	BMP(const SDL_Surface *);
-	const char *extension() const;
+	BMP(const BMP &);
+	BMP(BMP &&);
+	BMP& operator=(const BMP &);
+	BMP& operator=(BMP &&);
+	virtual ~BMP();
 };
 
-#endif // !BMP_H
