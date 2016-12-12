@@ -134,9 +134,11 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 
 		//searching the longest sequence
 		max = 1;
-		for (map<int, int>::iterator k = s_end; k != s_begin;)
+
+		// better approach for reverse iterating is:
+		//for (auto k = s_buff.rbegin(); k != s_buff.rend(); ++k)
+		for(auto k = s_buff.end(); k != s_buff.begin(); --k)
 		{
-			--k;
 			count = k;
 			temp = la_begin;
 			while (1)
