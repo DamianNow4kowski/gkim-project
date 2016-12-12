@@ -3,124 +3,162 @@
 #include <cstring>
 #include <chrono>
 #include <thread>
-#include "FileHandler.h"
+#include <cstdlib>
+#include <ctime>
+#include <utility>
 #include "SDL_Local.h"
 #include "Huffman.h"
 #include "BMP.h"
-#include "RGB444.h"
+#include "RGB12.h"
 
 using namespace std;
 
-const string bmp_test("test/test.bmp");
-
-void testFileHandler()
+void test_BMPHandler()
 {
-    bool e;
-    string filename("file.txt"), extension("txt"), wrong("bmp");
-    e = FileHandler::verifyExtension(filename, extension);
-    cout << "Test 1 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = FileHandler::verifyExtension(filename.c_str(), extension.c_str());
-    cout << "Test 2 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = !(FileHandler::verifyExtension(filename.c_str(), strlen(filename.c_str()), wrong.c_str(), strlen(wrong.c_str())));
-    cout << "Test 3 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = FileHandler::verifyExtension(".txt", "txt");
-    cout << "Test 4 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = !(FileHandler::verifyExtension("txt", "txt"));
-    cout << "Test 5 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-    e = !(FileHandler::verifyExtension(".dtxt", "txt"));
-    cout << "Test 6 of verifyExtension(): " << ((e) ? "SUCCEED" : "FAILED") << endl;
-}
-
-void testSDL_RGB444()
-{
-    cout << "Testing original SDL_Convert from BMP to RGB444" << endl;
-    BMP *bmp_surface = new BMP();
-    bmp_surface->load(bmp_test.c_str());
-    
-    cout << "-- Not converted Image --" << endl;
-    SDL_PixelFormat* pxformat = bmp_surface->img()->format;
-    const char* pxformatName = SDL_GetPixelFormatName(pxformat->format);
-    cout << "Pixel format name: " << pxformatName << endl;
-    Huffman *alg = new Huffman(bmp_surface);
-    alg->printCodes();
-    delete alg;
-    //bmp_surface->preview();
-
-    this_thread::sleep_for(chrono::milliseconds(500)); // try to no exit next window
-
-    cout << "Converting.." << endl;
-    SDL_Surface *surface = SDL_ConvertSurfaceFormat(bmp_surface->img(), SDL_PIXELFORMAT_RGB444, 0);
-    bmp_surface->init(surface);
-
-    cout << "-- Converted Image --" << endl;
-    pxformat = surface->format;
-    pxformatName = SDL_GetPixelFormatName(pxformat->format);
-    cout << "Pixel format name: " << pxformatName << endl;
-    //bmp_surface->preview();
-    alg = new Huffman(bmp_surface);
-    alg->printCodes();
-    delete alg;
-    delete bmp_surface;
-}
-
-void test_GreyScale() {
-    BMP *bmp_surface = new BMP();
-    bmp_surface->load("test/togrey.bmp");
-    bmp_surface->preview();
-    bmp_surface->convertToGreyScale();
-    bmp_surface->preview();
-    delete bmp_surface;
-}
-
-void test_openSaveOpenBMP() {
-    BMP *bmp_surface = new BMP();
-    bmp_surface->load("test/togrey.bmp");
-    bmp_surface->preview();
-    bmp_surface->convertToGreyScale();
-    bmp_surface->save("test/saved");
-    bmp_surface->load("test/saved.bmp");
-    bmp_surface->preview();
-    delete bmp_surface;
-}
-
-void test_RGB444Conversion() {
-    BMP *bmp = new BMP();
-    bmp->load("test/rgbcube.bmp");
-    bmp->preview();
-
-    // @unsafe here
-    SDL_Surface *surface = bmp->getSurface(SDL_PIXELFORMAT_RGB444);
-    RGB444 *test = new RGB444(surface);
-    delete bmp;
-
-    /**
-     * - Too much previews() causes segmentation fault ???
-     */
-
-    test->convertToGreyScale();
-    test->preview();
-
-    delete test;
-}
-
-void test_openBMPGreysaveLoad() 
-{
-    //RGB444 rgb2("test/file.rgb4"); // doesnt work yet
-    BMP bmp;
-    bmp.load("test/togrey.bmp");
-    bmp.convertToGreyScale();
-    RGB444 rgb2;
-
+	BMP bmp;
+	bmp.load("test/smalltest_24bit.bmp");
+	bmp.preview(true);
 	try {
-		rgb2.init(bmp.getSurface());
+		bmp.image.toGreyScale();
 	}
-	catch (const RuntimeError &e) {
-		cout << "Error: " << e.what() << endl;
+	catch (const RuntimeError &e)
+	{
+		cerr << "Error: " << e.what() << endl;
 	}
+	bmp.save("lol");
+	bmp.load("lol.bmp");
+	bmp.preview(true);
+	
+	// copy constructor;
+	BMP bmp2(bmp);
+	bmp2.preview();
 
-    rgb2.save("test/file", 100);
-    rgb2.load("test/file.rgb4");
-    rgb2.preview();
+	// move constructor
+	BMP bmp3(std::move(bmp2));
+	bmp3.preview();
+	bmp2.preview(); //should fail
+
+	// Copy assigment
+	ImageHandler *bmp4 = new BMP();
+	bmp4->load("test/smalltest_24bit.bmp");
+	*bmp4 = bmp3;
+	bmp4->preview();
+
+	// Move assigment
+	BMP bmp5;
+	bmp5.load("test/smalltest_24bit.bmp");
+	bmp5 = std::move(*reinterpret_cast<BMP *>(bmp4));
+	bmp5.preview();
+	bmp4->preview(); //should fail
+	delete bmp4;
+
+}
+
+void test_RGB12Handler()
+{
+	BMP bmp;
+	bmp.load("test/rgbcube.bmp");
+	bmp.preview();
+
+	// Convert construct
+	RGB12 rgb(bmp);
+	rgb.preview();
+
+	// Copy construct
+	RGB12 rgb2(rgb);
+	try {
+		rgb2.image.toGreyScale();
+	}
+	catch (const RuntimeError &e)
+	{
+		cerr << "Error: " << e.what() << endl;
+	}
+	rgb2.preview();
+
+	// Move construct
+	RGB12 rgb3(std::move(rgb2));
+	try {
+		rgb3.image.toGreyScale();
+	}
+	catch (const RuntimeError &e)
+	{
+		cerr << "Error: " << e.what() << endl;
+	}
+	rgb3.preview();
+	rgb2.preview(); //should fail
+
+	// Initize with convert construct to force object to be constructed then
+	// Copy assigment
+	RGB12 rgb4(bmp);
+	rgb4 = rgb3;
+	try {
+		rgb4.image.toGreyScale();
+	}
+	catch (const RuntimeError &e)
+	{
+		cerr << "Error: " << e.what() << endl;
+	}
+	rgb4.preview();
+
+	// Initize with convert construct to force object to be constructed then
+	// Move assigment
+	RGB12 rgb5(bmp);
+	rgb5 = std::move(rgb4);
+	try {
+		rgb5.image.toGreyScale();
+	}
+	catch (const RuntimeError &e)
+	{
+		cerr << "Error: " << e.what() << endl;
+	}
+	rgb5.preview();
+	rgb4.preview(); // should fail
+}
+
+void test_saveLoadRGB12()
+{
+	BMP bmp;
+	bmp.load("test/rgbcube.bmp");
+	//bmp.load("test/smalltest_24bit.bmp");
+	bmp.preview();
+
+	// Save
+	RGB12 rgb(bmp, 0);
+	rgb.save("test/image");
+
+	// Load
+	RGB12 rgb2(1);
+	rgb2.load("test/image.rgb12");
+	rgb2.preview();
+	rgb2.image.toGreyScale();
+	rgb2.save("test/image2");
+
+
+	RGB12 rgb3(2);
+	rgb3.load("test/image2.rgb12");
+	rgb3.preview();
+
+}
+
+void testHuffman()
+{
+	BMP bmp;
+	bmp.load("test/rgbcube.bmp");
+	//bmp.load("test/test.bmp");
+	//bmp.load("test/smalltest_24bit.bmp");
+	//bmp.load("test/smalltest_8bit.bmp");
+	bmp.preview();
+
+	RGB12 rgb(bmp);
+	rgb.preview();
+
+	Image &img = rgb.image;
+	
+	Huffman huffman(&img);
+	huffman.encode();
+	huffman.decode();
+
+	rgb.preview();
 }
 
 int main()
@@ -135,13 +173,13 @@ int main()
         cerr << "Error while initializing SDL:  " << err.what() << endl;
         return 1;
     }
+	srand(static_cast<unsigned int>(time(NULL)));
+
     cout << "Testing.." << endl;
-    //testFileHandler();
-    //testSDL_RGB444();
-    //test_GreyScale();
-    //test_openSaveOpenBMP();
-    //test_RGB444Conversion();
-    test_openBMPGreysaveLoad();
+	//test_BMPHandler();
+	//test_RGB12Handler();
+	//test_saveLoadRGB12();
+	testHuffman();
 
 	system("PAUSE");
 	return 0;

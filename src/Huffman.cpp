@@ -1,17 +1,19 @@
 #include "Huffman.h"
+
 #include "BitsToFile.h"
-
-#include <iostream>
-#include <algorithm>
-#include <iterator>
-
-// ??
 #include "BMP.h"
 
+#include <iostream>
+#include <iomanip>
+#include <queue>
+#include <iterator>
+#include <algorithm>
+
 Huffman::Huffman(Image *image)
+	: image(image), 
+	codeVec(std::vector<std::pair<Uint32, std::vector<bool>>>()), 
+	colorFreqs(std::vector<std::pair<Uint32, Uint32>>())
 {
-	this->image = image;
-	this->codeMap = new std::map<Uint32, std::vector<bool>>();
 }
 
 Huffman::~Huffman()
@@ -20,95 +22,151 @@ Huffman::~Huffman()
 
 void Huffman::encode()
 {
-	std::ofstream ofile("huff", std::ios::binary);
-	this->countFreq();
-	this->buildTree();
-	this->saveHuffHeader(ofile);
-	this->saveCodes(ofile);
+	std::cout << "\n=== HUFFMAN COMPRESSION ===" << std::endl;
+	std::ofstream ofile("test/huff", std::ios::binary);
+	countFreq();
+	buildTree();
+	saveHuffHeader(ofile);
+	saveCodes(ofile);
 	ofile.close();
+
+	codeVec.clear();
+	colorFreqs.clear();
+
+	std::cout << "=== HUFFMAN COMPRESSION DONE ===\n" << std::endl;
 }
 
 void Huffman::decode()
 {
-	std::ifstream ifile("huff", std::ios::binary);
-	this->readHuffHeader(ifile);
-	this->buildTree();
-	this->readCodes(ifile);
+	std::cout << "\n=== HUFFMAN DECOMPRESSION ===" << std::endl;
+
+	std::ifstream ifile("test/huff", std::ios::binary);
+	readHuffHeader(ifile);
+	buildTree();
+	readCodes(ifile);
 	ifile.close();
-}
 
-void Huffman::buildTree()
-{
-	std::cout << "Building Huffman tree..." << std::endl;
-	std::priority_queue<Tree<SingleColorData>*, std::vector<Tree<SingleColorData>*>, TreesCmp> trees;
+	codeVec.clear();
+	colorFreqs.clear();
 
-	for (unsigned int i = 0; i < this->clrCntr->getCountClr(); i++)
-		trees.push(new Tree<SingleColorData>(*(new Node<SingleColorData>(clrCntr->getColor(i)))));
-
-	while (trees.size() > 1)
-	{
-		auto t1 = trees.top();
-		trees.pop();
-
-		auto t2 = trees.top();
-		trees.pop();
-
-		trees.push(&(*t1 + *t2));
-	}
-
-	std::cout << "Huffman tree has been built." << std::endl;
-
-	std::vector<bool> codes;
-	this->generateCodes(trees.top()->getRoot(), codes, *this->codeMap);
-//	this->printCodes();
-}
-
-void Huffman::generateCodes(Node<SingleColorData>* node, std::vector<bool>& code, 
-	std::map<Uint32, std::vector<bool>>& map)
-{
-	if (node == nullptr)
-		return;
-	if (node->next == nullptr && node->prev == nullptr) // is leaf
-		map[node->getVar().color] = code;
-	else
-	{
-		auto leftPref = code;
-		leftPref.push_back(false);
-		this->generateCodes(node->prev, leftPref, map);
-
-		auto rightPref = code;
-		rightPref.push_back(true);
-		this->generateCodes(node->next, rightPref, map);
-	}
-}
-
-void Huffman::printCodes() const
-{
-	// auto = std::map<Uint32, std::vector<bool>>::const_iterator
-	std::cout << "Huffman encoding map:" << std::endl << std::endl;
-	for (auto it = codeMap->begin(); it != codeMap->end(); ++it)
-	{
-		std::cout << std::hex << std::setfill('0') << std::setw(6) << it->first << " ";
-		std::copy(it->second.begin(), it->second.end(),
-			std::ostream_iterator<bool>(std::cout));
-		std::cout << std::endl;
-	}
-
-	//for(unsigned int i = 0; i < this->clrCntr->getCountClr(); i++)
-	//	std::cout << std::hex << std::setfill('0') << std::setw(6) << this->clrCntr->getColor(i).color
-	//	<< "   " << std::dec << this->clrCntr->getColor(i).counter << std::endl;
+	std::cout << "=== HUFFMAN COMPRESSION DONE ===\n" << std::endl;
 }
 
 void Huffman::countFreq()
 {
 	std::cout << "Counting colors..." << std::endl;
 
-	this->clrCntr = new ColorCounter(this->image);
-	this->clrCntr->countColors();
-	this->clrCntr->sort();
+	Uint32 clr = -1;
+	bool found = false; 
+	for (size_t j = 0; j < image->height(); j++)
+	{
+		for (size_t i = 0; i < image->width(); i++)
+		{
+			clr = image->getPixel(i, j); // get color
+			found = false;
+			for (auto &v : colorFreqs) // check if already appeared
+			{
+				if (v.first == clr) // if found - increment frequency
+				{
+					v.second++;
+					found = true;
+				}
+			}
 
-	std::cout << "Finished counting." << std::endl;
-	std::cout << "Number of colors in image: " << this->clrCntr->getCountClr() << std::endl;
+			if (!found) // if not found - Add it
+			{
+				colorFreqs.push_back(std::pair<Uint32, Uint32>(clr, 1));
+				found = true;
+			}
+		}
+	}
+
+	std::cout << "Number of colors: ." << colorFreqs.size() << std::endl;
+}
+
+void Huffman::generateCodes(const Node *node, std::vector<bool>& code)
+{
+	if (node == nullptr)
+		return;
+	if (node->right == nullptr && node->left == nullptr) // is leaf - save code of node
+		codeVec.push_back(std::pair<Uint32, std::vector<bool>>(node->colorData.first, code));
+	else
+	{
+		auto leftPref = code;
+		leftPref.push_back(false);
+		generateCodes(node->left, leftPref); // add 0 and go left
+
+		auto rightPref = code;
+		rightPref.push_back(true);
+		generateCodes(node->right, rightPref); // add 1 and go right
+	}
+}
+
+void Huffman::buildTree()
+{
+	std::cout << "Building tree..." << std::endl;
+
+	std::priority_queue<Node*, std::vector<Node*>, NodeCmp> trees; // Add all colors as single nodes
+	for (auto &v : colorFreqs)
+		trees.push(new Node(v));
+
+	// Build Main Tree
+	while (trees.size() > 1)
+	{
+		auto chR = trees.top();
+		trees.pop();
+
+		auto chL = trees.top();
+		trees.pop();
+
+		auto chP = new Node(chR, chL);
+		trees.push(chP);
+	}
+
+	auto root = trees.top();
+
+	std::cout << "Tree build." << std::endl;
+	std::cout << "Generating codes & sorting..." << std::endl;
+
+	std::vector<bool> codes; // code for each color
+	generateCodes(root, codes);
+
+	delete root; // no longer needed
+
+	// sort codes before writing to file
+	// speed up decoding - most frequent codes are in the beginning
+	std::sort(codeVec.begin(), codeVec.end(),
+		[](const std::pair<Uint32, std::vector<bool>> &p1, const std::pair<Uint32, std::vector<bool>> &p2)
+	{
+		if (p1.second.size() < p2.second.size())
+			return true;
+		if (p1.second.size() > p2.second.size())
+			return false;
+		for (size_t i = 0; i < p1.second.size(); i++)
+		{
+			if (p1.second[i] < p2.second[i])
+				return true;
+			else if (p1.second[i] > p2.second[i])
+				return false;
+		}
+		return true;
+	}
+	);
+
+//	printCodes();
+	std::cout << "Codes generated." << std::endl;
+}
+
+void Huffman::printCodes() const
+{
+	std::cout << "Huffman encoding map:" << std::endl << std::endl;
+	for (const auto &v : codeVec)
+	{
+		std::cout << std::hex << std::setfill('0') << std::setw(6) << v.first << "   ";
+		for (const auto &vv : v.second)
+			std::cout << vv;
+		std::cout << std::dec << std::endl;
+	}
 }
 
 void Huffman::saveHuffHeader(std::ofstream &ofile)
@@ -116,104 +174,110 @@ void Huffman::saveHuffHeader(std::ofstream &ofile)
 	// save general image header here
 	// then Huffman header
 
+	std::cout << "Saving header..." << std::endl;
+
 	Uint32 clr;
 	unsigned int cntr;
-	unsigned int cnt = this->clrCntr->getCountClr();
+	unsigned int cnt = colorFreqs.size();
 
-	ofile.write((char*)(&cnt), sizeof(this->clrCntr->getCountClr()));
+	ofile.write((char*)(&cnt), sizeof(cnt));
 
-	for (unsigned int i = 0; i < this->clrCntr->getCountClr(); i++)
+	for (auto &v : colorFreqs)
 	{
-		clr = this->clrCntr->getColor(i).color;
-		cntr = this->clrCntr->getColor(i).counter;
+		clr = v.first;
+		cntr = v.second;
 		ofile.write((char*)(&clr), sizeof(clr));
 		ofile.write((char*)(&cntr), sizeof(cntr));
 	}
+
+	std::cout << "Header saved." << std::endl;
 }
 
 void Huffman::readHuffHeader(std::ifstream &ifile)
 {
 	// ? read general header
 
+	std::cout << "Reading header..." << std::endl;
+
 	Uint32 clr;
 	unsigned int cntr;
 	unsigned int numOfCol;
 
 	ifile.read((char*)(&numOfCol), sizeof(numOfCol));
-	this->clrCntr = new ColorCounter(numOfCol);
 
-	for (unsigned int i = 0; i < numOfCol; i++)
+	for (size_t i = 0; i < numOfCol; i++)
 	{
 		ifile.read((char*)(&clr), sizeof(clr));
 		ifile.read((char*)(&cntr), sizeof(cntr));
-
-		this->clrCntr->colors[i].color = clr;
-		this->clrCntr->colors[i].counter = cntr;
+		colorFreqs.push_back(std::pair<Uint32, Uint32>(clr, cntr));
 	}
 
+	std::cout << "Header read." << std::endl;
 }
 
 void Huffman::saveCodes(std::ofstream &ofile)
 {
+	std::cout << "Saving content..." << std::endl;
+
 	Uint32 clr;
 	BitsToFile btf(ofile);
 
-	for (int j = 0; j < this->image->height(); j++)
+	for (unsigned int j = 0; j < image->height(); ++j)
 	{
-		for (int i = 0; i < this->image->width(); i++)
+		for (unsigned int i = 0; i < image->width(); ++i)
 		{
-			clr = this->image->getPixel(i, j);
-			btf.to(this->codeMap->find(clr)->second);
+			clr = image->getPixel(i, j);
+			for (auto &v : codeVec)
+				if (v.first == clr)
+				{
+					btf.to(v.second);
+					break;
+				}
 		}
 	}
 
 	btf.flush();
+	std::cout << "Content saved." << std::endl;
 }
 
 void Huffman::readCodes(std::ifstream &ifile)
 {
-	int w = 500;
-	int h = 500;
-	BMP *bmp = new BMP();
-	SDL_Surface *surf = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
-	bmp->init(surf);
+	std::cout << "Reading content..." << std::endl;
+
+	// Reallocate
+	image->allocate(image->width(), image->height(), image->depth());
 
 	BitsFromFile bff(ifile);
 
-	SDL_Color ccc;
 	int index = 0;
 	std::vector<bool> vec;
 
 	bool found = false;
 
-	for (int j = 0; j < h; j++)
+	for (unsigned int j = 0; j < image->height(); ++j)
 	{
-		for (int i = 0; i < w; i++)
+		for (unsigned int i = 0; i < image->width(); ++i)
 		{
 			found = false;
 
 			while (!found)
 			{
 				vec.push_back(bff.get());
-
-				for (auto v = this->codeMap->begin(); v != this->codeMap->end(); ++v)
+				for (auto v = codeVec.begin(); v != codeVec.end(); ++v)
 				{
 					if (v->second == vec)
 					{
-						SDL_GetRGB(v->first, surf->format, &ccc.r, &ccc.g, &ccc.b);
-						//std::cout << ccc.r << " " << ccc.g << " " << ccc.b << std::endl;
+						image->setPixel(i, j, v->first);
 						found = true;
 						vec.clear();
 						break;
 					}
 				}
 			}
-
-			bmp->setPixel(i, j, ccc.r, ccc.g, ccc.b);
 			vec.clear();
 		}
 	}
 
-	bmp->preview();
+	std::cout << "Content read." << std::endl;
 }
 
