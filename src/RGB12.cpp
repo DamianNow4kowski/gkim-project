@@ -229,6 +229,9 @@ Image RGB12::recover(const std::string & filename)
 	case 0:
 		load444(f, recovered);
 		break;
+	case 2:
+		loadLZ77(f, recovered);
+		break;
 	default:
 		std::ostringstream os;
 		os << "Saved with uknown algorithm: " << static_cast<unsigned int>(alg);

@@ -5,11 +5,8 @@ lib/*
 # Ignore any executables
 bin/*
 
+# Ingore IDE Specific files
+.vscode
+
 # Ignore some system specific files
 .DS_Store
-
-# Ingore debug files
-huff
-
-# Ingore IDE specific files
-.vscode
