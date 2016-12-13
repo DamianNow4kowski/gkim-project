@@ -172,8 +172,8 @@ void test_saveLoadRGB12()
 void testHuffman()
 {
 	BMP bmp;
-	bmp.load("test/rgbcube.bmp");
-	//bmp.load("test/test.bmp");
+	//bmp.load("test/rgbcube.bmp");
+	bmp.load("test/test.bmp");
 	//bmp.load("test/smalltest_24bit.bmp");
 	//bmp.load("test/smalltest_8bit.bmp");
 	bmp.preview();

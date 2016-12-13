@@ -249,7 +249,7 @@ void Huffman::readCodes(std::ifstream &ifile)
 
 	BitsFromFile bff(ifile);
 
-	int index = 0;
+	//int index = 0;
 	std::vector<bool> vec;
 
 	bool found = false;
