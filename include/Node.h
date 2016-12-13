@@ -8,12 +8,13 @@
 class Node
 {
 private:
-	std::pair<Uint32, Uint32> colorData;
+	std::pair<uint32_t, uint32_t> colorData;
 	Node *right;
 	Node *left;
 
 public:
-	Node(std::pair<Uint32, Uint32> colorData);
+	Node(std::pair<uint32_t, uint32_t> colorData);
+	//Node(const std::pair<uint32_t, uint32_t> &colorData); //it should be like this i think
 	Node(Node *l, Node *r);
 	~Node();
 

@@ -11,8 +11,8 @@
 
 Huffman::Huffman(Image *image)
 	: image(image), 
-	codeVec(std::vector<std::pair<Uint32, std::vector<bool>>>()), 
-	colorFreqs(std::vector<std::pair<Uint32, Uint32>>())
+	codeVec(std::vector<std::pair<uint32_t, std::vector<bool>>>()), 
+	colorFreqs(std::vector<std::pair<uint32_t, uint32_t>>())
 {
 }
 
@@ -56,11 +56,11 @@ void Huffman::countFreq()
 {
 	std::cout << "Counting colors..." << std::endl;
 
-	Uint32 clr = -1;
+	uint32_t clr = -1;
 	bool found = false; 
-	for (size_t j = 0; j < image->height(); j++)
+	for (unsigned int j = 0; j < image->height(); j++)
 	{
-		for (size_t i = 0; i < image->width(); i++)
+		for (unsigned int i = 0; i < image->width(); i++)
 		{
 			clr = image->getPixel(i, j); // get color
 			found = false;
@@ -75,7 +75,7 @@ void Huffman::countFreq()
 
 			if (!found) // if not found - Add it
 			{
-				colorFreqs.push_back(std::pair<Uint32, Uint32>(clr, 1));
+				colorFreqs.push_back(std::pair<uint32_t, uint32_t>(clr, 1));
 				found = true;
 			}
 		}
@@ -89,7 +89,7 @@ void Huffman::generateCodes(const Node *node, std::vector<bool>& code)
 	if (node == nullptr)
 		return;
 	if (node->right == nullptr && node->left == nullptr) // is leaf - save code of node
-		codeVec.push_back(std::pair<Uint32, std::vector<bool>>(node->colorData.first, code));
+		codeVec.push_back(std::pair<uint32_t, std::vector<bool>>(node->colorData.first, code));
 	else
 	{
 		auto leftPref = code;
@@ -136,7 +136,7 @@ void Huffman::buildTree()
 	// sort codes before writing to file
 	// speed up decoding - most frequent codes are in the beginning
 	std::sort(codeVec.begin(), codeVec.end(),
-		[](const std::pair<Uint32, std::vector<bool>> &p1, const std::pair<Uint32, std::vector<bool>> &p2)
+		[](const std::pair<uint32_t, std::vector<bool>> &p1, const std::pair<uint32_t, std::vector<bool>> &p2)
 	{
 		if (p1.second.size() < p2.second.size())
 			return true;
@@ -176,11 +176,11 @@ void Huffman::saveHuffHeader(std::ofstream &ofile)
 
 	std::cout << "Saving header..." << std::endl;
 
-	Uint32 clr;
+	uint32_t clr;
 	unsigned int cntr;
-	unsigned int cnt = colorFreqs.size();
+	size_t numberOfColors = colorFreqs.size();
 
-	ofile.write((char*)(&cnt), sizeof(cnt));
+	ofile.write((char*)(&numberOfColors), sizeof(numberOfColors));
 
 	for (auto &v : colorFreqs)
 	{
@@ -199,17 +199,17 @@ void Huffman::readHuffHeader(std::ifstream &ifile)
 
 	std::cout << "Reading header..." << std::endl;
 
-	Uint32 clr;
+	uint32_t clr;
 	unsigned int cntr;
-	unsigned int numOfCol;
+	size_t numOfColors;
 
-	ifile.read((char*)(&numOfCol), sizeof(numOfCol));
+	ifile.read((char*)(&numOfColors), sizeof(numOfColors));
 
-	for (size_t i = 0; i < numOfCol; i++)
+	for (size_t i = 0; i < numOfColors; i++)
 	{
 		ifile.read((char*)(&clr), sizeof(clr));
 		ifile.read((char*)(&cntr), sizeof(cntr));
-		colorFreqs.push_back(std::pair<Uint32, Uint32>(clr, cntr));
+		colorFreqs.push_back(std::pair<uint32_t, uint32_t>(clr, cntr));
 	}
 
 	std::cout << "Header read." << std::endl;
@@ -219,7 +219,7 @@ void Huffman::saveCodes(std::ofstream &ofile)
 {
 	std::cout << "Saving content..." << std::endl;
 
-	Uint32 clr;
+	uint32_t clr;
 	BitsToFile btf(ofile);
 
 	for (unsigned int j = 0; j < image->height(); ++j)

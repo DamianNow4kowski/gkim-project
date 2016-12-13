@@ -83,6 +83,16 @@ void RGB12::load444(std::ifstream &f, Image &img)
 	}
 }
 
+void RGB12::saveHuffman(std::ofstream &, const Image &) const
+{
+	// TODO: implement
+}
+
+void RGB12::loadHuffman(std::ifstream &, Image &)
+{
+	// TODO: implement
+}
+
 void RGB12::save444(std::ofstream &f, const Image &img) const
 {
 	std::cout << "[RGB12]-> Run 444 save algorithm." << std::endl;
