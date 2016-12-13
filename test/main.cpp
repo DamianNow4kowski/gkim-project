@@ -86,7 +86,7 @@ void test_RGB12Handler()
 		cerr << "Error: " << e.what() << endl;
 	}
 	rgb3.preview();
-	rgb2.preview(); //should fail
+	rgb2.preview(true); //should fail
 
 	// Initize with convert construct to force object to be constructed then
 	// Copy assigment
@@ -113,7 +113,7 @@ void test_RGB12Handler()
 		cerr << "Error: " << e.what() << endl;
 	}
 	rgb5.preview();
-	rgb4.preview(); // should fail
+	rgb4.preview(true); // should fail
 }
 
 void test_saveLoadRGB12()
@@ -196,10 +196,10 @@ int main()
 
     cout << "Testing.." << endl;
 	//test_BMPHandler();
-	//test_RGB12Handler();
+	test_RGB12Handler();
 	//test_saveLoadRGB12();
 	//testHuffman();
-	test_LZ77();
+	//test_LZ77();
 
 	system("PAUSE");
 	return 0;
