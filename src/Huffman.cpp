@@ -67,7 +67,7 @@ void Huffman::countFreq(const Image& image)
 	{
 		for (unsigned int i = 0; i < image.width(); i++)
 		{
-			clr = image.getPixel(i, j, true); // get color
+			clr = image.getPixel(i, j); // get color
 			found = false;
 			for (auto &v : colorFreqs) // check if already appeared
 			{
@@ -239,7 +239,8 @@ void Huffman::saveCodes(std::ofstream &ofile, const Image &image)
 	{
 		for (unsigned int i = 0; i < image.width(); ++i)
 		{
-			clr = image.getPixel(i, j, true);
+			// turns on debug ---------->
+			clr = image.getPixel(i, j, (j == image.height() / 2));
 			for (auto &v : codeVec)
 				if (v.first == clr)
 				{
@@ -277,7 +278,8 @@ void Huffman::readCodes(std::ifstream &ifile, Image &image)
 				{
 					if (v->second == vec) // error for (1x1 pixel)
 					{
-						image.setPixel(i, j, v->first);
+						// turns on debug ---------->
+						image.setPixel(i, j, v->first, (j == image.height() / 2));
 						found = true;
 						vec.clear();
 						break;
