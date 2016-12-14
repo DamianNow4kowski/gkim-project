@@ -5,14 +5,11 @@ using namespace std;
 
 LZ77::LZ77()
 {
-	//(changing require to change code //size of search buffer
+	//size of search buffer
 	s_buff_size = 16;
 	
 	// size of lookahead buffer
 	la_buff_size = 20;
-	
-	if (la_buff_size < 10)
-		throw RuntimeError("Too small size of lookahead buffer.");
 }
 
 LZ77::~LZ77()
@@ -26,39 +23,43 @@ LZ77::~LZ77()
  */
 void LZ77::encode(std::ofstream &ofile, const Image &image)
 {
-	//pozniej sie podzieli na funkcje, teraz latwiej mi pisac ciagiem
-	//pozniej posprzatam, zakomentowane rzeczy odkomentowuje do testow
-int licz=0;
-	unsigned int i, it = 0, it2 = 0;			//iterators
-	unsigned int x = 1, y = 0; 					//coordinates of pixels
+	//iterators
+	unsigned int i, it = 0, it2 = 0;			
 
-	int length = 0, max, cpmax = 0, position = 0; //variables to search the longest sequence
+	//coordinates of pixels
+	unsigned int x = 1, y = 0; 					
 
-	bool end_of_picture = 0, if_max_length_stop = 0;
+	//variables to search the longest sequence
+	int length = 0, max, cpmax = 0, position = 0; 	
 
+	//variables to break operations
+	bool end_of_picture = 0, if_max_length_stop = 0;  
+	
+	//loading first pixel to initialization variables
 	SDL_Color clr = image.getPixelColor(0, 0);
+	
+	//variable pointing subpixel
+	short what_color = 1;						
 
-	short what_color = 1;						//which subpixel
-
-	Uint8 color[3], code;
-
+	Uint8 color[3], code;   
+                  
 	color[0] = clr.r >> 4;
 	code = color[0];
-	ofile.write(reinterpret_cast<const char*>(&code), sizeof(code));							//the first color goes to file	
 	color[1] = clr.g >> 4;
 	color[2] = clr.b >> 4;
 
+	//saving first subpixel
+	ofile.write(reinterpret_cast<const char*>(&code), sizeof(code));
+	
+	//iterators to work with maps
 	map<int, int>::iterator la_begin;
 	map<int, int>::iterator s_begin;
 	map<int, int>::iterator count;
 	map<int, int>::iterator temp;
-	int petla = -1;//do testow, pozniej usune
 
-				   //initialization of search buffer 	
+	//initialization of search buffer 	
 	for (i = 0; i < s_buff_size; ++i)
 		s_buff.insert(pair<int, int>(i, color[0]));
-
-	map<int, int>::iterator s_end = s_buff.end();
 
 	//the first loading data to la_buff 
 	while (la_buff.size() < la_buff_size && end_of_picture == 0)
@@ -86,17 +87,14 @@ int licz=0;
 		}
 	}
 
+
+	//main part of algorithm- loading data and coding
 	while (la_buff.size() > 0 && end_of_picture == 0)
 	{
-		petla++;
-
 		//loading data to la_buff 
 		it2 = it - cpmax;
-		//if (petla<327)
 		while (la_buff.size() < la_buff_size && end_of_picture == 0)
 		{
-			//cout<<"x: "<<x<<endl;
-			//cout<<"y: "<<y<<endl;
 			if (what_color < 3)
 				la_buff.insert(pair<int, int>(la_buff_size + 1 + it2++, color[what_color++]));
 			else
@@ -118,32 +116,17 @@ int licz=0;
 				color[2] = clr.b >> 4;
 				la_buff.insert(pair<int, int>(la_buff_size + 1 + it2++, color[0]));
 			}
-		}
-
-		//preview of la_buff
-		/*//if(petla<327)
-		{
-		cout<<endl<<"Rozmiar: "<<la_buff.size()<<" liczby: ";
-		for (map<int, int>::iterator k=la_buff.begin(); k!=la_buff.end(); ++k)
-		cout<<k->second<<" ";
-		cout<<endl;
-		}*/
-
-		la_begin = la_buff.begin();
-		s_begin = s_buff.begin();
+		}	
 
 		//searching the longest sequence
 		max = 1;
-
-		// better approach for reverse iterating is:
-		//for (auto k = s_buff.rbegin(); k != s_buff.rend(); ++k)
 		for(auto k = s_buff.end(); k != s_buff.begin(); --k)
 		{
 			count = k;
-			temp = la_begin;
+			temp = la_buff.begin();
 			while (1)
 			{
-				if (count != s_end)
+				if (count != s_buff.end())
 					if (count->second == temp->second)
 					{
 						if (length >= 9)
@@ -164,6 +147,7 @@ int licz=0;
 			{
 				max = length;
 				position = k->first;
+				
 			}
 			length = 0;
 
@@ -173,32 +157,25 @@ int licz=0;
 				break;
 			}
 		}
-
-		//if (petla<327)
-		//{
-		//	cout<<endl<<"code: ";		
+		
 		//creating code of subpixels
+		s_begin = s_buff.begin();
+		la_begin = la_buff.begin();
 		if (max == 1)
 		{
 			code = la_begin->second;
-			//code=code<<3;
 			ofile.write(reinterpret_cast<const char*>(&code), sizeof(code));
 			cout << (int)code << " ";
-			//licz=licz+1;
 		}
 		else
 		{
 			code = 128 | (max - 2) << 4 | (position - s_begin->first);
 			ofile.write(reinterpret_cast<const char*>(&code), sizeof(code));
 			cout << (int)code << " ";
-			//licz=licz+max;
 		}
 
-		//	if (petla<327)
-		//	cout<<"max dlugosc: "<<max<<endl;
-		cpmax = max;
-
 		//inserting elements into search buffer
+		cpmax = max;
 		while (max-- > 0)
 		{
 			s_buff.insert(pair<int, int>(s_buff_size + it, la_begin->second));
@@ -211,24 +188,12 @@ int licz=0;
 		while (max > 0)
 		{
 			s_buff.erase(s_begin->first);
-			++s_begin; // [ERROR]
-			//if (petla<2)
-				//cout<<s_begin->first<<" ";
+			++s_begin;
 			max--;
 		}
-		max = cpmax;
-
-		//cout<<"petla: "<<petla;	
-
-		//preview of s_buff
-		/*//if (petla<327)
-		{
-		cout<<endl;
-		for (map<int, int>::iterator k=s_begin; k!=s_end; ++k)
-		cout<<k->second<<" ";
-		}*/
 
 		//erase elements in la_buffer
+		max = cpmax;
 		la_begin = la_buff.begin();
 		while (max-- > 0)
 		{
@@ -237,7 +202,8 @@ int licz=0;
 		}
 
 	}
-	cout<<licz;
+
+	la_buff.clear();
 	s_buff.clear();
 }
 
@@ -246,112 +212,95 @@ int licz=0;
  * @param opened input stream
  * @param allocated empty Image with proper width/etc
  */
-void LZ77::decode(std::ifstream &ifile, Image &image)
+void LZ77::decode(std::ifstream &iifile, Image &image)
 {
-
+std::ifstream ifile("LZ77", std::ios::binary);
+	//iterators
 	unsigned int i, iter = 0;
-	short length, position, it;
-	unsigned int x=1, y=0; 				//coordinates of pixels
+
+	//variables to decoding
+	short length, cplength, position, it;
+	
+	//coordinates of pixels
+	unsigned int x=1, y=0; 	
+			
 	Uint8 color[3], code, first_bit;
-	short what_color=1;					//which subpixel
+	
+	//variable pointing subpixel
+	short what_color=1;	
+
+	//loading first byte				
 	ifile.read(reinterpret_cast<char*>(&code), sizeof(code));
-	//cout << "Code = " << code << endl;
 	color[0] = code << 4;
-	//cout<<(int)color[0];
+
+	//iterators to work with maps
 	map<int, int>::iterator la_begin;
+	map<int, int>::iterator la_end;
 	map<int, int>::iterator s_begin;
-	int petla=0;
 
 	//initialization of search buffer
 	for (i = 0; i < s_buff_size; ++i)
-	{
 		s_buff.insert(pair<int, int>(i, (int)code));
-		//cout<<s_buff[i]<<" ";
-	}
 
 	while (!ifile.eof())
 	{
-		petla++;
 		ifile.read(reinterpret_cast<char*>(&code), sizeof(code));
-		//cout<<(int)code<<" ";
-
 		length = 0;
 		la_begin = la_buff.begin();
 		s_begin = s_buff.begin();
 		first_bit = code >> 7;
-		//if (petla<20)
-		//cout<<"b:"<<(int)first_bit<<":b ";
+
+		//checking what we have- one subpixel or sequence
 		if (first_bit)
 		{
-			//cout<<(int)code<<" ";
+			//decoding sequence of subpixels in one byte
 			length = ((int)code >> 4) - 8;
 			position = (int)code - 128 - (length << 4);
 			length += 2;
 			it = 0;
 		
-		while (it < length){
+			while (it < length)
+			{
 				la_buff.insert(pair<int, int>(la_begin->first, s_buff[s_begin->first + position + it]));
-//if (petla<5)
-//cout<<s_begin->first+position+it<<" ";
-		++it;
-		//if (petla<3)
-			//cout<<"S:"<<la_begin->first<<" ";
-}
-			//cout<<s_buff[s_begin->first+position+it]<<" ";	
-			//--it;
+				++it;
+			}
 		}
 		else
 		{
-			//cout<<(int)code<<" ";
+			//decoding one subpixel
 			code = code << 4;
 			la_buff.insert(pair<int, int>(la_begin->first, (int)code));
 			length = 1;
 		}
 
 		//inserting elements to search buffer
-		int cplength=length;
+		cplength=length;
 		s_begin=s_buff.begin();
 		la_begin=la_buff.begin();
 		it=0;
 		while (cplength-- > 0)
 		{
 			s_buff.insert(pair<int, int>(s_begin->first+s_buff_size+it, la_begin->second));
-			//cout<<la_begin->second<<" ";
-//if (petla<1500)
-	//		cout<<s_buff[s_begin->first+s_buff_size+it]<<" ";
 			++la_begin;
 			++it;
-			
 		}
 		
-		//erase elements in search buffer
+		//erasing elements in search buffer
 		cplength = length;
 		while (cplength-- > 0)
 		{
 			s_buff.erase(s_begin->first);
 			++s_begin; // [ERROR]
-			//if (petla<1533)
 				//cout<<s_begin->second<<" ";
 		}
 		
-	
-
-	la_begin=la_buff.begin();
-	map<int, int>::iterator la_end=la_buff.end();
-//if(petla<3)
-	//cout<<endl;
-//if(petla<3)
-	//for(auto k=la_begin; k!=la_end; k++)
-//	cout<<"L:"<<k->first<<":L ";
-
+		//erasing elements from la_buff and saving pixels to image
+		la_end=la_buff.end();
 		la_begin=la_buff.begin();
 		while (length-- > 0)
 		{
-	iter++;
-	//if (petla<20) 
-		//cout<<"F:"<<la_begin->first<<":F ";
-
-			//---here saving colors to image----			
+			iter++;
+		
 			if(x>=image.width())
 			{
 				x=0;
@@ -360,22 +309,19 @@ void LZ77::decode(std::ifstream &ifile, Image &image)
 			if (what_color>=3)
 			{
 				if(y<image.height())
-				image.setPixel(x, y, color[0], color[1], color[2], 0);
-				
+					image.setPixel(x, y, color[0], color[1], color[2], 0);
 				x++;
 				what_color=0;
 			}
-			cout<<la_begin->second<<" ";
-			what_color++;
+			
 			color[what_color]=la_begin->second;
-
+			what_color++;
 			la_buff.erase(la_begin);
 			la_begin++;
-
 		}
 	}
 
-cout<<"iteracji: "<<iter;
-
+	ifile.close();
+	la_buff.clear();
 	s_buff.clear();
 }
