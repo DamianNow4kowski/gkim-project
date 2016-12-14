@@ -115,6 +115,18 @@ void Huffman::buildTree()
 	for (auto &v : colorFreqs)
 		trees.push(new Node(v));
 
+	if (trees.size() == 1)
+	{
+		auto chR = trees.top();
+		trees.pop();
+
+		auto temp = new Node(std::pair<int, int>(0, 0));
+
+		auto chP = new Node(chR, temp);
+		trees.push(chP);
+
+	}
+
 	// Build Main Tree
 	while (trees.size() > 1)
 	{
@@ -227,7 +239,8 @@ void Huffman::saveCodes(std::ofstream &ofile, const Image &image)
 	{
 		for (unsigned int i = 0; i < image.width(); ++i)
 		{
-			clr = image.getPixel(i, j);
+			// turns on debug ---------->
+			clr = image.getPixel(i, j, (j == image.height() / 2));
 			for (auto &v : codeVec)
 				if (v.first == clr)
 				{
@@ -263,9 +276,10 @@ void Huffman::readCodes(std::ifstream &ifile, Image &image)
 				vec.push_back(bff.get());
 				for (auto v = codeVec.begin(); v != codeVec.end(); ++v)
 				{
-					if (v->second == vec)
+					if (v->second == vec) // error for (1x1 pixel)
 					{
-						image.setPixel(i, j, v->first);
+						// turns on debug ---------->
+						image.setPixel(i, j, v->first, (j == image.height() / 2));
 						found = true;
 						vec.clear();
 						break;
