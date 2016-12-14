@@ -212,9 +212,8 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
  * @param opened input stream
  * @param allocated empty Image with proper width/etc
  */
-void LZ77::decode(std::ifstream &iifile, Image &image)
+void LZ77::decode(std::ifstream &ifile, Image &image)
 {
-std::ifstream ifile("LZ77", std::ios::binary);
 	//iterators
 	unsigned int i, iter = 0;
 
@@ -297,7 +296,7 @@ std::ifstream ifile("LZ77", std::ios::binary);
 		//erasing elements from la_buff and saving pixels to image
 		la_end=la_buff.end();
 		la_begin=la_buff.begin();
-		while (length-- > 0)
+		while (length > 0)
 		{
 			iter++;
 		
@@ -316,12 +315,12 @@ std::ifstream ifile("LZ77", std::ios::binary);
 			
 			color[what_color]=la_begin->second;
 			what_color++;
-			la_buff.erase(la_begin);
+			la_buff.erase(la_begin); // ERROR VS15
 			la_begin++;
+			length--;
 		}
 	}
 
-	ifile.close();
 	la_buff.clear();
 	s_buff.clear();
 }

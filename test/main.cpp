@@ -254,8 +254,8 @@ int main()
 	//test_BMPHandler();
 	//test_RGB12Handler();
 	//test_saveLoadRGB12();
-	testHuffman();
-	//test_LZ77();
+	//testHuffman();
+	test_LZ77();
 
 	#ifndef __linux
 		system("PAUSE");
