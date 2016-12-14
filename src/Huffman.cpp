@@ -115,6 +115,18 @@ void Huffman::buildTree()
 	for (auto &v : colorFreqs)
 		trees.push(new Node(v));
 
+	if (trees.size() == 1)
+	{
+		auto chR = trees.top();
+		trees.pop();
+
+		auto temp = new Node(std::pair<int, int>(0, 0));
+
+		auto chP = new Node(chR, temp);
+		trees.push(chP);
+
+	}
+
 	// Build Main Tree
 	while (trees.size() > 1)
 	{

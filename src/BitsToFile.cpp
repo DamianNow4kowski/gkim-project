@@ -20,6 +20,7 @@ BitsToFile& BitsToFile::flush()
 {
 	if (pos)
 	{
+		c <<= 8 - pos;
 		write();
 	}
 
