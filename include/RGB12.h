@@ -36,7 +36,7 @@ private:
 	// Loads pixel data from every pixel saved in RGB444 format (without spaces)
 	void load444(std::ifstream &, Image &);
 
-	// TODO: Implement Huffman
+	// TODO: Implement Huffman [Done 85%]
 	void saveHuffman(std::ofstream &, const Image &) const;
 	void loadHuffman(std::ifstream &, Image &);
 
@@ -52,18 +52,24 @@ protected:
 	virtual void store(const std::string &filename, const Image &image) const override;
 	virtual Image recover(const std::string &filename) override;
 
-	std::tuple<int, int, uint8_t, uint8_t, uint8_t> readHeader(std::ifstream &, bool = false) const;
+	std::tuple<int, int, uint8_t, uint8_t> readHeader(std::ifstream &, bool = false) const;
 	void writeHeader(std::ofstream &, const Image &, uint8_t, bool = false) const;
 
 public:
-	uint8_t algorithm;
-	virtual std::string extension() const override;
 
 	/**
-	 * 0 - Algorithm 'Bit density RGB 444'
-	 * 1 - Huffman
-	 * 2 - LZ77
-	 */
+	* 0 - Algorithm 'Bit density RGB 444'
+	* 1 - Huffman
+	* 2 - LZ77
+	*/
+
+	// Indicates which algorithm will be used for future saving process
+	uint8_t algorithm;
+
+	// Number of implemented algorithms
+	const unsigned short implemented = 3;
+
+	virtual std::string extension() const override;
 	RGB12(uint8_t = 0);
 	RGB12(const BMP &, uint8_t = 0);
 	RGB12(const RGB12 &);

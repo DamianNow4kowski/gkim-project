@@ -35,7 +35,10 @@ SDL_Surface * Image::copy(const SDL_Surface *img) const
 {
 	std::cout << "[Image]-> Copying surface." << std::endl;
 	if (img == nullptr)
-		throw RuntimeError("Cannot copy not existing surface.");
+	{
+		std::cerr << "[Image]: throw RuntimError(\"Copying not exsisting surface.\");" << std::endl;
+		return nullptr;
+	}
 
 	SDL_Surface* new_img;
 	int w = img->w, h = img->h;

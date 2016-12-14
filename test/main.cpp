@@ -178,24 +178,38 @@ void testHuffman()
 	//bmp.load("test/smalltest_8bit.bmp");
 	bmp.preview();
 
-	RGB12 rgb(bmp);
+	/// ENCODING
+	RGB12 rgb(bmp, 1);
 	rgb.preview();
-
-	Image &img = rgb.image;
 	
 	auto begin = std::chrono::steady_clock::now();
-	Huffman huffman(&img);
-	huffman.encode();
-	huffman.decode();
+	rgb.save("test/huffman");
 	auto end = std::chrono::steady_clock::now();
-	showDuration(begin, end, "Huffman encode/decode");
+	showDuration(begin, end, "Huffman fully encode");
 	/**
 	 * Records:
-	 * test/rgbcube.bmp - 1038ms (Release/x64)
-	 * test/test.bmp - 84ms (Release/x64)
+	 * test/rgbcube.bmp - 123ms (Release/x64/notebook 2-core i7) [Compression ratio = 2.861]
+	 * test/test.bmp - 40ms (Release/x64/notebook 2-core i7) [Compression ratio = 4.455]
+	 * test/smalltest_8bit.bmp - 30ms (Release/x64/notebook 2-core i7)
+	 * test/smalltest_24bit.bmp - 28ms (Release/x64/notebook 2-core i7)
  	 */
 
-	rgb.preview();
+	/// DECODING
+	RGB12 rgb2;
+
+	begin = std::chrono::steady_clock::now();
+	rgb2.load("test/huffman.rgb12");
+	end = std::chrono::steady_clock::now();
+	showDuration(begin, end, "Huffman fully decoded");
+	/**
+	 * Records:
+	 * test/rgbcube.bmp - 982ms (Release/x64/notebook 2-core i7)
+	 * test/test.bmp - 78ms (Release/x64/notebook 2-core i7)
+	 * test/smalltest_8bit.bmp - 30ms (Release/x64/notebook 2-core i7)
+	 * test/smalltest_24bit.bmp - 36ms (Release/x64/notebook 2-core i7)
+ 	 */
+
+	rgb2.preview(true);
 }
 
 void test_LZ77()
