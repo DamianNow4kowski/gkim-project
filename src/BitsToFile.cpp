@@ -77,5 +77,10 @@ bool BitsFromFile::get()
 	help >>= 7;
 	c <<= 1;
 	pos++;
-	return static_cast<bool>(help); // TODO: Fix performance warning!
+	
+	// Fixed performance warning
+	if (help)
+		return true;
+	else
+		return false;
 }

@@ -2,18 +2,17 @@
 #define NODE_H
 
 #include <fstream>
-#include <utility>
 #include "SDL_Local.h"
 
 class Node
 {
 private:
-	std::pair<Uint32, Uint32> colorData;
-	Node *right;
 	Node *left;
+	Node *right;
+	std::pair<uint32_t, uint32_t> colorData;
 
 public:
-	Node(std::pair<Uint32, Uint32> colorData);
+	Node(std::pair<uint32_t, uint32_t> colorData); // Remarks: const reference is slower
 	Node(Node *l, Node *r);
 	~Node();
 

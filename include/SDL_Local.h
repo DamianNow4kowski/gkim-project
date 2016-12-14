@@ -13,7 +13,7 @@
 class SDL 
 {
 public:
-	SDL(Uint32 flags = 0);
+	SDL(uint32_t flags = 0);
 	virtual ~SDL();
 };
 

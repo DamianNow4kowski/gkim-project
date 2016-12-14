@@ -47,9 +47,8 @@ void RGB12::load444(std::ifstream &f, Image &img)
 {
 	std::cout << "[RGB12]-> Run 444 load algorithm." << std::endl;
 	int colorToCode = 0;
-	int pixelUse = 0;
 	char usedChar = 0;
-	int x, y;
+	unsigned int x, y;
 	SDL_Color pixel;
 
 	x = y = 0;
@@ -81,6 +80,16 @@ void RGB12::load444(std::ifstream &f, Image &img)
 			}
 		}
 	}
+}
+
+void RGB12::saveHuffman(std::ofstream &, const Image &) const
+{
+	// TODO: implement
+}
+
+void RGB12::loadHuffman(std::ifstream &, Image &)
+{
+	// TODO: implement
 }
 
 void RGB12::save444(std::ofstream &f, const Image &img) const

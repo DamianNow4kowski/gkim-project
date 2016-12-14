@@ -13,8 +13,8 @@ class Huffman
 {
 private:
 	Image *image;
-	std::vector<std::pair<Uint32, std::vector<bool>>> codeVec;
-	std::vector<std::pair<Uint32, Uint32>> colorFreqs;
+	std::vector<std::pair<uint32_t, std::vector<bool>>> codeVec;
+	std::vector<std::pair<uint32_t, uint32_t>> colorFreqs;
 
 	void countFreq();
 	void generateCodes(const Node *node, std::vector<bool> &code);

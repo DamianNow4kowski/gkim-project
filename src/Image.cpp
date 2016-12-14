@@ -16,6 +16,12 @@ void Image::free()
 	surface = nullptr;
 }
 
+void Image::swap(Image &img)
+{
+	std::cout << "[Image]-> Swapping." << std::endl;
+	std::swap(surface, img.surface);
+}
+
 SDL_Surface * Image::create(int w, int h, int depth) const
 {
 	std::cout << "[Image]-> Creating surface." << std::endl;
@@ -278,28 +284,17 @@ Image::Image(const Image &img)
 {
 	std::cout << "[Image]: Called copy constructor." << std::endl;
 }
-
 Image::Image(Image &&img)
-	: surface(img.surface)
+	: Image()
 {
-	std::cout << "[Image]: Called move constructor." << std::endl;
-	img.surface = nullptr;
+	std::cout << "[Image]: Called better move constructor." << std::endl;
+	swap(img);
 }
 
-Image & Image::operator=(const Image &img)
+Image & Image::operator=(Image img)
 {
-	std::cout << "[Image]-> Called copy assigment operator." << std::endl;
-	free();
-	surface = copy(img.surface);
-	return *this;
-}
-
-Image & Image::operator=(Image &&img)
-{
-	std::cout << "[Image]-> Called move assigment operator." << std::endl;
-	free();
-	surface = img.surface;
-	img.surface = nullptr;
+	std::cout << "[Image]-> Called universal assigment operator." << std::endl;
+	swap(img);
 	return *this;
 }
 

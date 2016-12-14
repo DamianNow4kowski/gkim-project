@@ -12,6 +12,9 @@ private:
 	// Deallocates whole previously allocated data
 	void free();
 
+	// Swapper for better class construction
+	void swap(Image &);
+
 protected:
 
 	/**
@@ -127,11 +130,13 @@ public:
 	// Move constructor
 	Image(Image &&);
 
-	// Copy assigment
-	Image& operator=(const Image &);
+	// Universal (copy and move assigment)
+	Image& operator=(Image);
 
+	// Copy assigment
+	//Image& operator=(const Image &);
 	// Move assigment
-	Image& operator=(Image &&);
+	//Image& operator=(Image &&);
 
 	// Destructor
 	~Image();
