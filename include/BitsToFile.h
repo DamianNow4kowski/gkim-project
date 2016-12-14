@@ -18,7 +18,7 @@ using std::move;
 class BitsToFile
 {
 private:
-	unsigned char c;
+	char c;
 	int pos;
 	ofstream &file;
 	BitsToFile &write();
@@ -33,7 +33,7 @@ public:
 class BitsFromFile
 {
 private:
-	unsigned char  c;
+	char c;
 	int pos;
 	ifstream &file;
 

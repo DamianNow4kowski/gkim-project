@@ -2,8 +2,7 @@
 
 BitsToFile &BitsToFile::write()
 {
-	//file << c;
-	file.write(reinterpret_cast<char *>(&c), sizeof(c));
+	file.write(&c, sizeof(c));
 	c = 0;
 	pos = 0;
 
@@ -66,14 +65,13 @@ bool BitsFromFile::get()
 	{
 		if (!file.eof())
 		{
-			//file >> c;
-			file.read(reinterpret_cast<char*>(&c), sizeof(c)); // why not change c type from unsigned char to char? (no need casting)
+			file.read(&c, sizeof(c)); // why not change c type from unsigned char to char? (no need casting)
 			pos = 0;
 		}
 		else
 			cout << "EOF" << endl;
 	}
-	unsigned char help = c & 128;
+	char help = c & 128;
 	help >>= 7;
 	c <<= 1;
 	pos++;

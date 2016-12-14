@@ -191,7 +191,8 @@ void testHuffman()
 	showDuration(begin, end, "Huffman encode/decode");
 	/**
 	 * Records:
-	 * - 1038ms (Release/x64)
+	 * test/rgbcube.bmp - 1038ms (Release/x64)
+	 * test/test.bmp - 84ms (Release/x64)
  	 */
 
 	rgb.preview();

@@ -180,14 +180,14 @@ void Huffman::saveHuffHeader(std::ofstream &ofile)
 	unsigned int cntr;
 	size_t numberOfColors = colorFreqs.size();
 
-	ofile.write((char*)(&numberOfColors), sizeof(numberOfColors));
+	ofile.write(reinterpret_cast<const char*>(&numberOfColors), sizeof(numberOfColors));
 
 	for (auto &v : colorFreqs)
 	{
 		clr = v.first;
 		cntr = v.second;
-		ofile.write((char*)(&clr), sizeof(clr));
-		ofile.write((char*)(&cntr), sizeof(cntr));
+		ofile.write(reinterpret_cast<const char*>(&clr), sizeof(clr));
+		ofile.write(reinterpret_cast<const char*>(&cntr), sizeof(cntr));
 	}
 
 	std::cout << "Header saved." << std::endl;
@@ -207,8 +207,8 @@ void Huffman::readHuffHeader(std::ifstream &ifile)
 
 	for (size_t i = 0; i < numOfColors; i++)
 	{
-		ifile.read((char*)(&clr), sizeof(clr));
-		ifile.read((char*)(&cntr), sizeof(cntr));
+		ifile.read(reinterpret_cast<char *>(&clr), sizeof(clr));
+		ifile.read(reinterpret_cast<char *>(&cntr), sizeof(cntr));
 		colorFreqs.push_back(std::pair<uint32_t, uint32_t>(clr, cntr));
 	}
 
