@@ -172,10 +172,10 @@ void test_saveLoadRGB12()
 void testHuffman()
 {
 	BMP bmp;
-	//bmp.load("test/rgbcube.bmp");
-	bmp.load("test/test.bmp");
+	//bmp.load("test/rgbcube.bmp"); // [Compression ratio = 2.861]
+	//bmp.load("test/test.bmp"); // [Compression ratio = 4.455]
 	//bmp.load("test/smalltest_24bit.bmp");
-	//bmp.load("test/smalltest_8bit.bmp");
+	bmp.load("test/smalltest_8bit.bmp");
 	bmp.preview();
 
 	/// ENCODING
@@ -188,10 +188,13 @@ void testHuffman()
 	showDuration(begin, end, "Huffman fully encode");
 	/**
 	 * Records:
-	 * test/rgbcube.bmp - 123ms (Release/x64/notebook 2-core i7) [Compression ratio = 2.861]
-	 * test/test.bmp - 40ms (Release/x64/notebook 2-core i7) [Compression ratio = 4.455]
-	 * test/smalltest_8bit.bmp - 30ms (Release/x64/notebook 2-core i7)
-	 * test/smalltest_24bit.bmp - 28ms (Release/x64/notebook 2-core i7)
+	 * test/rgbcube.bmp - 43ms (g++ -03/Linux/x64/notebook 2-core i7) 
+	 * test/rgbcube.bmp - 123ms (VS Release/x64/notebook 2-core i7) 
+	 * test/test.bmp - 8ms (g++ -O3/Linux/x64/notebook 2-core i7) 
+	 * test/test.bmp - 40ms (VS Release/x64/notebook 2-core i7)
+	 * test/smalltest_8bit.bmp - 248us (g++ -03/Linux/x64/notebook 2-core i7)
+     * test/smalltest_8bit.bmp - 30ms (VS Release/x64/notebook 2-core i7)
+	 * test/smalltest_24bit.bmp - 28ms (VS Release/x64/notebook 2-core i7)
  	 */
 
 	/// DECODING
@@ -203,10 +206,13 @@ void testHuffman()
 	showDuration(begin, end, "Huffman fully decoded");
 	/**
 	 * Records:
-	 * test/rgbcube.bmp - 982ms (Release/x64/notebook 2-core i7)
-	 * test/test.bmp - 78ms (Release/x64/notebook 2-core i7)
-	 * test/smalltest_8bit.bmp - 30ms (Release/x64/notebook 2-core i7)
-	 * test/smalltest_24bit.bmp - 36ms (Release/x64/notebook 2-core i7)
+	 * test/rgbcube.bmp - 982ms (VS Release/x64/notebook 2-core i7)
+	 * test/rgbcube.bmp - 1482ms (g++ -03/Linux/x64/notebook 2-core i7) (!????)
+	 * test/test.bmp - 10ms (g++ -O3/Linux/x64/notebook 2-core i7)
+     * test/test.bmp - 78ms (VS Release/x64/notebook 2-core i7)
+     * test/smalltest_8bit.bmp - 250us (g++ -03/Linux/x64/notebook 2-core i7)
+	 * test/smalltest_8bit.bmp - 30ms (VS Release/x64/notebook 2-core i7)
+	 * test/smalltest_24bit.bmp - 36ms (VS Release/x64/notebook 2-core i7)
  	 */
 
 	rgb2.preview(true);
