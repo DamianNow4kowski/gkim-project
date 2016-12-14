@@ -1,13 +1,14 @@
 ﻿#include "SDL_Local.h"
 #include "Huffman.h"
 #include "RGB12.h"
+#include "InputHandler.h"
 
 #include <iostream>
 #include <array>
 
 int main(int argc, char *argv[])
 {
-	std::string test_bmp;
+	InputHandler cli(argc, argv, true);
 
 	// Initialize SDL
 	try
@@ -20,24 +21,23 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	// Get BMP File
-	if (argc == 3 && strcmp(argv[1], "-f") == 0)
-		test_bmp = argv[2];
-	else 
+	if (cli.option("open"))
 	{
-		std::cout << "Podaj plik *.bmp do kompresji: "; 
-		std::cin >> test_bmp;
-	}
-
-	// Load image
-	BMP bmp;
-	bmp.load(test_bmp);
-	RGB12 rgb(bmp, 1); // choose Huffman
-	rgb.save("test/huffman_saved.rgb12");
-
-	RGB12 loadFromZero;
-	loadFromZero.load("test/huffman_saved.rgb12");
-	loadFromZero.preview();
+		std::string filename;
+		while (cli.get(filename))
+		{
+			// VERY SIMPLE OPENING
+			BMP bmp;
+			bmp.load(filename);
+			if (bmp.image.empty())
+			{
+				RGB12 rgb;
+				rgb.load(filename);
+				rgb.preview();
+			}
+			else bmp.preview();
+		}
+	}	
 
 	#ifndef  __linux
 		system("PAUSE");
