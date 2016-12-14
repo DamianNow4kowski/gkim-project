@@ -1,30 +1,22 @@
 #ifndef BITS_TO_FILE_H
 #define BITS_TO_FILE_H
 
-#include <fstream>
-#include <bitset>
-#include <exception>
-#include <vector>
-#include <iostream>
-#include <utility>
 #include "RuntimeError.h"
 
-using std::ifstream;
-using std::ofstream;
-using std::endl;
-using std::cout;
-using std::move;
+#include <fstream>
+#include <vector>
+#include <iostream>
 
 class BitsToFile
 {
 private:
 	char c;
 	int pos;
-	ofstream &file;
+	std::ofstream &file;
 	BitsToFile &write();
 
 public:
-	BitsToFile(ofstream &f);
+	BitsToFile(std::ofstream &f);
 	BitsToFile &to(bool f);
 	BitsToFile &flush();
 	void to(std::vector<bool> &vec);
@@ -35,10 +27,10 @@ class BitsFromFile
 private:
 	char c;
 	int pos;
-	ifstream &file;
+	std::ifstream &file;
 
 public:
-	BitsFromFile(ifstream &f);
+	BitsFromFile(std::ifstream &f);
 	bool get();
 };
 

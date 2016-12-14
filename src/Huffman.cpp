@@ -24,14 +24,22 @@ void Huffman::encode()
 {
 	std::cout << "\n=== HUFFMAN COMPRESSION ===" << std::endl;
 	std::ofstream ofile("test/huff", std::ios::binary);
-	countFreq();
-	buildTree();
+
+	// These:
+	countFreq(); // colorFreqs
+	buildTree(); // codeVec
+
+	// .. are useful only here {
 	saveHuffHeader(ofile);
-	saveCodes(ofile);
+	saveCodes(ofile); // save data
+	// }
+
 	ofile.close();
 
+	// Becouse they are cleared there
 	codeVec.clear();
 	colorFreqs.clear();
+
 
 	std::cout << "=== HUFFMAN COMPRESSION DONE ===\n" << std::endl;
 }
@@ -41,9 +49,12 @@ void Huffman::decode()
 	std::cout << "\n=== HUFFMAN DECOMPRESSION ===" << std::endl;
 
 	std::ifstream ifile("test/huff", std::ios::binary);
-	readHuffHeader(ifile);
-	buildTree();
-	readCodes(ifile);
+	
+	readHuffHeader(ifile); // read colorFreqs
+	buildTree(); //create codeVec
+
+	readCodes(ifile); // read tata
+
 	ifile.close();
 
 	codeVec.clear();

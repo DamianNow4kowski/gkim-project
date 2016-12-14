@@ -1,13 +1,12 @@
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
 
-#include <vector>
-#include <fstream>
-#include <utility>
-
 #include "Image.h"
 #include "Node.h"
 
+#include <vector>
+#include <fstream>
+#include <iostream>
 
 class Huffman
 {
