@@ -32,17 +32,12 @@ int main(int argc, char *argv[])
 	// Load image
 	BMP bmp;
 	bmp.load(test_bmp);
-	RGB12 rgb(std::move(bmp));
-	rgb.preview();
+	RGB12 rgb(bmp, 1); // choose Huffman
+	rgb.save("test/huffman_saved.rgb12");
 
-	// Attach to huffman
-	Image &img = rgb.image;
-	Huffman huffman(&img);
-	huffman.encode();
-	huffman.decode();
-
-	// Preview decoded from huffman
-	rgb.preview();
+	RGB12 loadFromZero;
+	loadFromZero.load("test/huffman_saved.rgb12");
+	loadFromZero.preview();
 
 	#ifndef  __linux
 		system("PAUSE");

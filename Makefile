@@ -24,7 +24,13 @@ TOBJECTS := $(patsubst $(TESTDIR)/%,$(BUILDDIR)/%,$(TESTS:.$(SRCEXT)=.$(BUILDEXT
 
 ## Compiler settings
 CC := g++
-CFLAGS := -g -Wall -std=c++14
+
+## CFLAGS FOR DEBUG
+CFLAGS := -g -Wall -m64 -std=c++14
+
+## CFLAGS FOR PERFORMANCE TESTS
+#CFLAGS := -g -m64 -O3 -std=c++14
+
 LIB := -L lib -lSDL2
 INC := -I include
 

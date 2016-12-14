@@ -1,38 +1,45 @@
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
 
-#include <vector>
-#include <fstream>
-#include <utility>
-
 #include "Image.h"
 #include "Node.h"
 
+#include <vector>
+#include <fstream>
+#include <iostream>
 
 class Huffman
 {
 private:
-	Image *image;
 	std::vector<std::pair<uint32_t, std::vector<bool>>> codeVec;
 	std::vector<std::pair<uint32_t, uint32_t>> colorFreqs;
 
-	void countFreq();
+	// Empty huffman data;
+	void clear();
+
+	// Huffman algorithm's methods
+	void countFreq(const Image &);
 	void generateCodes(const Node *node, std::vector<bool> &code);
 	void buildTree();
 
+	// Debug
 	void printCodes() const;
 
+	// Store/load informations needed from file to use Huffman compression
 	void saveHuffHeader(std::ofstream &ofile);
 	void readHuffHeader(std::ifstream &ifile);
-	void saveCodes(std::ofstream &ofile);
-	void readCodes(std::ifstream &ifile);
+
+	// Save/load data from/to file
+	void saveCodes(std::ofstream &ofile, const Image &);
+	void readCodes(std::ifstream &ifile, Image &);
 
 public:
-	Huffman(Image *image);
+	Huffman();
 	~Huffman();
 
-	void encode();
-	void decode();
+	// Public interface
+	void encode(std::ofstream &, const Image &);
+	void decode(std::ifstream &, Image &);
 };
 
 

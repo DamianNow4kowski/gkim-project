@@ -82,14 +82,16 @@ void RGB12::load444(std::ifstream &f, Image &img)
 	}
 }
 
-void RGB12::saveHuffman(std::ofstream &, const Image &) const
+void RGB12::saveHuffman(std::ofstream &os, const Image &img) const
 {
-	// TODO: implement
+	Huffman huffman;
+	huffman.encode(os, img);
 }
 
-void RGB12::loadHuffman(std::ifstream &, Image &)
+void RGB12::loadHuffman(std::ifstream &is, Image &img)
 {
-	// TODO: implement
+	Huffman huffman;
+	huffman.decode(is, img);
 }
 
 void RGB12::save444(std::ofstream &f, const Image &img) const
@@ -186,22 +188,32 @@ void RGB12::store(const std::string & filename, const Image & img) const
 	// Load file to save data in binary mode
 	openStream(filename, f);
 
-	// Choose algorithm
+	// Verify if algorithm exists
 	uint8_t alg = algorithm;
-	switch (algorithm)
+	if (alg >= implemented)
 	{
-	case 2:
-		writeHeader(f, img, alg, true);
-		saveLZ77(f, img);
-		break;
-	default:
 		std::cerr << "[RGB12]: RuntimeError(\"There is no such an algorithm: " << static_cast<unsigned int>(algorithm) << ". Calling default..\");" << std::endl;
 		alg = 0;
+	}
+
+	// Save global header needed to recover Image
+	writeHeader(f, img, alg, true);
+
+	// Save by chosen (or default) algorithm
+	switch (alg)
+	{
 	case 0:
-		writeHeader(f, img, alg, true);
 		save444(f, img);
 		break;
+	case 1:
+		saveHuffman(f, img);
+		break;
+	case 2:
+		saveLZ77(f, img);
+		break;
 	}
+
+	// Close file
 	f.close();
 	std::cout << "[RGB12]<- COMPLETED: Storing image process." << std::endl;
 }
@@ -214,10 +226,10 @@ Image RGB12::recover(const std::string & filename)
 	// Open input file in binary mode
 	openStream(filename, f);
 
-	// Read header data
+	// Read global header data
 	unsigned int width, height;
-	uint8_t depth, bpp, alg;
-	std::tie(width, height, depth, bpp, alg) = readHeader(f, true);
+	uint8_t depth, alg;
+	std::tie(width, height, depth, alg) = readHeader(f, true);
 
 	// Create new Image
 	Image recovered(width, height, depth);
@@ -228,6 +240,9 @@ Image RGB12::recover(const std::string & filename)
 	case 0:
 		load444(f, recovered);
 		break;
+	case 1:
+		loadHuffman(f, recovered);
+		break;
 	case 2:
 		loadLZ77(f, recovered);
 		break;
@@ -236,6 +251,8 @@ Image RGB12::recover(const std::string & filename)
 		os << "Saved with uknown algorithm: " << static_cast<unsigned int>(alg);
 		throw RuntimeError(os.str());
 	}
+
+	// Close file
 	f.close();
 
 	// Return recovered Image
@@ -248,10 +265,9 @@ Image RGB12::recover(const std::string & filename)
  *		unsigned int width,
  *		unsigned int height,
  *		uint8_t depth (bits per pixel),
- *		uint8_t bpp (bytes per pixel),
  *		uint8_t algorithm }
 */
-std::tuple<int, int, uint8_t, uint8_t, uint8_t> RGB12::readHeader(std::ifstream &f, bool debug) const
+std::tuple<int, int, uint8_t, uint8_t> RGB12::readHeader(std::ifstream &f, bool debug) const
 {
 	std::cout << "[RGB12]-> Reading header." << std::endl;
 
@@ -280,11 +296,10 @@ std::tuple<int, int, uint8_t, uint8_t, uint8_t> RGB12::readHeader(std::ifstream 
 
 	// Load actually required things
 	unsigned int width, height;
-	uint8_t depth, bpp, alg;
+	uint8_t depth, alg;
 	f.read(reinterpret_cast<char *>(&width), sizeof(width));
 	f.read(reinterpret_cast<char *>(&height), sizeof(height));
 	f.read(reinterpret_cast<char *>(&depth), sizeof(depth));
-	f.read(reinterpret_cast<char *>(&bpp), sizeof(bpp));
 	f.read(reinterpret_cast<char *>(&alg), sizeof(alg));
 
 	// Debug
@@ -294,10 +309,9 @@ std::tuple<int, int, uint8_t, uint8_t, uint8_t> RGB12::readHeader(std::ifstream 
 		std::cout << "- Width: " << width << std::endl;
 		std::cout << "- Height: " << height << std::endl;
 		std::cout << "- Depth: " << static_cast<unsigned int>(depth) << std::endl;
-		std::cout << "- BPP: " << static_cast<unsigned int>(bpp) << std::endl;
 	}
 
-	return std::make_tuple(width, height, depth, bpp, alg);
+	return std::make_tuple(width, height, depth, alg);
 }
 
 void RGB12::writeHeader(std::ofstream &f, const Image &img, uint8_t alg, bool debug) const
@@ -316,15 +330,13 @@ void RGB12::writeHeader(std::ofstream &f, const Image &img, uint8_t alg, bool de
 		width = img.width(), 
 		height = img.height();
 	const uint8_t
-		depth = static_cast<uint8_t>(img.depth()),
-		bpp = static_cast<uint8_t>(img.bpp());
+		depth = static_cast<uint8_t>(img.depth());
 
 	f.write(reinterpret_cast<const char *>(&ext_size), sizeof(ext_size));
 	f.write(ext.c_str(), ext_size);
 	f.write(reinterpret_cast<const char *>(&width), sizeof(width));
 	f.write(reinterpret_cast<const char *>(&height), sizeof(height));
 	f.write(reinterpret_cast<const char *>(&depth), sizeof(depth));
-	f.write(reinterpret_cast<const char *>(&bpp), sizeof(bpp));
 	f.write(reinterpret_cast<const char *>(&alg), sizeof(alg));
 }
 

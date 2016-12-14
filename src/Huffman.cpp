@@ -9,60 +9,65 @@
 #include <iterator>
 #include <algorithm>
 
-Huffman::Huffman(Image *image)
-	: image(image), 
-	codeVec(std::vector<std::pair<uint32_t, std::vector<bool>>>()), 
-	colorFreqs(std::vector<std::pair<uint32_t, uint32_t>>())
-{
-}
+Huffman::Huffman()
+	:	codeVec(std::vector<std::pair<uint32_t, std::vector<bool>>>()),
+		colorFreqs(std::vector<std::pair<uint32_t, uint32_t>>())
+{}
 
-Huffman::~Huffman()
-{
-}
+Huffman::~Huffman() 
+{}
 
-void Huffman::encode()
+void Huffman::encode(std::ofstream &ofile, const Image &image)
 {
 	std::cout << "\n=== HUFFMAN COMPRESSION ===" << std::endl;
-	std::ofstream ofile("test/huff", std::ios::binary);
-	countFreq();
-	buildTree();
-	saveHuffHeader(ofile);
-	saveCodes(ofile);
-	ofile.close();
 
-	codeVec.clear();
-	colorFreqs.clear();
+	// Huffman algorithm
+	countFreq(image); // colorFreqs
+	buildTree(); //codeVec
+
+	// Save compressed data to file
+	saveHuffHeader(ofile);
+	saveCodes(ofile, image);
+
+	// Clear generated data
+	clear();
 
 	std::cout << "=== HUFFMAN COMPRESSION DONE ===\n" << std::endl;
 }
 
-void Huffman::decode()
+void Huffman::decode(std::ifstream &ifile, Image &image)
 {
 	std::cout << "\n=== HUFFMAN DECOMPRESSION ===" << std::endl;
 
-	std::ifstream ifile("test/huff", std::ios::binary);
-	readHuffHeader(ifile);
-	buildTree();
-	readCodes(ifile);
-	ifile.close();
+	// Generate data
+	readHuffHeader(ifile); // read colorFreqs
+	buildTree(); //create codeVec
 
-	codeVec.clear();
-	colorFreqs.clear();
+	readCodes(ifile, image); // read data
 
-	std::cout << "=== HUFFMAN COMPRESSION DONE ===\n" << std::endl;
+	// Clear generated data
+	clear();
+
+	std::cout << "=== HUFFMAN DECOMPRESSION DONE ===\n" << std::endl;
 }
 
-void Huffman::countFreq()
+void Huffman::clear()
+{
+	codeVec.clear();
+	colorFreqs.clear();
+}
+
+void Huffman::countFreq(const Image& image)
 {
 	std::cout << "Counting colors..." << std::endl;
 
 	uint32_t clr = -1;
 	bool found = false; 
-	for (unsigned int j = 0; j < image->height(); j++)
+	for (unsigned int j = 0; j < image.height(); j++)
 	{
-		for (unsigned int i = 0; i < image->width(); i++)
+		for (unsigned int i = 0; i < image.width(); i++)
 		{
-			clr = image->getPixel(i, j); // get color
+			clr = image.getPixel(i, j); // get color
 			found = false;
 			for (auto &v : colorFreqs) // check if already appeared
 			{
@@ -171,33 +176,29 @@ void Huffman::printCodes() const
 
 void Huffman::saveHuffHeader(std::ofstream &ofile)
 {
-	// save general image header here
-	// then Huffman header
-
-	std::cout << "Saving header..." << std::endl;
+	std::cout << "Saving huffman header..." << std::endl;
 
 	uint32_t clr;
 	unsigned int cntr;
 	size_t numberOfColors = colorFreqs.size();
 
-	ofile.write((char*)(&numberOfColors), sizeof(numberOfColors));
+	ofile.write(reinterpret_cast<const char*>(&numberOfColors), sizeof(numberOfColors));
 
 	for (auto &v : colorFreqs)
 	{
 		clr = v.first;
 		cntr = v.second;
-		ofile.write((char*)(&clr), sizeof(clr));
-		ofile.write((char*)(&cntr), sizeof(cntr));
+		ofile.write(reinterpret_cast<const char*>(&clr), sizeof(clr));
+		ofile.write(reinterpret_cast<const char*>(&cntr), sizeof(cntr));
 	}
 
-	std::cout << "Header saved." << std::endl;
+	std::cout << "Huffman header saved." << std::endl;
 }
 
 void Huffman::readHuffHeader(std::ifstream &ifile)
 {
-	// ? read general header
 
-	std::cout << "Reading header..." << std::endl;
+	std::cout << "Reading huffman header..." << std::endl;
 
 	uint32_t clr;
 	unsigned int cntr;
@@ -207,26 +208,26 @@ void Huffman::readHuffHeader(std::ifstream &ifile)
 
 	for (size_t i = 0; i < numOfColors; i++)
 	{
-		ifile.read((char*)(&clr), sizeof(clr));
-		ifile.read((char*)(&cntr), sizeof(cntr));
+		ifile.read(reinterpret_cast<char *>(&clr), sizeof(clr));
+		ifile.read(reinterpret_cast<char *>(&cntr), sizeof(cntr));
 		colorFreqs.push_back(std::pair<uint32_t, uint32_t>(clr, cntr));
 	}
 
-	std::cout << "Header read." << std::endl;
+	std::cout << "Huffman header read." << std::endl;
 }
 
-void Huffman::saveCodes(std::ofstream &ofile)
+void Huffman::saveCodes(std::ofstream &ofile, const Image &image)
 {
 	std::cout << "Saving content..." << std::endl;
 
 	uint32_t clr;
 	BitsToFile btf(ofile);
 
-	for (unsigned int j = 0; j < image->height(); ++j)
+	for (unsigned int j = 0; j < image.height(); ++j)
 	{
-		for (unsigned int i = 0; i < image->width(); ++i)
+		for (unsigned int i = 0; i < image.width(); ++i)
 		{
-			clr = image->getPixel(i, j);
+			clr = image.getPixel(i, j);
 			for (auto &v : codeVec)
 				if (v.first == clr)
 				{
@@ -240,12 +241,9 @@ void Huffman::saveCodes(std::ofstream &ofile)
 	std::cout << "Content saved." << std::endl;
 }
 
-void Huffman::readCodes(std::ifstream &ifile)
+void Huffman::readCodes(std::ifstream &ifile, Image &image)
 {
 	std::cout << "Reading content..." << std::endl;
-
-	// Reallocate
-	image->allocate(image->width(), image->height(), image->depth());
 
 	BitsFromFile bff(ifile);
 
@@ -254,9 +252,9 @@ void Huffman::readCodes(std::ifstream &ifile)
 
 	bool found = false;
 
-	for (unsigned int j = 0; j < image->height(); ++j)
+	for (unsigned int j = 0; j < image.height(); ++j)
 	{
-		for (unsigned int i = 0; i < image->width(); ++i)
+		for (unsigned int i = 0; i < image.width(); ++i)
 		{
 			found = false;
 
@@ -267,7 +265,7 @@ void Huffman::readCodes(std::ifstream &ifile)
 				{
 					if (v->second == vec)
 					{
-						image->setPixel(i, j, v->first);
+						image.setPixel(i, j, v->first);
 						found = true;
 						vec.clear();
 						break;
