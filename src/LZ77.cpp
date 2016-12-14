@@ -28,7 +28,7 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 {
 	//pozniej sie podzieli na funkcje, teraz latwiej mi pisac ciagiem
 	//pozniej posprzatam, zakomentowane rzeczy odkomentowuje do testow
-
+int licz=0;
 	unsigned int i, it = 0, it2 = 0;			//iterators
 	unsigned int x = 1, y = 0; 					//coordinates of pixels
 
@@ -44,7 +44,7 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 
 	color[0] = clr.r >> 4;
 	code = color[0];
-	ofile << code;							//the first color goes to file	
+	ofile.write(reinterpret_cast<const char*>(&code), sizeof(code));							//the first color goes to file	
 	color[1] = clr.g >> 4;
 	color[2] = clr.b >> 4;
 
@@ -181,14 +181,17 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 		if (max == 1)
 		{
 			code = la_begin->second;
-			ofile << code;
+			//code=code<<3;
+			ofile.write(reinterpret_cast<const char*>(&code), sizeof(code));
 			cout << (int)code << " ";
+			//licz=licz+1;
 		}
 		else
 		{
 			code = 128 | (max - 2) << 4 | (position - s_begin->first);
-			ofile << code;
+			ofile.write(reinterpret_cast<const char*>(&code), sizeof(code));
 			cout << (int)code << " ";
+			//licz=licz+max;
 		}
 
 		//	if (petla<327)
@@ -209,6 +212,8 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 		{
 			s_buff.erase(s_begin->first);
 			++s_begin; // [ERROR]
+			//if (petla<2)
+				//cout<<s_begin->first<<" ";
 			max--;
 		}
 		max = cpmax;
@@ -232,6 +237,7 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 		}
 
 	}
+	cout<<licz;
 	s_buff.clear();
 }
 
@@ -242,18 +248,19 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
  */
 void LZ77::decode(std::ifstream &ifile, Image &image)
 {
+
 	unsigned int i, iter = 0;
 	short length, position, it;
-	//unsigned int x=1, y=0; 				//coordinates of pixels
+	unsigned int x=1, y=0; 				//coordinates of pixels
 	Uint8 color[3], code, first_bit;
-	//short what_color=1;					//which subpixel
-	ifile >> code;
-	std::cout << "Code = " << code << std::endl;
+	short what_color=1;					//which subpixel
+	ifile.read(reinterpret_cast<char*>(&code), sizeof(code));
+	//cout << "Code = " << code << endl;
 	color[0] = code << 4;
 	//cout<<(int)color[0];
 	map<int, int>::iterator la_begin;
 	map<int, int>::iterator s_begin;
-
+	int petla=0;
 
 	//initialization of search buffer
 	for (i = 0; i < s_buff_size; ++i)
@@ -264,43 +271,111 @@ void LZ77::decode(std::ifstream &ifile, Image &image)
 
 	while (!ifile.eof())
 	{
-		ifile >> code;
+		petla++;
+		ifile.read(reinterpret_cast<char*>(&code), sizeof(code));
 		//cout<<(int)code<<" ";
 
 		length = 0;
 		la_begin = la_buff.begin();
 		s_begin = s_buff.begin();
 		first_bit = code >> 7;
-		//cout<<(int)first_bit<<" ";
+		//if (petla<20)
+		//cout<<"b:"<<(int)first_bit<<":b ";
 		if (first_bit)
 		{
+			//cout<<(int)code<<" ";
 			length = ((int)code >> 4) - 8;
 			position = (int)code - 128 - (length << 4);
 			length += 2;
 			it = 0;
-			//cout<<s_buff[s_begin->first+position+it]<<" ";
-			while (it++ < length)
-				la_buff.insert(pair<int, int>(la_begin->first + it, s_buff[s_begin->first + position + it]));
+		
+		while (it < length){
+				la_buff.insert(pair<int, int>(la_begin->first, s_buff[s_begin->first + position + it]));
+//if (petla<5)
+//cout<<s_begin->first+position+it<<" ";
+		++it;
+		//if (petla<3)
+			//cout<<"S:"<<la_begin->first<<" ";
+}
 			//cout<<s_buff[s_begin->first+position+it]<<" ";	
-			--length;
+			//--it;
 		}
 		else
 		{
+			//cout<<(int)code<<" ";
 			code = code << 4;
 			la_buff.insert(pair<int, int>(la_begin->first, (int)code));
 			length = 1;
 		}
 
+		//inserting elements to search buffer
+		int cplength=length;
+		s_begin=s_buff.begin();
+		la_begin=la_buff.begin();
+		it=0;
+		while (cplength-- > 0)
+		{
+			s_buff.insert(pair<int, int>(s_begin->first+s_buff_size+it, la_begin->second));
+			//cout<<la_begin->second<<" ";
+//if (petla<1500)
+	//		cout<<s_buff[s_begin->first+s_buff_size+it]<<" ";
+			++la_begin;
+			++it;
+			
+		}
+		
+		//erase elements in search buffer
+		cplength = length;
+		while (cplength-- > 0)
+		{
+			s_buff.erase(s_begin->first);
+			++s_begin; // [ERROR]
+			//if (petla<1533)
+				//cout<<s_begin->second<<" ";
+		}
+		
+	
 
+	la_begin=la_buff.begin();
+	map<int, int>::iterator la_end=la_buff.end();
+//if(petla<3)
+	//cout<<endl;
+//if(petla<3)
+	//for(auto k=la_begin; k!=la_end; k++)
+//	cout<<"L:"<<k->first<<":L ";
+
+		la_begin=la_buff.begin();
 		while (length-- > 0)
 		{
-			//cout<<"usuwanie ";
-			//cout<<iter<<" ";
-			la_buff.erase(iter++);
-			la_begin++;
-		}
+	iter++;
+	//if (petla<20) 
+		//cout<<"F:"<<la_begin->first<<":F ";
 
+			//---here saving colors to image----			
+			if(x>=image.width())
+			{
+				x=0;
+				y++;
+			}
+			if (what_color>=3)
+			{
+				if(y<image.height())
+				image.setPixel(x, y, color[0], color[1], color[2], 0);
+				
+				x++;
+				what_color=0;
+			}
+			cout<<la_begin->second<<" ";
+			what_color++;
+			color[what_color]=la_begin->second;
+
+			la_buff.erase(la_begin);
+			la_begin++;
+
+		}
 	}
-	//cout<<la_buff.size();
+
+cout<<"iteracji: "<<iter;
+
 	s_buff.clear();
 }
