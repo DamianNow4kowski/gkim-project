@@ -63,20 +63,18 @@ protected:
 	 * @param pointer to structure with pixel data
 	 * @param x x-axis
 	 * @param y y-axis cordinate of chosen pixel
-	 * @param bool turns on debuging when true
 	 * @return full pixel data (32 bit)
 	 */
-	uint32_t getPixel(const SDL_Surface*, unsigned int, unsigned int, bool = false) const;
+	uint32_t getPixel(const SDL_Surface*, unsigned int, unsigned int) const;
 
 	/**
 	 * Gets pixel data from SDL_Surface
 	 * @param pointer to structure with pixel data
 	 * @param x x-axis
 	 * @param y y-axis cordinate of chosen pixel
-	 * @param bool turns on debuging when true
 	 * @return pixel data in SDL_Color structure
 	 */
-	SDL_Color getPixelColor(const SDL_Surface*, unsigned int, unsigned int, bool = false) const;
+	SDL_Color getPixelColor(const SDL_Surface*, unsigned int, unsigned int) const;
 
 	/**
 	 * Sets pixel's data to SDL_Surface
@@ -84,21 +82,19 @@ protected:
 	 * @param x x-axis
 	 * @param y y-axis cordinate of chosen pixel
 	 * @param pixel data (32 bits)
-	 * @param bool turns on debuging when true
 	 */
-	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint32_t, bool = false) const;
+	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint32_t) const;
 
 	/**
-	 * Sets pixel's color's data to SDL_Surface
+	 * Sets pixel's color's data to SDL_Surface (Doesn't work with PALLETIZED SDL_Surface)
 	 * @param pointer to structure with pixel data
 	 * @param x x-axis
 	 * @param y y-axis cordinate of chosen pixel
 	 * @param red component color value (8 bit)
 	 * @param green component color value (8 bit)
 	 * @param blue component color value (8 bit)
-	 * @param bool turns on debuging when true
 	 */
-	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint8_t, uint8_t, uint8_t, bool = false) const;
+	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint8_t, uint8_t, uint8_t) const;
 
 
 	/**
@@ -116,13 +112,16 @@ public:
 	Image();
 
 	// Create empty surface constructor
-	Image(int, int, int);
+	Image(int width, int height, int depth);
 
-	// Attaching surface to this image
-	Image(SDL_Surface *);
+	// SDL_Surface* move constructor
+	// Remarks: given SDL_Surface will be attached in Image,
+	//          but pointer to this surface will be 'nullptr' outside the class
+	//          to prevent its deallocation outside class
+	Image(SDL_Surface *moved_surface);
 
 	// Copying surface
-	Image(const SDL_Surface *);
+	Image(const SDL_Surface *copied_surface);
 
 	// Copy constructor
 	Image(const Image &);
@@ -130,28 +129,22 @@ public:
 	// Move constructor
 	Image(Image &&);
 
-	// Universal (copy and move assigment)
+	// Universal operator (copy and move assigment)
 	Image& operator=(Image);
-
-	// Copy assigment
-	//Image& operator=(const Image &);
-	// Move assigment
-	//Image& operator=(Image &&);
 
 	// Destructor
 	~Image();
 
-	// Public interface functions [safetly modify SDL_Surface]
+	// Public interface functions [safely modify SDL_Surface]
 	// @throws RuntimeError
-	// TODO: inline some of them
-	void allocate(int, int, int);
+	void allocate(int width, int height, int depth);
 	void toGreyScale();
-	uint32_t getPixel(unsigned int, unsigned int, bool = false) const;
-	SDL_Color getPixelColor(unsigned int, unsigned int, bool = false) const;
-	void setPixel(unsigned int, unsigned int, uint32_t, bool = false);
-	void setPixel(unsigned int, unsigned int, uint8_t, uint8_t, uint8_t, bool = false);
-	void setPixel(unsigned int, unsigned int, const SDL_Color &, bool = false);
-	void printDetails(std::ostream & = std::cout) const;
+	uint32_t getPixel(unsigned int x, unsigned int y) const;
+	SDL_Color getPixelColor(unsigned int x, unsigned int y) const;
+	void setPixel(unsigned int x, unsigned int y, uint32_t pixel);
+	void setPixel(unsigned int x, unsigned int y, uint8_t r, uint8_t g, uint8_t b);
+	void setPixel(unsigned int x, unsigned int y, const SDL_Color &color);
+	void printDetails(std::ostream &out = std::cout) const;
 
 	/**
 	 * @return pointer to constant SDL_Structure which

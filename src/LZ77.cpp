@@ -308,14 +308,15 @@ void LZ77::decode(std::ifstream &ifile, Image &image)
 			if (what_color>=3)
 			{
 				if(y<image.height())
-					image.setPixel(x, y, color[0], color[1], color[2], 0);
+					image.setPixel(x, y, color[0], color[1], color[2]);
 				x++;
 				what_color=0;
 			}
 			
 			color[what_color]=la_begin->second;
 			what_color++;
-			la_buff.erase(la_begin); // ERROR VS15
+			if(la_begin != la_buff.end())
+				la_buff.erase(la_begin); // ERROR VS15
 			la_begin++;
 			length--;
 		}

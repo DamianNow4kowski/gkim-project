@@ -3,14 +3,16 @@
 #include <iostream>
 #include <string>
 
-InputHandler::InputHandler(bool e)
-	: debug(e)
+InputHandler::InputHandler()
 {}
 
-InputHandler::InputHandler(int c, char **v, bool e)
-	: debug(e)
+InputHandler::InputHandler(int c, char **v)
 {
+
+#ifdef _DEBUG
 	std::cout << "[InputHandler]-> Parsing input for executable: " << v[0] << std::endl;
+#endif // DEBUG
+
 	for (int i = 1; i < c; ++i)
 	{
 		if (v[i][0] == '-')
@@ -18,22 +20,31 @@ InputHandler::InputHandler(int c, char **v, bool e)
 			std::string s(v[i]);
 			s.erase(0, 1); // delete "-"
 			options.insert(s);
-			if (debug)
-				std::cout << "[Debug][InputHandler] Adding option: " << s << std::endl;
+
+#ifdef _DEBUG
+	std::cout << "[Debug][InputHandler] Adding option: " << s << std::endl;
+#endif // DEBUG
+				
 		}
 		else
 		{
 			arguments.push_back(v[i]);
-			if (debug)
-				std::cout << "[Debug][InputHandler] Adding argument: " << v[i] << std::endl;
+
+#ifdef _DEBUG
+	std::cout << "[Debug][InputHandler] Adding argument: " << v[i] << std::endl;
+#endif // DEBUG
+				
 		}
 	}
 
 	if (options.empty() && !arguments.empty())
 	{
 		options.insert(defaultOption);
-		if (debug)
-			std::cout << "[Debug][InputHandler] Adding default option: " << defaultOption << std::endl;
+
+#ifdef _DEBUG
+		std::cout << "[Debug][InputHandler] Adding default option: " << defaultOption << std::endl;
+#endif // DEBUG
+
 	}
 		
 	arg = arguments.begin();

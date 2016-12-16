@@ -41,6 +41,9 @@ protected:
 	 */
 	void openStream(const std::string &, std::ofstream &) const;
 
+	// Move Image protected constructor (available only for derieved class)
+	ImageHandler(Image &&img);
+
 public:
 
 	// Image Container
@@ -48,9 +51,6 @@ public:
 
 	// Default constructor
 	ImageHandler();
-
-	// Copy SDL_Surface constructor
-	ImageHandler(const SDL_Surface*); // TODO: investigate if needed
 
 	// Copy Image constructor
 	ImageHandler(const Image &); // TODO: investigate if needed

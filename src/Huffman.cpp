@@ -239,8 +239,7 @@ void Huffman::saveCodes(std::ofstream &ofile, const Image &image)
 	{
 		for (unsigned int i = 0; i < image.width(); ++i)
 		{
-			// turns on debug ---------->
-			clr = image.getPixel(i, j, (j == image.height() / 2));
+			clr = image.getPixel(i, j);
 			for (auto &v : codeVec)
 				if (v.first == clr)
 				{
@@ -278,8 +277,7 @@ void Huffman::readCodes(std::ifstream &ifile, Image &image)
 				{
 					if (v->second == vec) // error for (1x1 pixel)
 					{
-						// turns on debug ---------->
-						image.setPixel(i, j, v->first, (j == image.height() / 2));
+						image.setPixel(i, j, v->first);
 						found = true;
 						vec.clear();
 						break;

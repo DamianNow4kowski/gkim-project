@@ -8,15 +8,14 @@
 class InputHandler
 {
 protected:
-	const bool debug;
 	const std::string defaultOption = "open";
 	std::vector<std::string> arguments;
 	std::unordered_set<std::string> options;
 	std::vector<std::string>::iterator arg;
 
 public:
-	InputHandler(bool = false);
-	InputHandler(int, char **, bool = false);
+	InputHandler();
+	InputHandler(int, char **);
 
 	bool option(const std::string &) const;
 	bool option(const char *) const;

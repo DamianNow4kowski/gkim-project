@@ -86,12 +86,13 @@ void test_BMPHandler()
 void test_RGB12Handler()
 {
 	BMP bmp;
-	bmp.load("test/rgbcube.bmp");
+	bmp.load("test/smalltest_8bit.bmp");
 	bmp.preview();
 
 	// Convert construct
 	RGB12 rgb(bmp);
 	rgb.preview();
+	bmp.preview();
 
 	// Copy construct
 	RGB12 rgb2(rgb);
@@ -128,6 +129,7 @@ void test_RGB12Handler()
 		cerr << "Error: " << e.what() << endl;
 	}
 	rgb4.preview();
+	rgb3.preview();
 
 	// Initize with convert construct to force object to be constructed then
 	// Move assigment
@@ -169,12 +171,12 @@ void test_saveLoadRGB12()
 
 }
 
-void testHuffman()
+void test_Huffman()
 {
 	BMP bmp;
 	//bmp.load("test/1x1.bmp");
-	bmp.load("test/rgbcube.bmp"); // [Compression ratio = 2.861]
-	//bmp.load("test/test.bmp"); // [Compression ratio = 4.455]
+	//bmp.load("test/rgbcube.bmp"); // [Compression ratio = 2.861]
+	bmp.load("test/test.bmp"); // [Compression ratio = 4.455]
 	//bmp.load("test/smalltest_24bit.bmp");
 	//bmp.load("test/smalltest_8bit.bmp");
 	bmp.preview();
@@ -237,6 +239,31 @@ void test_LZ77()
 
 }
 
+void test_Image()
+{
+	BMP bmp, test;
+	bmp.load("test/smalltest_24bit.bmp");
+
+	test.image = bmp.image; // pixels
+	bmp.preview();
+	test.preview();
+
+	bmp.image.toGreyScale(); // pixels
+	test.image = std::move(bmp.image);
+	bmp.preview(); // should fail
+	test.preview();
+
+	Image copied(test.image); // pixels
+	test.image = copied; // pixels
+	test.preview();
+
+	Image moved(std::move(copied));
+	test.image = std::move(copied);
+	test.preview(); // should fail
+	test.image = std::move(moved);
+	test.preview(); // should ok
+}
+
 int main()
 {
     // Initialize SDL
@@ -254,8 +281,9 @@ int main()
 	//test_BMPHandler();
 	//test_RGB12Handler();
 	//test_saveLoadRGB12();
-	//testHuffman();
-	test_LZ77();
+	//test_Huffman();
+	//test_LZ77();
+	test_Image();
 
 	#ifndef __linux
 		system("PAUSE");

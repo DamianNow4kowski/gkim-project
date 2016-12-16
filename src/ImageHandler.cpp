@@ -33,10 +33,10 @@ void ImageHandler::openStream(const std::string &filename, std::ofstream &output
 	}
 }
 
-ImageHandler::ImageHandler(const SDL_Surface *surface)
-	: image(Image(surface))
+ImageHandler::ImageHandler(Image &&img)
+	: image(std::move(img))
 {
-	std::cout << "[ImageHandler]: Called public const SDL_Surface* constructor." << std::endl;
+	std::cout << "[ImageHandler]: Called protected Image move constructor" << std::endl;
 }
 
 ImageHandler::ImageHandler()

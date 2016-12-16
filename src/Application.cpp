@@ -8,7 +8,7 @@
 
 int main(int argc, char *argv[])
 {
-	InputHandler cli(argc, argv, true);
+	InputHandler cli(argc, argv);
 
 	// Initialize SDL
 	try

@@ -74,7 +74,7 @@ void RGB12::load444(std::ifstream &f, Image &img)
 				}
 
 				// ----------------------> turns on debug on
-				img.setPixel(x, y, pixel, (y == img.height() / 2));
+				img.setPixel(x, y, pixel);
 				colorToCode = 0;
 				++x;
 			}
@@ -112,7 +112,7 @@ void RGB12::save444(std::ofstream &f, const Image &img) const
 			for (int k = 0; k < 3; ++k)
 			{
 				// ----------------------------> turns on debug on
-				color = img.getPixelColor(x, y, (y == img.height() / 2));
+				color = img.getPixelColor(x, y);
 
 				if (firstHalf)
 				{
@@ -352,9 +352,9 @@ RGB12::RGB12(uint8_t alg)
 }
 
 RGB12::RGB12(const BMP &bmp, uint8_t alg)
-	: ImageHandler(std::move(convert(bmp.image))), algorithm(alg)
+	: ImageHandler(convert(bmp.image)), algorithm(alg)
 {
-	std::cout << "[RGB12]: Called copy BMP constructor." << std::endl;
+	std::cout << "[RGB12]: Called convert BMP constructor." << std::endl;
 }
 
 RGB12::RGB12(const RGB12 &rgb)
