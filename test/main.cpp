@@ -146,7 +146,7 @@ void test_RGB12Handler()
 	rgb4.preview(true); // should fail
 }
 
-void test_saveLoadRGB12()
+void test_BitDensityRGB()
 {
 	BMP bmp;
 	bmp.load("test/rgbcube.bmp");
@@ -154,20 +154,13 @@ void test_saveLoadRGB12()
 	bmp.preview();
 
 	// Save
-	RGB12 rgb(bmp, 0);
+	RGB12 rgb(bmp, RGB12::Algorithm::BitDensityRGB);
 	rgb.save("test/image");
 
 	// Load
-	RGB12 rgb2(1);
+	RGB12 rgb2(RGB12::Algorithm::Huffman);
 	rgb2.load("test/image.rgb12");
-	rgb2.preview();
-	rgb2.image.toGreyScale();
-	rgb2.save("test/image2");
-
-
-	RGB12 rgb3(2);
-	rgb3.load("test/image2.rgb12");
-	rgb3.preview();
+	rgb2.preview(true);
 
 }
 
@@ -175,14 +168,14 @@ void test_Huffman()
 {
 	BMP bmp;
 	//bmp.load("test/1x1.bmp");
-	//bmp.load("test/rgbcube.bmp"); // [Compression ratio = 2.861]
-	bmp.load("test/test.bmp"); // [Compression ratio = 4.455]
+	bmp.load("test/rgbcube.bmp"); // [Compression ratio = 2.861]
+	//bmp.load("test/test.bmp"); // [Compression ratio = 4.455]
 	//bmp.load("test/smalltest_24bit.bmp");
 	//bmp.load("test/smalltest_8bit.bmp");
 	bmp.preview();
 
 	/// ENCODING
-	RGB12 rgb(bmp, 1);
+	RGB12 rgb(bmp, RGB12::Algorithm::Huffman);
 	rgb.preview();
 	
 	auto begin = std::chrono::steady_clock::now();
@@ -194,7 +187,7 @@ void test_Huffman()
 	 * test/rgbcube.bmp - 43ms (g++ -03/Linux/x64/notebook 2-core i7) 
 	 * test/rgbcube.bmp - 123ms (VS Release/x64/notebook 2-core i7) 
 	 * test/test.bmp - 8ms (g++ -O3/Linux/x64/notebook 2-core i7) 
-	 * test/test.bmp - 40ms (VS Release/x64/notebook 2-core i7)
+	 * test/test.bmp - 30ms (VS Release/x64/notebook 2-core i7)
 	 * test/smalltest_8bit.bmp - 248us (g++ -03/Linux/x64/notebook 2-core i7)
      * test/smalltest_8bit.bmp - 30ms (VS Release/x64/notebook 2-core i7)
 	 * test/smalltest_24bit.bmp - 28ms (VS Release/x64/notebook 2-core i7)
@@ -212,7 +205,7 @@ void test_Huffman()
 	 * test/rgbcube.bmp - 982ms (VS Release/x64/notebook 2-core i7)
 	 * test/rgbcube.bmp - 1482ms (g++ -03/Linux/x64/notebook 2-core i7) (!????)
 	 * test/test.bmp - 10ms (g++ -O3/Linux/x64/notebook 2-core i7)
-     * test/test.bmp - 78ms (VS Release/x64/notebook 2-core i7)
+     * test/test.bmp - 65ms (VS Release/x64/notebook 2-core i7)
      * test/smalltest_8bit.bmp - 250us (g++ -03/Linux/x64/notebook 2-core i7)
 	 * test/smalltest_8bit.bmp - 30ms (VS Release/x64/notebook 2-core i7)
 	 * test/smalltest_24bit.bmp - 36ms (VS Release/x64/notebook 2-core i7)
@@ -224,14 +217,13 @@ void test_Huffman()
 void test_LZ77()
 {
 	BMP bmp;
-	//bmp.load("test/rgbcube.bmp");
+	bmp.load("test/rgbcube.bmp");
 	//bmp.load("test/test.bmp");
-	bmp.load("test/smalltest_24bit.bmp");
+	//bmp.load("test/smalltest_24bit.bmp");
 	//bmp.load("test/smalltest_8bit.bmp");
 	bmp.preview();
 
-	// '2' indicates saving using LZ77
-	RGB12 rgb(bmp, 2);
+	RGB12 rgb(bmp, RGB12::Algorithm::LZ77);
 	rgb.preview();
 	rgb.save("test/lz77");
 	rgb.load("test/lz77.rgb12");
@@ -278,12 +270,12 @@ int main()
     }
 
     cout << "Testing.." << endl;
+	//test_Image();
 	//test_BMPHandler();
 	//test_RGB12Handler();
-	//test_saveLoadRGB12();
-	//test_Huffman();
-	//test_LZ77();
-	test_Image();
+	test_BitDensityRGB();
+	test_Huffman();
+	test_LZ77();
 
 	#ifndef __linux
 		system("PAUSE");

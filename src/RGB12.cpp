@@ -73,7 +73,6 @@ void RGB12::load444(std::ifstream &f, Image &img)
 					++y;
 				}
 
-				// ----------------------> turns on debug on
 				img.setPixel(x, y, pixel);
 				colorToCode = 0;
 				++x;
@@ -84,7 +83,7 @@ void RGB12::load444(std::ifstream &f, Image &img)
 
 void RGB12::saveHuffman(std::ofstream &os, const Image &img) const
 {
-	Huffman huffman;
+	Huffman huffman; // TODO: maybe create constructor like this: Huffman(std::ofstream &os, const Image &img); to encode? and same for decode()
 	huffman.encode(os, img);
 }
 
@@ -189,26 +188,21 @@ void RGB12::store(const std::string & filename, const Image & img) const
 	openStream(filename, f);
 
 	// Verify if algorithm exists
-	uint8_t alg = algorithm;
-	if (alg >= implemented)
-	{
-		std::cerr << "[RGB12]: RuntimeError(\"There is no such an algorithm: " << static_cast<unsigned int>(algorithm) << ". Calling default..\");" << std::endl;
-		alg = 0;
-	}
+	Algorithm alg = algorithm;
 
 	// Save global header needed to recover Image
 	writeHeader(f, img, alg, true);
 
 	// Save by chosen (or default) algorithm
-	switch (alg)
+	switch (algorithm)
 	{
-	case 0:
+	case Algorithm::BitDensityRGB:
 		save444(f, img);
 		break;
-	case 1:
+	case Algorithm::Huffman:
 		saveHuffman(f, img);
 		break;
-	case 2:
+	case Algorithm::LZ77:
 		saveLZ77(f, img);
 		break;
 	}
@@ -314,7 +308,7 @@ std::tuple<int, int, uint8_t, uint8_t> RGB12::readHeader(std::ifstream &f, bool 
 	return std::make_tuple(width, height, depth, alg);
 }
 
-void RGB12::writeHeader(std::ofstream &f, const Image &img, uint8_t alg, bool debug) const
+void RGB12::writeHeader(std::ofstream &f, const Image &img, Algorithm alg, bool debug) const
 {
 	std::cout << "[RGB12]-> Saving header." << std::endl;
 	if (debug)
@@ -330,14 +324,15 @@ void RGB12::writeHeader(std::ofstream &f, const Image &img, uint8_t alg, bool de
 		width = img.width(), 
 		height = img.height();
 	const uint8_t
-		depth = static_cast<uint8_t>(img.depth());
+		depth = static_cast<uint8_t>(img.depth()),
+		algo = static_cast<uint8_t>(alg);
 
 	f.write(reinterpret_cast<const char *>(&ext_size), sizeof(ext_size));
 	f.write(ext.c_str(), ext_size);
 	f.write(reinterpret_cast<const char *>(&width), sizeof(width));
 	f.write(reinterpret_cast<const char *>(&height), sizeof(height));
 	f.write(reinterpret_cast<const char *>(&depth), sizeof(depth));
-	f.write(reinterpret_cast<const char *>(&alg), sizeof(alg));
+	f.write(reinterpret_cast<const char *>(&algo), sizeof(algo));
 }
 
 std::string RGB12::extension() const
@@ -345,13 +340,13 @@ std::string RGB12::extension() const
 	return std::string(".rgb12");
 }
 
-RGB12::RGB12(uint8_t alg)
+RGB12::RGB12(Algorithm alg)
 	: algorithm(alg)
 {
 	std::cout << "[RGB12]: Called default constructor." << std::endl;
 }
 
-RGB12::RGB12(const BMP &bmp, uint8_t alg)
+RGB12::RGB12(const BMP &bmp, Algorithm alg)
 	: ImageHandler(convert(bmp.image)), algorithm(alg)
 {
 	std::cout << "[RGB12]: Called convert BMP constructor." << std::endl;

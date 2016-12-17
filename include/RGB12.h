@@ -8,6 +8,38 @@
 
 class RGB12 : public ImageHandler
 {
+public:
+
+	enum class Algorithm : uint8_t
+	{
+		BitDensityRGB,
+		Huffman,
+		LZ77,
+		//BitDensityGreyScale
+	};
+
+	// Indicates which algorithm (defined in Algorithm enum) will be used for future saving process
+	// Remarks: stil can read images saved by other compatible algorithms
+	Algorithm algorithm;
+
+	virtual std::string extension() const override;
+	RGB12(Algorithm = Algorithm::BitDensityRGB);
+	RGB12(const BMP &bmp, Algorithm alg = Algorithm::BitDensityRGB);
+	RGB12(const RGB12 &);
+	RGB12(RGB12 &&);
+	RGB12& operator=(const RGB12 &);
+	RGB12& operator=(RGB12 &&);
+
+
+	virtual ~RGB12();
+
+protected:
+	virtual void store(const std::string &filename, const Image &image) const override;
+	virtual Image recover(const std::string &filename) override;
+
+	std::tuple<int, int, uint8_t, uint8_t> readHeader(std::ifstream &, bool = false) const;
+	void writeHeader(std::ofstream &, const Image &, Algorithm, bool = false) const;
+
 private:
 
 	/// Utility functions
@@ -23,14 +55,14 @@ private:
 	 *
 	 *    @param std::ifstream& opened input file stream in binary mode
 	 *    @param Image& properly intialized Image (width, height, bpp etc.)
-	 * 
+	 *
 	 * - Save algorithm interface:
 	 *
 	 *    @param std::ofstream& opened output file stream in binary mode
 	 *    @param const Image& vaild Image
 	 */
 
-	// Saves binary every pixel as 12 bit RGB (without spaces)
+	 // Saves binary every pixel as 12 bit RGB (without spaces)
 	void save444(std::ofstream &, const Image &) const;
 
 	// Loads pixel data from every pixel saved in RGB444 format (without spaces)
@@ -48,37 +80,6 @@ private:
 	uint8_t getColorOfPixel(SDL_Color, int) const;
 	void setColorOfPixel(SDL_Color &, int, uint8_t) const;
 
-protected:
-	virtual void store(const std::string &filename, const Image &image) const override;
-	virtual Image recover(const std::string &filename) override;
-
-	std::tuple<int, int, uint8_t, uint8_t> readHeader(std::ifstream &, bool = false) const;
-	void writeHeader(std::ofstream &, const Image &, uint8_t, bool = false) const;
-
-public:
-
-	/**
-	* 0 - Algorithm 'Bit density RGB 444'
-	* 1 - Huffman
-	* 2 - LZ77
-	*/
-
-	// Indicates which algorithm will be used for future saving process
-	uint8_t algorithm;
-
-	// Number of implemented algorithms
-	const unsigned short implemented = 3;
-
-	virtual std::string extension() const override;
-	RGB12(uint8_t = 0);
-	RGB12(const BMP &, uint8_t = 0);
-	RGB12(const RGB12 &);
-	RGB12(RGB12 &&);
-	RGB12& operator=(const RGB12 &);
-	RGB12& operator=(RGB12 &&);
-
-
-	virtual ~RGB12();
 };
 
 #endif // !RGB12_H
