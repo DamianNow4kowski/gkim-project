@@ -52,9 +52,6 @@ public:
 	// Default constructor
 	ImageHandler();
 
-	// Copy Image constructor
-	ImageHandler(const Image &); // TODO: investigate if needed
-
 	// Copy constuctor
 	ImageHandler(const ImageHandler &);
 

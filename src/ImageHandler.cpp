@@ -36,56 +36,67 @@ void ImageHandler::openStream(const std::string &filename, std::ofstream &output
 ImageHandler::ImageHandler(Image &&img)
 	: image(std::move(img))
 {
+#ifdef _DEBUG
 	std::cout << "[ImageHandler]: Called protected Image move constructor" << std::endl;
+#endif
 }
 
 ImageHandler::ImageHandler()
 {
+#ifdef _DEBUG
 	std::cout << "[ImageHandler]: Called default constructor." << std::endl;
-}
-
-ImageHandler::ImageHandler(const Image &img)
-	:image(img)
-{
-	std::cout << "[ImageHandler]: Called const Image& constructor." << std::endl;
+#endif
 }
 
 ImageHandler::ImageHandler(const ImageHandler &iop)
-	:image(Image(iop.image))
+	: image(iop.image)
 {
+#ifdef _DEBUG
 	std::cout << "[ImageHandler]: Called copy constructor." << std::endl;
+#endif
 }
 
 ImageHandler::ImageHandler(ImageHandler &&iop)
-	:image(std::move(iop.image)) // TODO: investigate behaviour
+	: image(std::move(iop.image))
 {
+#ifdef _DEBUG
 	std::cout << "[ImageHandler]: Called move constructor." << std::endl;
+#endif
 }
 
 ImageHandler & ImageHandler::operator=(const ImageHandler &iop)
 {
-	std::cout << "[ImageHandler]-> Called copy assigment operator." << std::endl;
+#ifdef _DEBUG
+	std::cout << " -> [ImageHandler::operator=]: Called copy assigment operator." << std::endl;
+#endif
+
 	image = iop.image;
 	return *this;
 }
 
 ImageHandler & ImageHandler::operator=(ImageHandler &&iop)
 {
-	std::cout << "[ImageHandler]-> Called move assigment operator." << std::endl;
+#ifdef _DEBUG
+	std::cout << " -> [ImageHandler::operator=]: Called move assigment operator." << std::endl;
+#endif
+
 	image = std::move(iop.image); // TODO: investigate beheviour
 	return *this;
 }
 
 void ImageHandler::preview(bool showDetails)
 {
-	std::cout << "[ImageHandler]-> Previewing Image." << std::endl;
+#ifdef _DEBUG
+	std::cout << " -> [ImageHandler::preview]" << std::endl;
+#endif
+
 	if (showDetails)
 		image.printDetails(std::cout);
 
 	// Remarks: This function is more usefull when don't throws errors; simply finish execution
 	if (image.empty())
 	{
-		std::cerr << "[ImageHandler]: RuntimeError(\"Cannot preview uninitialized Image.\");" << std::endl;
+		std::cerr << "!!! [ImageHandler]: Cannot preview uninitialized Image." << std::endl;
 		return;
 	}
 
@@ -122,22 +133,38 @@ void ImageHandler::preview(bool showDetails)
 	SDL_RenderCopy(renderer, texture, NULL, &dest);
 	SDL_RenderPresent(renderer);
 
+	// Show info for user
+	std::cout << "Press key 'Q' or 'ESC' to exit window, or simply close it." << std::endl;
+
 	// Simple loop
-	std::cout << "Press key 'Q' or 'ESC' to exit view." << std::endl;
+#ifdef _DEBUG
 	while (SDL_WaitEvent(&e))
 	{
-		if (e.type == SDL_KEYDOWN) {
+		if (e.type == SDL_KEYDOWN)
+		{
 			std::cout << "Pressed key '" << SDL_GetKeyName(e.key.keysym.sym) << "'" << std::endl;
-			if (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_q) {
+			if (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_q)
+			{
 				std::cout << "Exiting view.." << std::endl;
 				break;
 			}
 		}
-		else if (e.type == SDL_QUIT) {
+		else if (e.type == SDL_QUIT)
+		{
 			std::cout << "User requested to close window." << std::endl;
 			break;
 		}
 	}
+#else
+	while (SDL_WaitEvent(&e))
+		if (e.type == SDL_QUIT || e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_q))
+			break;
+	/**
+	* This is probably too fast
+	while (SDL_WaitEvent(&e) &&
+		e.type != SDL_QUIT && e.type != SDL_KEYDOWN && e.key.keysym.sym != SDLK_ESCAPE && e.key.keysym.sym != SDLK_q
+	);*/
+#endif
 
 	// Free memory
 	SDL_DestroyTexture(texture);
@@ -147,7 +174,10 @@ void ImageHandler::preview(bool showDetails)
 
 void ImageHandler::save(std::string &filename) const
 {
+#ifdef _DEBUG
 	std::cout << "[ImageHandler]-> Saving Image to file: " << filename << std::endl;
+#endif
+
 	try 
 	{
 		// Check wheter it is anything to save
@@ -165,7 +195,7 @@ void ImageHandler::save(std::string &filename) const
 	}
 	catch (const RuntimeError &error)
 	{
-		std::cerr << "[ImageHandler]: Error while saving Image: " << error.what() << std::endl;
+		std::cerr << "!!! [ImageHandler]: Error while saving Image:\n - " << error.what() << std::endl;
 	}
 }
 
@@ -177,15 +207,17 @@ void ImageHandler::save(const char *str) const
 
 void ImageHandler::load(const std::string &filename)
 {
-	std::cout << "[ImageHandler]-> Loading Image from file: " << filename << std::endl;
+#ifdef _DEBUG
+	std::cout << " -> [ImageHandler::load]: Loading Image from file: " << filename << std::endl;
+#endif
+
 	try 
 	{
 		// Validate extension of filename
 		if (!verifyExtension(filename, extension()))
 		{
 			std::ostringstream os;
-			os << "Cannot load file '" << filename 
-				<< "' due to unproper extension. [required ext = " << extension() << ']';
+			os << "Cannot load file due to unproper extension. [Required = " << extension() << ']';
 			throw RuntimeError(os.str());
 		}
 
@@ -203,7 +235,7 @@ void ImageHandler::load(const std::string &filename)
 	}
 	catch (const RuntimeError &error)
 	{
-		std::cerr << "[ImageHandler]: Error while loading Image: " << error.what() << std::endl;
+		std::cerr << "!!! [ImageHandler]: Error while loading Image:\n - " << error.what() << std::endl;
 	}
 }
 
@@ -215,5 +247,7 @@ void ImageHandler::load(const char *str)
 
 ImageHandler::~ImageHandler()
 {
+#ifdef _DEBUG
 	std::cout << "[ImageHandler]: Called virtual destructor." << std::endl;
+#endif
 }

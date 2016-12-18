@@ -25,13 +25,6 @@ protected:
 
 	/// SDL Utility functions for private purposes 
 	/// (they do NOT modify the object directly - so they are const)
-	/// !!! Thats what you love the most !!!
-	//         V     O    T     E
-	//  A) Leave it here
-	//  B) Move to "namespace SDL_Utils {}"
-	//
-	//  Marcin [   ]    Marek  [   ]
-	//  Konrad [ A ]    Damian [   ]
 
 	/**
 	 * Creates an empty SDL_Surface (RGB) with paramters

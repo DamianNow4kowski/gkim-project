@@ -273,9 +273,9 @@ int main()
 	//test_Image();
 	//test_BMPHandler();
 	//test_RGB12Handler();
-	test_BitDensityRGB();
+	//test_BitDensityRGB();
 	test_Huffman();
-	test_LZ77();
+	//test_LZ77();
 
 	#ifndef __linux
 		system("PAUSE");

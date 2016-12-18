@@ -37,8 +37,8 @@ protected:
 	virtual void store(const std::string &filename, const Image &image) const override;
 	virtual Image recover(const std::string &filename) override;
 
-	std::tuple<int, int, uint8_t, uint8_t> readHeader(std::ifstream &, bool = false) const;
-	void writeHeader(std::ofstream &, const Image &, Algorithm, bool = false) const;
+	std::tuple<int, int, uint8_t, Algorithm> readHeader(std::ifstream &input) const;
+	void writeHeader(std::ofstream &output, const Image &img, Algorithm alg) const;
 
 private:
 
