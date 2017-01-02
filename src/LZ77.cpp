@@ -359,30 +359,8 @@ void LZ77::put_elements_into_s_buff(short length)
  */
 void LZ77::build_image(unsigned int &x, unsigned int &y, short &length, short &what_color, uint8_t *color, Image &image)
 {
-	//erasing elements from la_buff and saving pixels to image
-	/*std::map<int, uint8_t>::iterator la_begin=la_buff.begin();
-	while (length-- > 0)
-	{
-		if(x>=image.width())
-		{
-			x=0;
-			++y;
-		}
-		if (what_color>=3)
-		{
-			image.setPixel(x, y, color[0], color[1], color[2]);
-			++x;
-			what_color=0;
-		}
-		
-		color[what_color]=la_begin->second;
-		++what_color;
-		if(la_begin != la_buff.end())
-			la_buff.erase(la_begin);
-		++la_begin;
-	}*/
 
-	for (auto & la_begin = la_buff.begin(); length > 0; ++la_begin, --length)
+	for (auto it = la_buff.begin(); it != la_buff.end() && length > 0; ++it, --length)
 	{
 		if (x >= image.width())
 		{
@@ -396,10 +374,10 @@ void LZ77::build_image(unsigned int &x, unsigned int &y, short &length, short &w
 			what_color = 0;
 		}
 
-		color[what_color] = la_begin->second;
+		color[what_color] = it->second;
 		++what_color;
 		
-		popFront(la_buff, 1);
-		//la_buff.erase(la_begin); // @error tu wywala blad na viusalu
+		la_buff.erase(it); // #HERE
 	}
+
 }

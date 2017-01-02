@@ -157,7 +157,7 @@ void ImageHandler::preview(bool showDetails)
 	}
 #else
 	while (SDL_WaitEvent(&e))
-		if (e.type == SDL_QUIT || e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_q))
+		if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_q)))
 			break;
 	/**
 	* This is probably too fast
