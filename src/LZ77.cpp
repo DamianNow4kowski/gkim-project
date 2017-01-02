@@ -1,4 +1,5 @@
 #include "LZ77.h"
+#include <iterator>
 
 LZ77::LZ77()
 {
@@ -63,10 +64,11 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 	while (la_buff.size() > 0)
 	{
 		insert_elements_to_la_buff(it, max_length, x, y, what_color, color, image, end_of_picture);
-		max_length=create_code(ofile);
+		max_length = create_code(ofile);
 		insert_elements_to_s_buff(max_length, it);
-		delete_elements_in_s_buff(max_length);
-		delete_elements_in_la_buff(max_length);
+
+		popFront(s_buff, max_length);
+		popFront(la_buff, max_length);
 	}
 
 	la_buff.clear();
@@ -125,7 +127,7 @@ void LZ77::first_loading_la_buff(unsigned int &x, unsigned int &y, short &what_c
  * @param vaild Image to save
  * @param variable to break mechanism in the ending point of picture
  */
-void LZ77::insert_elements_to_la_buff(const unsigned int it, const unsigned int max_length, unsigned int &x, unsigned int &y, short &what_color, uint8_t *color, const Image &image, bool &end_of_picture)
+void LZ77::insert_elements_to_la_buff(unsigned int it, unsigned int max_length, unsigned int &x, unsigned int &y, short &what_color, uint8_t *color, const Image &image, bool &end_of_picture)
 { 
 	//loading data to la_buff 
 	unsigned int it2 = it - max_length;
@@ -161,11 +163,13 @@ void LZ77::insert_elements_to_la_buff(const unsigned int it, const unsigned int 
  */
 short LZ77::create_code(std::ofstream &ofile)
 {
-	std::map<int, uint8_t>::iterator s_begin=s_buff.begin();
-	std::map<int, uint8_t>::iterator s_end=s_buff.end();
-	std::map<int, uint8_t>::iterator la_begin=la_buff.begin();
-	std::map<int, uint8_t>::iterator count;
-	std::map<int, uint8_t>::iterator temp;
+	std::map<int, uint8_t>::iterator 
+		s_begin = s_buff.begin(),
+		s_end = s_buff.end(),
+		la_begin = la_buff.begin(),
+		count,
+		temp;
+
 	short length = 0, max_length = 1, position = 0;
 	bool if_max_length_stop = 0;
 		
@@ -174,7 +178,7 @@ short LZ77::create_code(std::ofstream &ofile)
 	{
 		count = k;
 		temp = la_begin;
-		while (1)
+		while (true)
 		{
 			if (count->second == temp->second)
 				if (count != s_end)
@@ -234,37 +238,13 @@ void LZ77::insert_elements_to_s_buff(short max_length, unsigned int &it)
 	}
 }
 
-
-/** 
- * @param size of the longest sequence
- */
-void LZ77::delete_elements_in_s_buff(short max_length){
-	//erase elements in search buffer
-	std::map<int, uint8_t>::iterator s_begin=s_buff.begin();
-	while (max_length > 0)
-	{
-		s_buff.erase(s_begin->first);
-		++s_begin;
-		max_length--;
-	}
-}
-
-
-/** 
- * @param size of the longest sequence
- */
-void LZ77::delete_elements_in_la_buff(short max_length)
+void LZ77::popFront(std::map<int, uint8_t> & buffer, size_t n)
 {
-	//erase elements in la_buffer
-	std::map<int, uint8_t>::iterator la_begin = la_buff.begin();
-	while (max_length-- > 0)
-	{
-		la_buff.erase(la_begin->first);
-		++la_begin;
-	}
+	auto end = buffer.begin();
+	n = (n < buffer.size()) ? n : buffer.size();		// security condition for debugging
+	std::advance(end, n);
+	buffer.erase(buffer.begin(), end);
 }
-
-
 
 
 
@@ -301,14 +281,14 @@ void LZ77::decode(std::ifstream &ifile, Image &image)
 	for (unsigned int i = 0; i < s_buff_size; ++i)
 		s_buff.insert(std::pair<int, uint8_t>(i, color[0]));
 
-	while (1)
+	while (!ifile.eof())
 	{
 		ifile.read(reinterpret_cast<char*>(&code), sizeof(code));
-		if(ifile.eof())
-			break;
 		length=read_code(code);
 		put_elements_into_s_buff(length);
-		erase_elements_in_s_buff(length);
+
+		popFront(s_buff, length);
+
 		build_image(x, y, length, what_color, color, image);
 	}
 	la_buff.clear();
@@ -370,21 +350,6 @@ void LZ77::put_elements_into_s_buff(short length)
 
 
 /** 
- * @param length of sequence of subpixels or one subpixel (=1)
- */
-void LZ77::erase_elements_in_s_buff(short length)
-{
-	//erasing elements in search buffer
-	std::map<int, uint8_t>::iterator s_begin=s_buff.begin();
-	while (length-- > 0)
-	{
-		s_buff.erase(s_begin->first);
-		++s_begin;
-	}
-}
-
-
-/** 
  * @param coordinate x
  * @param coordinate y
  * @param length of sequence of subpixels or one subpixel (=1)
@@ -395,7 +360,7 @@ void LZ77::erase_elements_in_s_buff(short length)
 void LZ77::build_image(unsigned int &x, unsigned int &y, short &length, short &what_color, uint8_t *color, Image &image)
 {
 	//erasing elements from la_buff and saving pixels to image
-	std::map<int, uint8_t>::iterator la_begin=la_buff.begin();
+	/*std::map<int, uint8_t>::iterator la_begin=la_buff.begin();
 	while (length-- > 0)
 	{
 		if(x>=image.width())
@@ -412,7 +377,29 @@ void LZ77::build_image(unsigned int &x, unsigned int &y, short &length, short &w
 		
 		color[what_color]=la_begin->second;
 		++what_color;
-		la_buff.erase(la_begin);
+		if(la_begin != la_buff.end())
+			la_buff.erase(la_begin);
 		++la_begin;
+	}*/
+
+	for (auto & la_begin = la_buff.begin(); length > 0; ++la_begin, --length)
+	{
+		if (x >= image.width())
+		{
+			x = 0;
+			++y;
+		}
+		if (what_color >= 3)
+		{
+			image.setPixel(x, y, color[0], color[1], color[2]);
+			++x;
+			what_color = 0;
+		}
+
+		color[what_color] = la_begin->second;
+		++what_color;
+		
+		popFront(la_buff, 1);
+		//la_buff.erase(la_begin); // @error tu wywala blad na viusalu
 	}
 }
