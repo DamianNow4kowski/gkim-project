@@ -25,9 +25,10 @@ public:
 class BitsFromFile
 {
 private:
-	char c;
-	int pos;
-	std::ifstream &file;
+	std::vector<char> buffer;
+	std::vector<char>::iterator c;
+	short pos;
+	std::vector<char> read(std::ifstream &f);
 
 public:
 	BitsFromFile(std::ifstream &f);

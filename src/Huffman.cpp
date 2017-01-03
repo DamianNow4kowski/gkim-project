@@ -277,11 +277,11 @@ void Huffman::readCodes(std::ifstream &ifile, Image &image)
 			while (!found)
 			{
 				vec.push_back(bff.get());
-				for (auto v = codeVec.begin(); v != codeVec.end(); ++v)
+				for (auto &v : codeVec)
 				{
-					if (v->second == vec)
+					if (v.second == vec)
 					{
-						image.setPixel(i, j, v->first);
+						image.setPixel(i, j, v.first);
 						found = true;
 						vec.clear();
 						break;

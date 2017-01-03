@@ -167,8 +167,9 @@ void test_BitDensity()
 void test_Huffman()
 {
 	BMP bmp;
+	bmp.load("test/wide.bmp");
 	//bmp.load("test/1x1.bmp");
-	bmp.load("test/rgbcube.bmp"); // [Compression ratio = 2.861]
+	//bmp.load("test/rgbcube.bmp"); // [Compression ratio = 2.861]
 	//bmp.load("test/test.bmp"); // [Compression ratio = 4.455]
 	//bmp.load("test/smalltest_24bit.bmp");
 	//bmp.load("test/smalltest_8bit.bmp");
@@ -270,12 +271,12 @@ int main()
     }
 
     cout << "Testing.." << endl;
-	test_Image();
-	test_BMPHandler();
-	test_RGB12Handler();
-	test_BitDensity();
+	//test_Image();
+	//test_BMPHandler();
+	//test_RGB12Handler();
+	//test_BitDensity();
 	test_Huffman();
-	test_LZ77();
+	//test_LZ77();
 
 	#ifndef __linux
 		system("PAUSE");
