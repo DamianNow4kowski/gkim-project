@@ -28,12 +28,12 @@ void Image::swap(Image &img)
 	std::swap(surface, img.surface);
 }
 
-SDL_Surface * Image::create(int w, int h, int depth) const
+SDL_Surface * Image::create(unsigned int width, unsigned int height, unsigned int depth) const
 {
 #ifdef _DEBUG
 	std::cout << " -> [Image::create]: Creating new SDL_Surface." << std::endl;
 #endif
-	SDL_Surface *img = SDL_CreateRGBSurface(0, w, h, depth, 0, 0, 0, 0);
+	SDL_Surface *img = SDL_CreateRGBSurface(0, static_cast<int>(width), static_cast<int>(height), static_cast<int>(depth), 0, 0, 0, 0);
 	if (img == nullptr)
 		throw RuntimeError();
 	return img;
@@ -288,7 +288,7 @@ Image::Image()
 #endif // DEBUG
 }
 
-Image::Image(int width, int height, int depth)
+Image::Image(unsigned int width, unsigned int height, unsigned int depth)
 	:surface(create(width, height, depth))
 {
 #ifdef _DEBUG
@@ -354,14 +354,14 @@ Image::~Image()
 	free();
 }
 
-void Image::allocate(int x, int y, int depth)
+void Image::allocate(unsigned int width, unsigned int height, unsigned int depth)
 {
 #ifdef _DEBUG
 	std::cout << " -> [Image::allocate]: Allocating new SDL_Surface in Image." << std::endl;
 #endif // _DEBUG
 	
 	free();
-	surface = create(x, y, depth);
+	surface = create(width, height, depth);
 }
 
 void Image::toGreyScale()
@@ -371,9 +371,12 @@ void Image::toGreyScale()
 #endif // _DEBUG
 	
 	uint8_t grey;
-	for (unsigned int y = 0; y < height(); ++y)
+	unsigned int h = height(),
+		w = width();
+
+	for (unsigned int y = 0; y < h; ++y)
 	{
-		for (unsigned int x = 0; x < width(); ++x)
+		for (unsigned int x = 0; x < w; ++x)
 		{
 			grey = toGreyScale(getPixelColor(x, y));
 			setPixel(x, y, grey, grey, grey);

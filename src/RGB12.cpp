@@ -17,7 +17,7 @@ Image RGB12::convert(const Image& img) const
 	}
 
 	// Simply copy surface if it is already in proper format
-	if (img.depth() == 12)
+	if (img.depth() == 12u)
 		return Image(img);
 
 #ifdef _DEBUG
@@ -25,12 +25,14 @@ Image RGB12::convert(const Image& img) const
 #endif
 
 	// Start conversion
-	Image converted(img.width(), img.height(), 12);
+	unsigned int w = img.width(),
+		h = img.height();
+	Image converted(w, h, 12u);
 	SDL_Color color;
 
-	for (unsigned int y = 0; y < converted.height(); ++y)
+	for (unsigned int y = 0; y < h; ++y)
 	{
-		for (unsigned int x = 0; x < converted.width(); ++x)
+		for (unsigned int x = 0; x < w; ++x)
 		{
 			color = img.getPixelColor(x, y);
 
@@ -49,12 +51,12 @@ Image RGB12::convert(const Image& img) const
 void RGB12::load444(std::ifstream &f, Image &img)
 {
 #ifdef _DEBUG
-	std::cout << "-> [RGB12::load444]: Run BitDensityRGB load algorithm." << std::endl;
+	std::cout << "-> [RGB12::load444]: Run BitDensity load algorithm." << std::endl;
 #endif
 
 	int colorToCode = 0;
 	char usedChar = 0;
-	unsigned int x, y;
+	unsigned int x, y, width = img.width();
 	SDL_Color pixel;
 
 	x = y = 0;
@@ -73,7 +75,7 @@ void RGB12::load444(std::ifstream &f, Image &img)
 			colorToCode++;
 			if (colorToCode == 3)
 			{
-				if (x == img.width())
+				if (x == width)
 				{
 					x = 0;
 					++y;
@@ -102,20 +104,19 @@ void RGB12::loadHuffman(std::ifstream &is, Image &img)
 void RGB12::save444(std::ofstream &f, const Image &img) const
 {
 #ifdef _DEBUG
-	std::cout << "-> [RGB12::save444]: Run BitDensityRGB save algorithm." << std::endl;
+	std::cout << "-> [RGB12::save444]: Run BitDensity save algorithm." << std::endl;
 #endif
 
-	bool isSpace, firstHalf;
-	char usedChar;
+	bool isSpace = true, 
+		firstHalf = true;
+	char usedChar = 0;
 	SDL_Color color;
+	unsigned int width = img.width(),
+		height = img.height();
 
-	isSpace = true;
-	firstHalf = true;
-	usedChar = 0;
-
-	for (unsigned int y = 0; y < img.height(); ++y)
+	for (unsigned int y = 0; y < height; ++y)
 	{
-		for (unsigned int x = 0; x < img.width(); ++x)
+		for (unsigned int x = 0; x < width; ++x)
 		{
 			for (int k = 0; k < 3; ++k)
 			{
@@ -203,7 +204,7 @@ void RGB12::store(const std::string & filename, const Image & img) const
 	// Save by chosen (or default) algorithm
 	switch (algorithm)
 	{
-	case Algorithm::BitDensityRGB:
+	case Algorithm::BitDensity:
 		save444(f, img);
 		break;
 	case Algorithm::Huffman:
@@ -243,7 +244,7 @@ Image RGB12::recover(const std::string & filename)
 	// Load depending on the alogrithm
 	switch (alg)
 	{
-	case Algorithm::BitDensityRGB:
+	case Algorithm::BitDensity:
 		load444(f, recovered);
 		break;
 	case Algorithm::Huffman:

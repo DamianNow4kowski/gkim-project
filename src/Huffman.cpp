@@ -61,11 +61,14 @@ void Huffman::countFreq(const Image& image)
 {
 	std::cout << "Counting colors..." << std::endl;
 
+	unsigned int width = image.width(),
+		height = image.height();
 	uint32_t clr = -1;
 	bool found = false; 
-	for (unsigned int j = 0; j < image.height(); j++)
+
+	for (unsigned int j = 0; j < height; ++j)
 	{
-		for (unsigned int i = 0; i < image.width(); i++)
+		for (unsigned int i = 0; i < width; ++i)
 		{
 			clr = image.getPixel(i, j); // get color
 			found = false;
@@ -232,12 +235,14 @@ void Huffman::saveCodes(std::ofstream &ofile, const Image &image)
 {
 	std::cout << "Saving content..." << std::endl;
 
+	unsigned int height = image.height(),
+		width = image.width();
 	uint32_t clr;
 	BitsToFile btf(ofile);
 
-	for (unsigned int j = 0; j < image.height(); ++j)
+	for (unsigned int j = 0; j < height; ++j)
 	{
-		for (unsigned int i = 0; i < image.width(); ++i)
+		for (unsigned int i = 0; i < width; ++i)
 		{
 			clr = image.getPixel(i, j);
 			for (auto &v : codeVec)
@@ -258,15 +263,14 @@ void Huffman::readCodes(std::ifstream &ifile, Image &image)
 	std::cout << "Reading content..." << std::endl;
 
 	BitsFromFile bff(ifile);
-
-	//int index = 0;
 	std::vector<bool> vec;
-
 	bool found = false;
+	unsigned int width = image.width(),
+		height = image.height();
 
-	for (unsigned int j = 0; j < image.height(); ++j)
+	for (unsigned int j = 0; j < height; ++j)
 	{
-		for (unsigned int i = 0; i < image.width(); ++i)
+		for (unsigned int i = 0; i < width; ++i)
 		{
 			found = false;
 
@@ -275,7 +279,7 @@ void Huffman::readCodes(std::ifstream &ifile, Image &image)
 				vec.push_back(bff.get());
 				for (auto v = codeVec.begin(); v != codeVec.end(); ++v)
 				{
-					if (v->second == vec) // error for (1x1 pixel)
+					if (v->second == vec)
 					{
 						image.setPixel(i, j, v->first);
 						found = true;

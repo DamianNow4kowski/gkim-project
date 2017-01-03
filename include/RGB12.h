@@ -12,10 +12,10 @@ public:
 
 	enum class Algorithm : uint8_t
 	{
-		BitDensityRGB,
+		BitDensity,
 		Huffman,
 		LZ77,
-		//BitDensityGreyScale
+		//GreyScale
 	};
 
 	// Indicates which algorithm (defined in Algorithm enum) will be used for future saving process
@@ -23,8 +23,8 @@ public:
 	Algorithm algorithm;
 
 	virtual std::string extension() const override;
-	RGB12(Algorithm = Algorithm::BitDensityRGB);
-	RGB12(const BMP &bmp, Algorithm alg = Algorithm::BitDensityRGB);
+	RGB12(Algorithm = Algorithm::BitDensity);
+	RGB12(const BMP &bmp, Algorithm alg = Algorithm::BitDensity);
 	RGB12(const RGB12 &);
 	RGB12(RGB12 &&);
 	RGB12& operator=(const RGB12 &);
@@ -44,7 +44,12 @@ private:
 
 	/// Utility functions
 
-	Image convert(const Image&) const;
+	/**
+	 * Creates new Image converted to set DEPTH (RGB12::DEPTH) 
+	 * @param Image input
+	 * @return Image newly created
+	 */
+	Image convert(const Image& img) const;
 
 	/// Algorithms:
 
@@ -68,11 +73,9 @@ private:
 	// Loads pixel data from every pixel saved in RGB444 format (without spaces)
 	void load444(std::ifstream &, Image &);
 
-	// TODO: Implement Huffman [Done 85%]
 	void saveHuffman(std::ofstream &, const Image &) const;
 	void loadHuffman(std::ifstream &, Image &);
 
-	// TODO: Implement LZ77
 	void saveLZ77(std::ofstream &, const Image &) const;
 	void loadLZ77(std::ifstream &, Image &);
 

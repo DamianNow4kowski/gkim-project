@@ -34,7 +34,7 @@ protected:
 	 * @return pointer to newly allocated SDL_Surface structure
 	 * @throws RuntimError when allocation fails
 	 */
-	SDL_Surface *create(int, int, int) const;
+	SDL_Surface *create(unsigned int width, unsigned int height, unsigned int depth) const;
 
 	/**
 	 * Creates a copy of existing SDL_Surface strucutre
@@ -105,7 +105,7 @@ public:
 	Image();
 
 	// Create empty surface constructor
-	Image(int width, int height, int depth);
+	Image(unsigned int width, unsigned int height, unsigned int depth);
 
 	// SDL_Surface* move constructor
 	// Remarks: given SDL_Surface will be attached in Image,
@@ -130,7 +130,7 @@ public:
 
 	// Public interface functions [safely modify SDL_Surface]
 	// @throws RuntimeError
-	void allocate(int width, int height, int depth);
+	void allocate(unsigned int width, unsigned int height, unsigned int depth);
 	void toGreyScale();
 	uint32_t getPixel(unsigned int x, unsigned int y) const;
 	SDL_Color getPixelColor(unsigned int x, unsigned int y) const;

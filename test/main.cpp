@@ -146,7 +146,7 @@ void test_RGB12Handler()
 	rgb4.preview(true); // should fail
 }
 
-void test_BitDensityRGB()
+void test_BitDensity()
 {
 	BMP bmp;
 	bmp.load("test/rgbcube.bmp");
@@ -154,7 +154,7 @@ void test_BitDensityRGB()
 	bmp.preview();
 
 	// Save
-	RGB12 rgb(bmp, RGB12::Algorithm::BitDensityRGB);
+	RGB12 rgb(bmp, RGB12::Algorithm::BitDensity);
 	rgb.save("test/image");
 
 	// Load
@@ -270,11 +270,11 @@ int main()
     }
 
     cout << "Testing.." << endl;
-	//test_Image();
-	//test_BMPHandler();
-	//test_RGB12Handler();
-	//test_BitDensityRGB();
-	//test_Huffman();
+	test_Image();
+	test_BMPHandler();
+	test_RGB12Handler();
+	test_BitDensity();
+	test_Huffman();
 	test_LZ77();
 
 	#ifndef __linux
