@@ -47,15 +47,9 @@ void test_BMPHandler()
 	BMP bmp;
 	bmp.load("test/smalltest_24bit.bmp");
 	bmp.preview(true);
-	try {
-		bmp.image.toGreyScale();
-	}
-	catch (const RuntimeError &e)
-	{
-		cerr << "Error: " << e.what() << endl;
-	}
-	bmp.save("lol");
-	bmp.load("lol.bmp");
+	bmp.toGrayScale();
+	bmp.save("test/bmp_handler_test");
+	bmp.load("test/bmp_handler_test.bmp");
 	bmp.preview(true);
 	
 	// copy constructor;
@@ -96,24 +90,12 @@ void test_RGB12Handler()
 
 	// Copy construct
 	RGB12 rgb2(rgb);
-	try {
-		rgb2.image.toGreyScale();
-	}
-	catch (const RuntimeError &e)
-	{
-		cerr << "Error: " << e.what() << endl;
-	}
+	rgb2.toGrayScale();
 	rgb2.preview();
 
 	// Move construct
 	RGB12 rgb3(std::move(rgb2));
-	try {
-		rgb3.image.toGreyScale();
-	}
-	catch (const RuntimeError &e)
-	{
-		cerr << "Error: " << e.what() << endl;
-	}
+	rgb3.toGrayScale();
 	rgb3.preview();
 	rgb2.preview(true); //should fail
 
@@ -121,13 +103,7 @@ void test_RGB12Handler()
 	// Copy assigment
 	RGB12 rgb4(bmp);
 	rgb4 = rgb3;
-	try {
-		rgb4.image.toGreyScale();
-	}
-	catch (const RuntimeError &e)
-	{
-		cerr << "Error: " << e.what() << endl;
-	}
+	rgb4.toGrayScale();
 	rgb4.preview();
 	rgb3.preview();
 
@@ -135,44 +111,42 @@ void test_RGB12Handler()
 	// Move assigment
 	RGB12 rgb5(bmp);
 	rgb5 = std::move(rgb4);
-	try {
-		rgb5.image.toGreyScale();
-	}
-	catch (const RuntimeError &e)
-	{
-		cerr << "Error: " << e.what() << endl;
-	}
+	rgb5.toGrayScale();
 	rgb5.preview();
 	rgb4.preview(true); // should fail
 }
 
-void test_BitDensity()
+void test_BitDensity(const std::string &test)
 {
 	BMP bmp;
-	bmp.load("test/rgbcube.bmp");
-	//bmp.load("test/smalltest_24bit.bmp");
+	bmp.load(test);
 	bmp.preview();
 
 	// Save
 	RGB12 rgb(bmp, RGB12::Algorithm::BitDensity);
+
+	auto begin = std::chrono::steady_clock::now();
 	rgb.save("test/image");
+	auto end = std::chrono::steady_clock::now();
+	showDuration(begin, end, "Encoded BitDenisty");
+	
 
 	// Load
 	RGB12 rgb2(RGB12::Algorithm::Huffman);
+
+	begin = std::chrono::steady_clock::now();
 	rgb2.load("test/image.rgb12");
+	end = std::chrono::steady_clock::now();
+	showDuration(begin, end, "BitDenisty decoded");
+
 	rgb2.preview(true);
 
 }
 
-void test_Huffman()
+void test_Huffman(const std::string &test)
 {
 	BMP bmp;
-	bmp.load("test/wide.bmp");
-	//bmp.load("test/1x1.bmp");
-	//bmp.load("test/rgbcube.bmp"); // [Compression ratio = 2.861]
-	//bmp.load("test/test.bmp"); // [Compression ratio = 4.455]
-	//bmp.load("test/smalltest_24bit.bmp");
-	//bmp.load("test/smalltest_8bit.bmp");
+	bmp.load(test);
 	bmp.preview();
 
 	/// ENCODING
@@ -215,21 +189,59 @@ void test_Huffman()
 	rgb2.preview(true);
 }
 
-void test_LZ77()
+void test_LZ77(const std::string &test)
 {
 	BMP bmp;
-	bmp.load("test/rgbcube.bmp");
-	//bmp.load("test/test.bmp");
-	//bmp.load("test/smalltest_24bit.bmp");
-	//bmp.load("test/smalltest_8bit.bmp");
+	bmp.load(test);
 	bmp.preview();
 
 	RGB12 rgb(bmp, RGB12::Algorithm::LZ77);
 	rgb.preview();
+
+	auto begin = std::chrono::steady_clock::now();
 	rgb.save("test/lz77");
-	rgb.load("test/lz77.rgb12");
+	auto end = std::chrono::steady_clock::now();
+	showDuration(begin, end, "LZ77 fully encoded");
+	
+	RGB12 rgb2;
+	begin = std::chrono::steady_clock::now();
+	rgb2.load("test/lz77.rgb12");
+	end = std::chrono::steady_clock::now();
+	showDuration(begin, end, "LZ77 decoded");
+	
+	rgb2.preview();
+
+}
+
+void test_Grey(const std::string &test)
+{
+	BMP bmp;
+	bmp.load(test);
+	bmp.toGrayScale();
+	bmp.preview();
+
+	// Test look
+	RGB12 rgb(bmp);
+	rgb.toGrayScale();
 	rgb.preview();
 
+	// Saving
+	RGB12 grey_save(bmp, RGB12::Algorithm::GreyScale);
+
+	auto begin = std::chrono::steady_clock::now();
+	grey_save.save("test/grey_scaled");
+	auto end = std::chrono::steady_clock::now();
+	showDuration(begin, end, "Grey encoded");
+	
+
+	// Opening in different instance
+	RGB12 grey;
+	begin = std::chrono::steady_clock::now();
+	grey.load("test/grey_scaled.rgb12");
+	end = std::chrono::steady_clock::now();
+	showDuration(begin, end, "Grey decoded");
+	
+	grey.preview();
 }
 
 void test_Image()
@@ -241,7 +253,7 @@ void test_Image()
 	bmp.preview();
 	test.preview();
 
-	bmp.image.toGreyScale(); // pixels
+	bmp.toGrayScale(); // pixels
 	test.image = std::move(bmp.image);
 	bmp.preview(); // should fail
 	test.preview();
@@ -259,6 +271,8 @@ void test_Image()
 
 int main()
 {
+	std::string testImg;
+
     // Initialize SDL
     try
     {
@@ -270,13 +284,24 @@ int main()
         return 1;
     }
 
+
     cout << "Testing.." << endl;
 	//test_Image();
 	//test_BMPHandler();
 	//test_RGB12Handler();
-	//test_BitDensity();
-	test_Huffman();
-	//test_LZ77();
+
+	//testImg = "test/wide.bmp";
+	//testImg = "test/1x1.bmp";
+	testImg = "test/rgbcube.bmp";
+	//testImg = "test/test.bmp";
+	//testImg = "test/smalltest_24bit.bmp";
+	//testImg = "test/smalltest_8bit.bmp";
+
+	/// Algs
+	test_BitDensity(testImg);
+	//test_Huffman(testImg);
+	//test_LZ77(testImg);
+	test_Grey(testImg);
 
 	#ifndef __linux
 		system("PAUSE");

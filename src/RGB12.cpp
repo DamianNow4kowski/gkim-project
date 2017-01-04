@@ -48,6 +48,29 @@ Image RGB12::convert(const Image& img) const
 	return std::move(converted);
 }
 
+RGB12 & RGB12::toGrayScale()
+{
+#ifdef _DEBUG
+	std::cout << " -> [RGB12::toGrayScale]: Converting Image to grey scale." << std::endl;
+#endif // _DEBUG
+
+	unsigned int h = image.height(),
+		w = image.width();
+
+	for (unsigned int y = 0; y < h; ++y)
+	{
+		for (unsigned int x = 0; x < w; ++x)
+		{
+			image.setPixel(x, y, static_cast<uint8_t>((image.getGrayColor(x, y) >> 4) << 4));
+		}
+	}
+
+	if (algorithm == Algorithm::BitDensity)
+		algorithm = Algorithm::GreyScale;
+
+	return *this;
+}
+
 void RGB12::load444(std::ifstream &f, Image &img)
 {
 #ifdef _DEBUG
@@ -87,6 +110,71 @@ void RGB12::load444(std::ifstream &f, Image &img)
 			}
 		}
 	}
+}
+
+void RGB12::saveGray(std::ofstream & output, const Image & img) const
+{
+
+	unsigned int
+		width = img.width(),
+		height = img.height();
+
+	uint8_t block;
+
+	bool save = false;
+	for (unsigned int y = 0; y < height; ++y)
+	{
+		for (unsigned int x = 0; x < width; ++x)
+		{
+			if (save)
+			{
+				block |= (img.getGrayColor(x, y) >> 4);
+				output.write(reinterpret_cast<char*>(&block), sizeof(block));
+				save = false;
+			}
+			else
+			{
+				block = (img.getGrayColor(x, y) >> 4) << 4;
+				save = true;
+			}
+		}
+	}
+
+	// Save remaining one pixel
+	if(!save)
+		output.write(reinterpret_cast<char*>(&block), sizeof(block));
+}
+
+void RGB12::loadGray(std::ifstream & input, Image & img)
+{
+	std::vector<char> buffer = std::vector<char>(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+	unsigned int
+		width = img.width(),
+		height = img.height();
+
+	uint8_t gray;
+	bool iterate = false;
+	auto it = buffer.begin();
+
+	for (unsigned int y = 0; y < height; ++y)
+	{
+		for (unsigned int x = 0; x < width; ++x)
+		{
+			if (iterate)
+			{
+				gray = *it << 4;
+				++it;
+				iterate = false;
+			}
+			else
+			{
+				gray = (*it >> 4) << 4;
+				iterate = true;
+			}
+			img.setPixel(x, y, gray);
+		}
+	}
+		
 }
 
 void RGB12::saveHuffman(std::ofstream &os, const Image &img) const
@@ -213,6 +301,9 @@ void RGB12::store(const std::string & filename, const Image & img) const
 	case Algorithm::LZ77:
 		saveLZ77(f, img);
 		break;
+	case Algorithm::GreyScale:
+		saveGray(f, img);
+		break;
 	}
 
 	// Close file
@@ -252,6 +343,9 @@ Image RGB12::recover(const std::string & filename)
 		break;
 	case Algorithm::LZ77:
 		loadLZ77(f, recovered);
+		break;
+	case Algorithm::GreyScale:
+		loadGray(f, recovered);
 		break;
 	default:
 		std::ostringstream os;
@@ -363,11 +457,11 @@ RGB12::RGB12(Algorithm alg)
 #endif
 }
 
-RGB12::RGB12(const BMP &bmp, Algorithm alg)
-	: ImageHandler(convert(bmp.image)), algorithm(alg)
+RGB12::RGB12(const ImageHandler &img, Algorithm alg)
+	: ImageHandler(convert(img.image)), algorithm(alg)
 {
 #ifdef _DEBUG
-	std::cout << "[RGB12]: Called convert BMP constructor." << std::endl;
+	std::cout << "[RGB12]: Called convert ImageHandler constructor." << std::endl;
 #endif
 }
 

@@ -15,7 +15,7 @@ public:
 		BitDensity,
 		Huffman,
 		LZ77,
-		//GreyScale
+		GreyScale
 	};
 
 	// Indicates which algorithm (defined in Algorithm enum) will be used for future saving process
@@ -24,11 +24,16 @@ public:
 
 	virtual std::string extension() const override;
 	RGB12(Algorithm = Algorithm::BitDensity);
-	RGB12(const BMP &bmp, Algorithm alg = Algorithm::BitDensity);
+	RGB12(const ImageHandler &img, Algorithm alg = Algorithm::BitDensity);
 	RGB12(const RGB12 &);
 	RGB12(RGB12 &&);
 	RGB12& operator=(const RGB12 &);
 	RGB12& operator=(RGB12 &&);
+
+	// @override
+	// Turn Image to gray scale in RGB444 format and if Algorithm::BitDenisty
+	// is chosen change to Algorithm::GreyScale
+	RGB12& toGrayScale() override;
 
 
 	virtual ~RGB12();
@@ -72,6 +77,9 @@ private:
 
 	// Loads pixel data from every pixel saved in RGB444 format (without spaces)
 	void load444(std::ifstream &, Image &);
+
+	void saveGray(std::ofstream &output, const Image &img) const;
+	void loadGray(std::ifstream &input, Image &img);
 
 	void saveHuffman(std::ofstream &, const Image &) const;
 	void loadHuffman(std::ifstream &, Image &);

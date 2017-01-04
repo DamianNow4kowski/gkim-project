@@ -19,7 +19,9 @@ Huffman::~Huffman()
 
 void Huffman::encode(std::ofstream &ofile, const Image &image)
 {
+#ifdef _DEBUG
 	std::cout << "\n=== HUFFMAN COMPRESSION ===" << std::endl;
+#endif
 
 	// Huffman algorithm
 	countFreq(image); // colorFreqs
@@ -32,12 +34,16 @@ void Huffman::encode(std::ofstream &ofile, const Image &image)
 	// Clear generated data
 	clear();
 
+#ifdef _DEBUG
 	std::cout << "=== HUFFMAN COMPRESSION DONE ===\n" << std::endl;
+#endif
 }
 
 void Huffman::decode(std::ifstream &ifile, Image &image)
 {
+#ifdef _DEBUG
 	std::cout << "\n=== HUFFMAN DECOMPRESSION ===" << std::endl;
+#endif
 
 	// Generate data
 	readHuffHeader(ifile); // read colorFreqs
@@ -48,7 +54,9 @@ void Huffman::decode(std::ifstream &ifile, Image &image)
 	// Clear generated data
 	clear();
 
+#ifdef _DEBUG
 	std::cout << "=== HUFFMAN DECOMPRESSION DONE ===\n" << std::endl;
+#endif
 }
 
 void Huffman::clear()
@@ -59,7 +67,9 @@ void Huffman::clear()
 
 void Huffman::countFreq(const Image& image)
 {
+#ifdef _DEBUG
 	std::cout << "Counting colors..." << std::endl;
+#endif
 
 	unsigned int width = image.width(),
 		height = image.height();
@@ -89,7 +99,9 @@ void Huffman::countFreq(const Image& image)
 		}
 	}
 
+#ifdef _DEBUG
 	std::cout << "Number of colors: ." << colorFreqs.size() << std::endl;
+#endif
 }
 
 void Huffman::generateCodes(const Node *node, std::vector<bool>& code)
@@ -112,7 +124,9 @@ void Huffman::generateCodes(const Node *node, std::vector<bool>& code)
 
 void Huffman::buildTree()
 {
+#ifdef _DEBUG
 	std::cout << "Building tree..." << std::endl;
+#endif
 
 	std::priority_queue<Node*, std::vector<Node*>, NodeCmp> trees; // Add all colors as single nodes
 	for (auto &v : colorFreqs)
@@ -145,8 +159,10 @@ void Huffman::buildTree()
 
 	auto root = trees.top();
 
+#ifdef _DEBUG
 	std::cout << "Tree build." << std::endl;
 	std::cout << "Generating codes & sorting..." << std::endl;
+#endif
 
 	std::vector<bool> codes; // code for each color
 	generateCodes(root, codes);
@@ -173,12 +189,16 @@ void Huffman::buildTree()
 	}
 	);
 
-//	printCodes();
+#ifdef _DEBUG
+	printCodes();
 	std::cout << "Codes generated." << std::endl;
+#endif
+
 }
 
 void Huffman::printCodes() const
 {
+	auto prev = std::cout.fill();
 	std::cout << "Huffman encoding map:" << std::endl << std::endl;
 	for (const auto &v : codeVec)
 	{
@@ -187,11 +207,16 @@ void Huffman::printCodes() const
 			std::cout << vv;
 		std::cout << std::dec << std::endl;
 	}
+
+	// back to previous fill
+	std::cout.fill(prev);
 }
 
-void Huffman::saveHuffHeader(std::ofstream &ofile)
+void Huffman::saveHuffHeader(std::ofstream &ofile) const
 {
+#ifdef _DEBUG
 	std::cout << "Saving huffman header..." << std::endl;
+#endif
 
 	uint32_t clr;
 	unsigned int cntr;
@@ -207,13 +232,16 @@ void Huffman::saveHuffHeader(std::ofstream &ofile)
 		ofile.write(reinterpret_cast<const char*>(&cntr), sizeof(cntr));
 	}
 
+#ifdef _DEBUG
 	std::cout << "Huffman header saved." << std::endl;
+#endif
 }
 
 void Huffman::readHuffHeader(std::ifstream &ifile)
 {
-
+#ifdef _DEBUG
 	std::cout << "Reading huffman header..." << std::endl;
+#endif
 
 	uint32_t clr;
 	unsigned int cntr;
@@ -228,12 +256,16 @@ void Huffman::readHuffHeader(std::ifstream &ifile)
 		colorFreqs.push_back(std::pair<uint32_t, uint32_t>(clr, cntr));
 	}
 
+#ifdef _DEBUG
 	std::cout << "Huffman header read." << std::endl;
+#endif
 }
 
-void Huffman::saveCodes(std::ofstream &ofile, const Image &image)
+void Huffman::saveCodes(std::ofstream &ofile, const Image &image) const
 {
+#ifdef _DEBUG
 	std::cout << "Saving content..." << std::endl;
+#endif
 
 	unsigned int height = image.height(),
 		width = image.width();
@@ -255,12 +287,16 @@ void Huffman::saveCodes(std::ofstream &ofile, const Image &image)
 	}
 
 	btf.flush();
+#ifdef _DEBUG
 	std::cout << "Content saved." << std::endl;
+#endif
 }
 
 void Huffman::readCodes(std::ifstream &ifile, Image &image)
 {
+#ifdef _DEBUG
 	std::cout << "Reading content..." << std::endl;
+#endif
 
 	BitsFromFile bff(ifile);
 	std::vector<bool> vec;
@@ -292,6 +328,8 @@ void Huffman::readCodes(std::ifstream &ifile, Image &image)
 		}
 	}
 
+#ifdef _DEBUG
 	std::cout << "Content read." << std::endl;
+#endif
 }
 

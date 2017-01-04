@@ -1,7 +1,10 @@
 #include "Image.h"
 
+#ifdef _DEBUG
 #include <bitset>	// debug
 #include <iomanip>  // debug
+#endif
+
 #include <sstream>  // thrown errors' messages
 
 void Image::free()
@@ -80,33 +83,44 @@ uint32_t Image::getPixel(uint8_t *pixel, uint8_t bpp) const
 
 	// 24bit integer
 	case 3:
-		if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-			return pixel[0] << 16 | pixel[1] << 8 | pixel[2];
-		else
-			return pixel[0] | pixel[1] << 8 | pixel[2] << 16;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		return pixel[0] << 16 | pixel[1] << 8 | pixel[2];
+#else
+		return pixel[0] | pixel[1] << 8 | pixel[2] << 16;
+#endif
 
 	// 32bit integer
 	case 4:
 		return *reinterpret_cast<uint32_t *>(pixel);
 
-	// Should not happen, but avoids warnings
+	// Should not happen, but..
 	default:
-		throw RuntimeError("Couldn't get pixel. BytesPerPixel set to 0.");
+		std::cerr << "!!! [Image::getPixel]: Not supported BytesPerPixel value: " << bpp << std::endl;
+		return 0;
 	}
 }
 
 uint32_t Image::getPixel(const SDL_Surface *img, unsigned int x, unsigned int y) const
 {
+#ifdef _DEBUG
 	if (img == nullptr)
-		throw RuntimeError("Cannot get pixel data of uninitialized surface.");
+	{
+		std::cerr << "!!! [Image::getPixel]: Cannot get pixel data of uninitialized surface." << std::endl;
+		return 0;
+	}
 
 	// Verify coordinates
 	if (x >= static_cast<unsigned int>(img->w) || y >= static_cast<unsigned int>(img->h))
 	{
 		std::ostringstream os;
 		os << "Cannot get pixel. Out of surface range [w=" << img->w << ", h=" << img->h << "] was x=" << x << " y=" << y << '.';
-		throw RuntimeError(os.str());
+		std::cerr << "!!! [Image::getPixel]: " << os.str() << std::endl;
+		return 0;
 	}
+#else 
+	if (img == nullptr || x >= static_cast<unsigned int>(img->w) || y >= static_cast<unsigned int>(img->h))
+		return 0;
+#endif
 
 	uint8_t *pixel, bpp;
 	bpp = img->format->BytesPerPixel;
@@ -132,6 +146,7 @@ SDL_Color Image::getPixelColor(const SDL_Surface *img, unsigned int x, unsigned 
 	uint32_t pixel = getPixel(img, x, y);
 
 	// Get rgb color components
+	// like: SDL_GetRGB(pixel, img->format, &rgb.r, &rgb.g, &rgb.b);
 	SDL_Color rgb = { 0, 0, 0, 0 };
 	if (img->format->palette == nullptr)
 	{
@@ -153,7 +168,9 @@ SDL_Color Image::getPixelColor(const SDL_Surface *img, unsigned int x, unsigned 
 		rgb.g = img->format->palette->colors[pixel].g;
 		rgb.b = img->format->palette->colors[pixel].b;
 	}
-	//SDL_GetRGB(pixel, img->format, &rgb.r, &rgb.g, &rgb.b);
+#ifdef _DEBUG
+	else std::cerr << "!!! [Image::getPixelColor]: Not found pixel colors in the Image pallette." << std::endl;
+#endif
 
 #ifdef _DEBUG
 	// Print RGB bits when debugging
@@ -168,16 +185,25 @@ SDL_Color Image::getPixelColor(const SDL_Surface *img, unsigned int x, unsigned 
 
 void Image::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, uint32_t pixel) const
 {
+#ifdef _DEBUG
 	if (img == nullptr)
-		throw RuntimeError("Cannot set pixel data of uninitialized surface.");
+	{
+		std::cerr << "!!! [Image::setPixel]: Cannot set pixel data of uninitialized surface." << std::endl;
+		return;
+	}
 
 	// Verify coordinates
 	if (x >= static_cast<unsigned int>(img->w) || y >= static_cast<unsigned int>(img->h))
 	{
 		std::ostringstream os;
 		os << "Cannot set pixel. Out of surface range [w=" << img->w << ", h=" << img->h << "] was x=" << x << " y=" << y << '.';
-		throw RuntimeError(os.str());
+		std::cerr << "!!! [Image::setPixel]: " << os.str() << std::endl;
+		return;
 	}
+#else 
+	if (img == nullptr || x >= static_cast<unsigned int>(img->w) || y >= static_cast<unsigned int>(img->h))
+		return;
+#endif
 
 	uint8_t *p, bpp;
 	bpp = img->format->BytesPerPixel;
@@ -258,6 +284,12 @@ void Image::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, uint32_t 
 #endif // DEBUG
 	}
 		break;
+
+	default:
+	{
+		std::cerr << "!!! [Image::setPixel]: Not supported BytesPerPixel value: " << bpp << std::endl;
+	}
+		break;
 	}
 }
 
@@ -274,9 +306,9 @@ void Image::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, uint8_t R
 	setPixel(img, x, y, rgb);
 }
 
-uint8_t Image::toGreyScale(const SDL_Color &color)
+uint8_t Image::toGrayScale(const SDL_Color &color) const
 {
-	//return static_cast<uint8_t>(color.r * 0.299 + color.g * 0.587 + color.b * 0.114);
+	//return static_cast<uint8_t>(color.r * 0.299 + color.g * 0.587 + color.b * 0.114); // different grayscale alg.
 	return static_cast<uint8_t>(0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b);
 }
 
@@ -354,35 +386,7 @@ Image::~Image()
 	free();
 }
 
-void Image::allocate(unsigned int width, unsigned int height, unsigned int depth)
-{
-#ifdef _DEBUG
-	std::cout << " -> [Image::allocate]: Allocating new SDL_Surface in Image." << std::endl;
-#endif // _DEBUG
-	
-	free();
-	surface = create(width, height, depth);
-}
-
-void Image::toGreyScale()
-{
-#ifdef _DEBUG
-	std::cout << " -> [Image::toGreyScale]: Converting Image to grey scale." << std::endl;
-#endif // _DEBUG
-	
-	uint8_t grey;
-	unsigned int h = height(),
-		w = width();
-
-	for (unsigned int y = 0; y < h; ++y)
-	{
-		for (unsigned int x = 0; x < w; ++x)
-		{
-			grey = toGreyScale(getPixelColor(x, y));
-			setPixel(x, y, grey, grey, grey);
-		}
-	}
-}
+/// Get/set pixel functions probably going to be inlined
 
 uint32_t Image::getPixel(unsigned int x, unsigned int y) const
 {
@@ -392,6 +396,16 @@ uint32_t Image::getPixel(unsigned int x, unsigned int y) const
 SDL_Color Image::getPixelColor(unsigned int x, unsigned int y) const
 {
 	return getPixelColor(surface, x, y);
+}
+
+uint8_t Image::getGrayColor(unsigned int x, unsigned int y) const
+{
+	return toGrayScale(getPixelColor(surface, x, y));
+}
+
+void Image::setPixel(unsigned int x, unsigned int y, uint8_t gray)
+{
+	setPixel(surface, x, y, gray, gray, gray);
 }
 
 void Image::setPixel(unsigned int x, unsigned int y, uint32_t pixel)

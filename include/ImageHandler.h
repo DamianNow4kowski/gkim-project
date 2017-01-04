@@ -69,8 +69,11 @@ public:
 
 	/// Public interface methods
 
+	// Turn Image to gray scale
+	virtual ImageHandler& toGrayScale();
+
 	// Render Image view and show it on the screen 
-	void preview(bool = false);
+	ImageHandler& preview(bool = false);
 
 	// Saving Image to file handler
 	void save(std::string &) const;

@@ -84,7 +84,30 @@ ImageHandler & ImageHandler::operator=(ImageHandler &&iop)
 	return *this;
 }
 
-void ImageHandler::preview(bool showDetails)
+ImageHandler & ImageHandler::toGrayScale()
+{
+#ifdef _DEBUG
+	std::cout << " -> [ImageHandler::toGrayScale]: Converting Image to grey scale." << std::endl;
+#endif // _DEBUG
+
+	if (image.depth() <= 8)
+		std::cerr << "!!! [ImageHandler::toGreyScale]: Doesn't work on palletized surfaces. Use RGB12." << std::endl;
+
+	unsigned int h = image.height(),
+		w = image.width();
+
+	for (unsigned int y = 0; y < h; ++y)
+	{
+		for (unsigned int x = 0; x < w; ++x)
+		{
+			image.setPixel(x, y, image.getGrayColor(x, y));
+		}
+	}
+
+	return *this;
+}
+
+ImageHandler& ImageHandler::preview(bool showDetails)
 {
 #ifdef _DEBUG
 	std::cout << " -> [ImageHandler::preview]" << std::endl;
@@ -97,7 +120,7 @@ void ImageHandler::preview(bool showDetails)
 	if (image.empty())
 	{
 		std::cerr << "!!! [ImageHandler]: Cannot preview uninitialized Image." << std::endl;
-		return;
+		return *this;
 	}
 
 	// Calculate drawing area to be center inside window
@@ -170,6 +193,7 @@ void ImageHandler::preview(bool showDetails)
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+	return *this;
 }
 
 void ImageHandler::save(std::string &filename) const

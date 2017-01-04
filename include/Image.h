@@ -91,13 +91,13 @@ protected:
 
 
 	/**
-	 * Converts RGB color to grey scale component
+	 * Converts RGB color to gray scale component
 	 * @param SDL_Color structure that stores RGB component colors
 	 * @return uint8_t grey scale color made from these RGB components
 	 * Standard:
 	 * @link https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
 	 */
-	uint8_t toGreyScale(const SDL_Color &);
+	uint8_t toGrayScale(const SDL_Color &) const;
 
 public:
 
@@ -130,10 +130,10 @@ public:
 
 	// Public interface functions [safely modify SDL_Surface]
 	// @throws RuntimeError
-	void allocate(unsigned int width, unsigned int height, unsigned int depth);
-	void toGreyScale();
 	uint32_t getPixel(unsigned int x, unsigned int y) const;
 	SDL_Color getPixelColor(unsigned int x, unsigned int y) const;
+	uint8_t getGrayColor(unsigned int x, unsigned int y) const;
+	void setPixel(unsigned int x, unsigned int y, uint8_t gray);
 	void setPixel(unsigned int x, unsigned int y, uint32_t pixel);
 	void setPixel(unsigned int x, unsigned int y, uint8_t r, uint8_t g, uint8_t b);
 	void setPixel(unsigned int x, unsigned int y, const SDL_Color &color);
