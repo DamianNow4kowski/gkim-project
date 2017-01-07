@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <chrono>
 #include <utility>
 #include "SDL_Local.h"
@@ -7,10 +8,18 @@
 #include "BMP.h"
 #include "RGB12.h"
 #include "LZ77.h"
+#include "CText.h"
 
 using namespace std;
 
 ///----UTILITIES FOR TESTS------
+/**
+ * @usage
+ *	auto begin = std::chrono::steady_clock::now();
+ *	auto end = std::chrono::steady_clock::now();
+ *	showDuration(begin, end, "Test name");
+ *
+ */
 void showDuration(std::chrono::steady_clock::time_point begin, std::chrono::steady_clock::time_point end, const char *cstring = "Measured", std::ostream& o = std::cout)
 {
 	// Default (10^-3)
@@ -18,28 +27,24 @@ void showDuration(std::chrono::steady_clock::time_point begin, std::chrono::stea
 	long long duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
 	
 	// Change to microseconds (10^-6)
-	if (duration <= 1)
+	if (duration < 10)
 	{
 		magnitude_prefix = 'u';
 		duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
 	}
 
 	// Change to nanoseconds (10^-9)
-	if(duration <= 1)
+	if(duration < 10)
 	{
 		magnitude_prefix = 'n';
 		duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
 	}
 
-	o << cstring << " duration time: " << duration << ' ' << magnitude_prefix << 's' << std::endl;
+	std::ostringstream os;
+	os << duration << ' ' << magnitude_prefix << 's';
+
+	o << cstring << " duration time: " << CText(os.str(), CText::Color::GREEN) << std::endl;
 }
-/**
- * Usage:
- * auto begin = std::chrono::steady_clock::now();
- * auto end = std::chrono::steady_clock::now();
- * showDuration(begin, end, "Test");
- *
- */
 ///-----------------------------
 
 void test_BMPHandler()
@@ -290,16 +295,16 @@ int main()
 	//test_BMPHandler();
 	//test_RGB12Handler();
 
-	//testImg = "test/wide.bmp";
+	testImg = "test/wide.bmp";
 	//testImg = "test/1x1.bmp";
-	testImg = "test/rgbcube.bmp";
+	//testImg = "test/rgbcube.bmp";
 	//testImg = "test/test.bmp";
 	//testImg = "test/smalltest_24bit.bmp";
 	//testImg = "test/smalltest_8bit.bmp";
 
 	/// Algs
 	test_BitDensity(testImg);
-	//test_Huffman(testImg);
+	test_Huffman(testImg);
 	//test_LZ77(testImg);
 	test_Grey(testImg);
 

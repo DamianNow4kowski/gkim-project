@@ -69,11 +69,3 @@ BMP & BMP::operator=(BMP &&img)
 	ImageHandler::operator=(std::move(img));
 	return *this;
 }
-
-
-BMP::~BMP()
-{
-#ifdef _DEBUG
-	std::cout << "[BMP]: Called virtual destructor." << std::endl;
-#endif
-}

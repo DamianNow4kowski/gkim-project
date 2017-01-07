@@ -1,4 +1,5 @@
 #include "ImageHandler.h"
+#include "CText.h"
 
 #include <iostream>  //debug
 #include <utility>
@@ -91,7 +92,7 @@ ImageHandler & ImageHandler::toGrayScale()
 #endif // _DEBUG
 
 	if (image.depth() <= 8)
-		std::cerr << "!!! [ImageHandler::toGreyScale]: Doesn't work on palletized surfaces. Use RGB12." << std::endl;
+		std::cerr << "!!! [ImageHandler::toGreyScale]: " << CText("This function may NOT work on palletized surfaces. Use RGB12 container.") << std::endl;
 
 	unsigned int h = image.height(),
 		w = image.width();
@@ -111,17 +112,15 @@ ImageHandler& ImageHandler::preview(bool showDetails)
 {
 #ifdef _DEBUG
 	std::cout << " -> [ImageHandler::preview]" << std::endl;
+	if (image.empty())
+	{
+		std::cerr << "!!! [ImageHandler::preview]: " << CText("Trying to preview uninitialized Image.") << std::endl;
+		return *this;
+	}
 #endif
 
 	if (showDetails)
 		image.printDetails(std::cout);
-
-	// Remarks: This function is more usefull when don't throws errors; simply finish execution
-	if (image.empty())
-	{
-		std::cerr << "!!! [ImageHandler]: Cannot preview uninitialized Image." << std::endl;
-		return *this;
-	}
 
 	// Calculate drawing area to be center inside window
 	SDL_Rect dest = {0, 0, 0, 0};
@@ -165,16 +164,16 @@ ImageHandler& ImageHandler::preview(bool showDetails)
 	{
 		if (e.type == SDL_KEYDOWN)
 		{
-			std::cout << "Pressed key '" << SDL_GetKeyName(e.key.keysym.sym) << "'" << std::endl;
+			std::cout << " - Pressed key '" << SDL_GetKeyName(e.key.keysym.sym) << "'" << std::endl;
 			if (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_q)
 			{
-				std::cout << "Exiting view.." << std::endl;
+				std::cout << " - Exiting view.." << std::endl;
 				break;
 			}
 		}
 		else if (e.type == SDL_QUIT)
 		{
-			std::cout << "User requested to close window." << std::endl;
+			std::cout << " - User requested to close window." << std::endl;
 			break;
 		}
 	}
@@ -182,24 +181,20 @@ ImageHandler& ImageHandler::preview(bool showDetails)
 	while (SDL_WaitEvent(&e))
 		if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_q)))
 			break;
-	/**
-	* This is probably too fast
-	while (SDL_WaitEvent(&e) &&
-		e.type != SDL_QUIT && e.type != SDL_KEYDOWN && e.key.keysym.sym != SDLK_ESCAPE && e.key.keysym.sym != SDLK_q
-	);*/
 #endif
 
 	// Free memory
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+
 	return *this;
 }
 
 void ImageHandler::save(std::string &filename) const
 {
 #ifdef _DEBUG
-	std::cout << "[ImageHandler]-> Saving Image to file: " << filename << std::endl;
+	std::cout << " -> [ImageHandler::save]: Saving Image to file: " << filename << std::endl;
 #endif
 
 	try 
@@ -219,7 +214,7 @@ void ImageHandler::save(std::string &filename) const
 	}
 	catch (const RuntimeError &error)
 	{
-		std::cerr << "!!! [ImageHandler]: Error while saving Image:\n - " << error.what() << std::endl;
+		std::cerr << "!!! [ImageHandler::save]: " << CText(error.what()) << std::endl;
 	}
 }
 
@@ -259,19 +254,11 @@ void ImageHandler::load(const std::string &filename)
 	}
 	catch (const RuntimeError &error)
 	{
-		std::cerr << "!!! [ImageHandler]: Error while loading Image:\n - " << error.what() << std::endl;
+		std::cerr << "!!! [ImageHandler::load]: " << CText(error.what()) << std::endl;
 	}
 }
 
 void ImageHandler::load(const char *str)
 {
 	load(std::string(str));
-}
-
-
-ImageHandler::~ImageHandler()
-{
-#ifdef _DEBUG
-	std::cout << "[ImageHandler]: Called virtual destructor." << std::endl;
-#endif
 }

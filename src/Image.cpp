@@ -1,26 +1,12 @@
 #include "Image.h"
+#include "CText.h"
 
 #ifdef _DEBUG
-#include <bitset>	// debug
-#include <iomanip>  // debug
+#include <bitset>
+#include <iomanip>
 #endif
 
 #include <sstream>  // thrown errors' messages
-
-void Image::free()
-{
-
-#ifdef _DEBUG
-	// For debug to see when really memory is deallocated
-	if(surface != nullptr)
-		std::cout << " -> [Image::free]: Deallocated SDL_Surface." << std::endl;
-#endif // _DEBUG
-	
-	// Note: it is safe to pass NULL to this function
-	// @see https://wiki.libsdl.org/SDL_FreeSurface#Remarks
-	SDL_FreeSurface(surface);
-	surface = nullptr;
-}
 
 void Image::swap(Image &img)
 {
@@ -51,7 +37,7 @@ SDL_Surface * Image::copy(const SDL_Surface *img) const
 
 	if (img == nullptr)
 	{
-		std::cerr << "!!! [Image::copy]: Copying not existing surface." << std::endl;
+		std::cerr  << "!!! [Image::copy]: " << CText("Copying not existing surface.") << std::endl;
 		return nullptr;
 	}
 
@@ -95,7 +81,9 @@ uint32_t Image::getPixel(uint8_t *pixel, uint8_t bpp) const
 
 	// Should not happen, but..
 	default:
-		std::cerr << "!!! [Image::getPixel]: Not supported BytesPerPixel value: " << bpp << std::endl;
+		std::ostringstream os;
+		os << "Not supported BytesPerPixel value: " << bpp;
+		std::cerr  << "!!! [Image::getPixel]: " << CText(os.str()) << std::endl;
 		return 0;
 	}
 }
@@ -105,7 +93,7 @@ uint32_t Image::getPixel(const SDL_Surface *img, unsigned int x, unsigned int y)
 #ifdef _DEBUG
 	if (img == nullptr)
 	{
-		std::cerr << "!!! [Image::getPixel]: Cannot get pixel data of uninitialized surface." << std::endl;
+		std::cerr  << "!!! [Image::getPixel]: " << CText("Cannot get pixel data of uninitialized surface.")  << std::endl;
 		return 0;
 	}
 
@@ -114,7 +102,7 @@ uint32_t Image::getPixel(const SDL_Surface *img, unsigned int x, unsigned int y)
 	{
 		std::ostringstream os;
 		os << "Cannot get pixel. Out of surface range [w=" << img->w << ", h=" << img->h << "] was x=" << x << " y=" << y << '.';
-		std::cerr << "!!! [Image::getPixel]: " << os.str() << std::endl;
+		std::cerr << "!!! [Image::getPixel]: " << CText(os.str()) << std::endl;
 		return 0;
 	}
 #else 
@@ -169,7 +157,7 @@ SDL_Color Image::getPixelColor(const SDL_Surface *img, unsigned int x, unsigned 
 		rgb.b = img->format->palette->colors[pixel].b;
 	}
 #ifdef _DEBUG
-	else std::cerr << "!!! [Image::getPixelColor]: Not found pixel colors in the Image pallette." << std::endl;
+	else std::cerr  << "!!! [Image::getPixelColor]:" << CText("Not found pixel colors in the Image pallette.")  << std::endl;
 #endif
 
 #ifdef _DEBUG
@@ -188,7 +176,7 @@ void Image::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, uint32_t 
 #ifdef _DEBUG
 	if (img == nullptr)
 	{
-		std::cerr << "!!! [Image::setPixel]: Cannot set pixel data of uninitialized surface." << std::endl;
+		std::cerr  << "!!! [Image::setPixel]: " << CText("Cannot set pixel data of uninitialized surface.") << std::endl;
 		return;
 	}
 
@@ -197,7 +185,7 @@ void Image::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, uint32_t 
 	{
 		std::ostringstream os;
 		os << "Cannot set pixel. Out of surface range [w=" << img->w << ", h=" << img->h << "] was x=" << x << " y=" << y << '.';
-		std::cerr << "!!! [Image::setPixel]: " << os.str() << std::endl;
+		std::cerr  << "!!! [Image::setPixel]: " << CText(os.str()) << std::endl;
 		return;
 	}
 #else 
@@ -287,7 +275,9 @@ void Image::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, uint32_t 
 
 	default:
 	{
-		std::cerr << "!!! [Image::setPixel]: Not supported BytesPerPixel value: " << bpp << std::endl;
+		std::ostringstream os;
+		os << "Not supported BytesPerPixel value: " << bpp;
+		std::cerr  << "!!! [Image::setPixel]: " << CText(os.str()) << std::endl;
 	}
 		break;
 	}
@@ -296,7 +286,12 @@ void Image::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, uint32_t 
 void Image::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, uint8_t R, uint8_t G, uint8_t B) const
 {
 	if (img == nullptr)
-		throw RuntimeError("Cannot set pixel data of uninitialized surface.");
+	{
+#ifdef _DEBUG
+		std::cerr << "!!! [Image::setPixel]: " << CText("Cannot set pixel data of uninitialized surface.") << std::endl;
+#endif
+		return;
+	}
 
 	uint32_t rgb = (R >> img->format->Rloss) << img->format->Rshift
 			| (G >> img->format->Gloss) << img->format->Gshift
@@ -379,14 +374,18 @@ Image & Image::operator=(Image img)
 
 Image::~Image()
 {
+
 #ifdef _DEBUG
-	std::cout << "[Image]: Called destructor." << std::endl;
+	std::cout << " -> [" << CText("~Image", CText::Color::MAGENTA) << "]" << ((surface != nullptr) ? ": Deallocated SDL_Surface." : "")  << std::endl;
 #endif // _DEBUG
-	
-	free();
+
+	// Remarks: it is safe to pass NULL to SDL_FreeSurface function
+	// @see https://wiki.libsdl.org/SDL_FreeSurface#Remarks
+	SDL_FreeSurface(surface);
+	surface = nullptr;
 }
 
-/// Get/set pixel functions probably going to be inlined
+/// Get/set pixel functions which probably going to be inlined
 
 uint32_t Image::getPixel(unsigned int x, unsigned int y) const
 {
@@ -443,14 +442,15 @@ const SDL_Surface * Image::img() const
 
 SDL_Texture * Image::texture(SDL_Renderer *renderer) const
 {
-#ifdef _DEBUG
+#ifndef _DEBUG
+	return SDL_CreateTextureFromSurface(renderer, surface);
+#else
 	std::cout << " -> [Image::texture]: Creating texture." << std::endl;
-#endif // _DEBUG
-	
 	SDL_Texture *text = SDL_CreateTextureFromSurface(renderer, surface);
 	if (text == nullptr)
-		throw RuntimeError();
+		std::cerr << "!!! [Image::texture]: " << CText("Failed to create texture.") << std::endl;
 	return text;
+#endif
 }
 
 unsigned int Image::width() const
@@ -475,7 +475,7 @@ unsigned int Image::depth() const
 
 size_t Image::size() const
 {
-	return empty() ? 0 : width() * height() * bpp();
+	return empty() ? 0 : (width() * height() * bpp());
 }
 
 bool Image::empty() const

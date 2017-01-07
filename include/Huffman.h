@@ -35,7 +35,6 @@ private:
 
 public:
 	Huffman();
-	~Huffman();
 
 	// Public interface
 	void encode(std::ofstream &, const Image &);

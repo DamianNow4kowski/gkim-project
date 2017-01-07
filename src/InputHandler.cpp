@@ -70,8 +70,3 @@ bool InputHandler::get(std::string &argument)
 	}
 	return false;
 }
-
-
-InputHandler::~InputHandler()
-{
-}

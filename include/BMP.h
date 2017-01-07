@@ -14,7 +14,6 @@ public:
 	BMP(BMP &&img);
 	BMP& operator=(const BMP &img);
 	BMP& operator=(BMP &&img);
-	virtual ~BMP();
 };
 
 #endif // !BMP_H

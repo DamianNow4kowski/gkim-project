@@ -41,7 +41,6 @@ private:
 
 public:
 	LZ77();
-	~LZ77();
 	void encode(std::ofstream&, const Image &);
 	void decode(std::ifstream&, Image &);
 };

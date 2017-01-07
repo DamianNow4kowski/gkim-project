@@ -9,9 +9,6 @@ class Image
 {
 private:
 
-	// Deallocates whole previously allocated data
-	void free();
-
 	// Swapper for better class construction
 	void swap(Image &);
 

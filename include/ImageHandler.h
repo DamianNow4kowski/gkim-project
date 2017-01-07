@@ -21,7 +21,6 @@ private:
 	 */
 	bool verifyExtension(const std::string &, const std::string &) const;
 
-
 protected:
 
 	virtual void store(const std::string &, const Image &) const = 0;
@@ -65,7 +64,7 @@ public:
 	ImageHandler & operator=(ImageHandler &&);
 
 	// virtual destructor due to abstraction of this class
-	virtual ~ImageHandler();
+	virtual ~ImageHandler() = default;
 
 	/// Public interface methods
 

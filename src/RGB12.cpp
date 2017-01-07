@@ -1,6 +1,7 @@
 #include "RGB12.h"
 #include "LZ77.h"
 #include "Huffman.h"
+#include "CText.h"
 
 #include <iostream>
 #include <utility>
@@ -12,7 +13,7 @@ Image RGB12::convert(const Image& img) const
 	// More usefull when don't throw RuntimError
 	if (img.empty())
 	{
-		std::cerr << "!!! [RGB12::convert]: Cannot convert not initialized Image." << std::endl;
+		std::cerr << "!!! [RGB12::convert]: " << CText("Cannot convert not initialized Image.") << std::endl;
 		return Image();
 	}
 
@@ -234,10 +235,10 @@ void RGB12::save444(std::ofstream &f, const Image &img) const
 	}
 }
 
-void RGB12::saveLZ77(std::ofstream &of, const Image &img) const
+void RGB12::saveLZ77(std::ofstream &ofs, const Image &img) const
 {
 	LZ77 lz;
-	lz.encode(of, img);
+	lz.encode(ofs, img);
 }
 
 void RGB12::loadLZ77(std::ifstream &ifs, Image &img)
@@ -500,12 +501,4 @@ RGB12 & RGB12::operator=(RGB12 &&rgb)
 	ImageHandler::operator=(std::move(rgb));
 	algorithm = rgb.algorithm;
 	return *this;
-}
-
-
-RGB12::~RGB12()
-{
-#ifdef _DEBUG
-	std::cout << "[RGB12]: Called virtual destructor." << std::endl;
-#endif
 }

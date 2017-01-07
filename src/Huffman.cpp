@@ -14,9 +14,6 @@ Huffman::Huffman()
 		colorFreqs(std::vector<std::pair<uint32_t, uint32_t>>())
 {}
 
-Huffman::~Huffman() 
-{}
-
 void Huffman::encode(std::ofstream &ofile, const Image &image)
 {
 #ifdef _DEBUG

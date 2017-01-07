@@ -20,8 +20,6 @@ public:
 	bool option(const std::string &) const;
 	bool option(const char *) const;
 	bool get(std::string &);
-
-	~InputHandler();
 };
 
 #endif // !INPUT_HANDLER_H
