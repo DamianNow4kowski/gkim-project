@@ -5,6 +5,7 @@ lib/*
 
 # Ignore any executables
 bin/*
+!bin/.gitkeep
 
 # Ingore IDE Specific files
 .vscode

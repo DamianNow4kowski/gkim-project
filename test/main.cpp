@@ -231,7 +231,7 @@ void test_Grey(const std::string &test)
 	rgb.preview();
 
 	// Saving
-	RGB12 grey_save(bmp, RGB12::Algorithm::GreyScale);
+	RGB12 grey_save(bmp, RGB12::Algorithm::GrayScale);
 
 	auto begin = std::chrono::steady_clock::now();
 	grey_save.save("test/grey_scaled");
@@ -274,6 +274,52 @@ void test_Image()
 	test.preview(); // should ok
 }
 
+void test_iterator(const std::string &test)
+{
+	BMP bmp;
+	bmp.load(test);
+	Image img(std::move(bmp.image));
+
+	std::pair<size_t, size_t> cords;
+
+	bmp.image = Image(img.width(), img.height(), img.depth());
+
+	// It cpy
+	auto begin = std::chrono::steady_clock::now();
+	// --start
+	auto it_end = img.end();
+	auto it2 = bmp.image.begin();
+	for (auto it = img.begin(); it < it_end; ++it, ++it2)
+	{
+		it2.value(it.value());
+	}
+
+	// --end
+	auto end = std::chrono::steady_clock::now();
+	showDuration(begin, end, "It");
+	
+	bmp.preview();
+
+	bmp.image = Image(img.width(), img.height(), img.depth());
+
+	// Set/get copy
+	begin = std::chrono::steady_clock::now();
+	// --start
+	unsigned int w = img.width(), h = img.height();
+	for (unsigned int y = 0; y < h; ++y)
+	{
+		for (unsigned int x = 0; x < w; ++x)
+		{
+			bmp.image.setPixel(x, y, img.getPixel(x, y));
+		}
+	}
+	// --end
+	end = std::chrono::steady_clock::now();
+	showDuration(begin, end, "Set/get");
+
+	bmp.preview();
+}
+
 int main()
 {
 	std::string testImg;
@@ -291,22 +337,25 @@ int main()
 
 
     cout << "Testing.." << endl;
-	//test_Image();
+	test_Image();
 	//test_BMPHandler();
 	//test_RGB12Handler();
 
-	testImg = "test/wide.bmp";
-	//testImg = "test/1x1.bmp";
+	//testImg = "test/wide.bmp";
+	testImg = "test/1x1.bmp";
 	//testImg = "test/rgbcube.bmp";
 	//testImg = "test/test.bmp";
 	//testImg = "test/smalltest_24bit.bmp";
 	//testImg = "test/smalltest_8bit.bmp";
 
 	/// Algs
-	test_BitDensity(testImg);
-	test_Huffman(testImg);
+	//test_BitDensity(testImg);
+	//test_Huffman(testImg);
 	//test_LZ77(testImg);
-	test_Grey(testImg);
+	//test_Grey(testImg);
+
+	// Image::iterator test vs setters/getters
+	//test_iterator(testImg);
 
 	#ifndef __linux
 		system("PAUSE");

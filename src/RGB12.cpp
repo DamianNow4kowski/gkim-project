@@ -26,24 +26,18 @@ Image RGB12::convert(const Image& img) const
 #endif
 
 	// Start conversion
-	unsigned int w = img.width(),
-		h = img.height();
-	Image converted(w, h, 12u);
+	Image converted(img.width(), img.height(), 12u);
 	SDL_Color color;
+	auto conv_end = converted.end();
+	auto pixel_const = img.begin();
 
-	for (unsigned int y = 0; y < h; ++y)
+	for (auto pixel = converted.begin(); pixel != conv_end; ++pixel, ++pixel_const)
 	{
-		for (unsigned int x = 0; x < w; ++x)
-		{
-			color = img.getPixelColor(x, y);
-
-			// Convert each color to have only 4 siginificant bits
-			color.r = (color.r >> 4) << 4;
-			color.g = (color.g >> 4) << 4;
-			color.b = (color.b >> 4) << 4;
-
-			converted.setPixel(x, y, color);
-		}
+		color = pixel_const.color();
+		color.r = (color.r >> 4) << 4;
+		color.g = (color.g >> 4) << 4;
+		color.b = (color.b >> 4) << 4;
+		pixel.value(color.r, color.g, color.b);
 	}
 
 	return std::move(converted);
@@ -55,19 +49,16 @@ RGB12 & RGB12::toGrayScale()
 	std::cout << " -> [RGB12::toGrayScale]: Converting Image to grey scale." << std::endl;
 #endif // _DEBUG
 
-	unsigned int h = image.height(),
-		w = image.width();
-
-	for (unsigned int y = 0; y < h; ++y)
+	uint8_t gray;
+	auto img_end = image.end();
+	for (auto pixel = image.begin(); pixel != img_end; ++pixel)
 	{
-		for (unsigned int x = 0; x < w; ++x)
-		{
-			image.setPixel(x, y, static_cast<uint8_t>((image.getGrayColor(x, y) >> 4) << 4));
-		}
+		gray = (pixel.gray() >> 4) << 4;
+		pixel.value(gray, gray, gray);
 	}
 
 	if (algorithm == Algorithm::BitDensity)
-		algorithm = Algorithm::GreyScale;
+		algorithm = Algorithm::GrayScale;
 
 	return *this;
 }
@@ -78,36 +69,30 @@ void RGB12::load444(std::ifstream &f, Image &img)
 	std::cout << "-> [RGB12::load444]: Run BitDensity load algorithm." << std::endl;
 #endif
 
-	int colorToCode = 0;
-	char usedChar = 0;
-	unsigned int x, y, width = img.width();
-	SDL_Color pixel;
+	std::vector<char> buffer = std::vector<char>(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
 
-	x = y = 0;
-	while (f.get(usedChar))
+	int colorToCode = 0;
+	SDL_Color pixel;
+	auto pixel_iter = img.begin();
+
+	for (auto i : buffer)
 	{
 		for (int k = 0; k < 2; ++k)
 		{
 			if (k == 0)
 			{
-				//setColorOfPixel(pixel, colorToCode, usedChar); // TODO: try and compare investigate performance
-				setColorOfPixel(pixel, colorToCode, ((usedChar >> 4) << 4));
+				setColorOfPixel(pixel, colorToCode, ((i >> 4) << 4));
 			}
 			else
-				setColorOfPixel(pixel, colorToCode, (usedChar << 4));
+				setColorOfPixel(pixel, colorToCode, (i << 4));
 
 			colorToCode++;
 			if (colorToCode == 3)
 			{
-				if (x == width)
-				{
-					x = 0;
-					++y;
-				}
+				pixel_iter.value(pixel.r, pixel.g, pixel.b);
+				++pixel_iter;
 
-				img.setPixel(x, y, pixel);
 				colorToCode = 0;
-				++x;
 			}
 		}
 	}
@@ -115,65 +100,34 @@ void RGB12::load444(std::ifstream &f, Image &img)
 
 void RGB12::saveGray(std::ofstream & output, const Image & img) const
 {
-
-	unsigned int
-		width = img.width(),
-		height = img.height();
-
+	auto img_end = img.end();
 	uint8_t block;
 
-	bool save = false;
-	for (unsigned int y = 0; y < height; ++y)
+	for (auto pixel = img.begin(); pixel < img_end; ++pixel)
 	{
-		for (unsigned int x = 0; x < width; ++x)
-		{
-			if (save)
-			{
-				block |= (img.getGrayColor(x, y) >> 4);
-				output.write(reinterpret_cast<char*>(&block), sizeof(block));
-				save = false;
-			}
-			else
-			{
-				block = (img.getGrayColor(x, y) >> 4) << 4;
-				save = true;
-			}
-		}
-	}
-
-	// Save remaining one pixel
-	if(!save)
+		block = (pixel.gray() >> 4) << 4;
+		++pixel;
+		block |= pixel.gray() >> 4;
 		output.write(reinterpret_cast<char*>(&block), sizeof(block));
+	}
 }
 
 void RGB12::loadGray(std::ifstream & input, Image & img)
 {
 	std::vector<char> buffer = std::vector<char>(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
-	unsigned int
-		width = img.width(),
-		height = img.height();
+
+	auto it = buffer.begin();
+	auto img_end = img.end();
 
 	uint8_t gray;
-	bool iterate = false;
-	auto it = buffer.begin();
-
-	for (unsigned int y = 0; y < height; ++y)
+	for (auto pixel = img.begin(); pixel < img_end; ++pixel, ++it)
 	{
-		for (unsigned int x = 0; x < width; ++x)
-		{
-			if (iterate)
-			{
-				gray = *it << 4;
-				++it;
-				iterate = false;
-			}
-			else
-			{
-				gray = (*it >> 4) << 4;
-				iterate = true;
-			}
-			img.setPixel(x, y, gray);
-		}
+		gray = (*it >> 4) << 4;
+		pixel.value(gray, gray, gray);
+		++pixel;
+
+		gray = *it << 4;
+		pixel.value(gray, gray, gray);
 	}
 		
 }
@@ -196,43 +150,41 @@ void RGB12::save444(std::ofstream &f, const Image &img) const
 	std::cout << "-> [RGB12::save444]: Run BitDensity save algorithm." << std::endl;
 #endif
 
-	bool isSpace = true, 
+	bool isSpace = true,
 		firstHalf = true;
 	char usedChar = 0;
 	SDL_Color color;
-	unsigned int width = img.width(),
-		height = img.height();
 
-	for (unsigned int y = 0; y < height; ++y)
+	auto img_end = img.end();
+	for (auto pixel = img.begin(); pixel < img_end; ++pixel)
 	{
-		for (unsigned int x = 0; x < width; ++x)
+		for (int k = 0; k < 3; ++k)
 		{
-			for (int k = 0; k < 3; ++k)
+			color = pixel.color();
+			if (firstHalf)
 			{
-				color = img.getPixelColor(x, y);
+				usedChar = (getColorOfPixel(color, k) >> 4) << 4;
+				firstHalf = false;
+			}
+			else
+			{
+				usedChar |= getColorOfPixel(color, k) >> 4;
+				firstHalf = true;
+				isSpace = false;
+			}
 
-				if (firstHalf)
-				{
-					usedChar = (getColorOfPixel(color, k) >> 4) << 4;
-					firstHalf = false;
-				}
-				else
-				{
-					usedChar |= getColorOfPixel(color, k) >> 4;
-					firstHalf = true;
-					isSpace = false;
-				}
-
-				if (!isSpace)
-				{
-					// Binary save
-					f.write(&usedChar, sizeof(usedChar));
-					isSpace = true;
-					usedChar = 0;
-				}
+			if (!isSpace)
+			{
+				// Binary save
+				f.write(&usedChar, sizeof(usedChar));
+				isSpace = true;
+				usedChar = 0;
 			}
 		}
 	}
+
+	if (isSpace)
+		f.write(&usedChar, sizeof(usedChar));
 }
 
 void RGB12::saveLZ77(std::ofstream &ofs, const Image &img) const
@@ -302,7 +254,7 @@ void RGB12::store(const std::string & filename, const Image & img) const
 	case Algorithm::LZ77:
 		saveLZ77(f, img);
 		break;
-	case Algorithm::GreyScale:
+	case Algorithm::GrayScale:
 		saveGray(f, img);
 		break;
 	}
@@ -345,7 +297,7 @@ Image RGB12::recover(const std::string & filename)
 	case Algorithm::LZ77:
 		loadLZ77(f, recovered);
 		break;
-	case Algorithm::GreyScale:
+	case Algorithm::GrayScale:
 		loadGray(f, recovered);
 		break;
 	default:
@@ -459,7 +411,7 @@ RGB12::RGB12(Algorithm alg)
 }
 
 RGB12::RGB12(const ImageHandler &img, Algorithm alg)
-	: ImageHandler(convert(img.image)), algorithm(alg)
+	: ImageHandler(convert(img.image)), algorithm(alg) // affect when Image is protected
 {
 #ifdef _DEBUG
 	std::cout << "[RGB12]: Called convert ImageHandler constructor." << std::endl;

@@ -46,11 +46,9 @@ SDL_Surface * Image::copy(const SDL_Surface *img) const
 
 	// Allocate empty surface
 	new_img = create(w, h, img->format->BitsPerPixel);
-
-	// Simple copying algorithm
-	for (int y = 0; y < h; ++y)
-		for (int x = 0; x < w; ++x)
-			setPixel(new_img, x, y, getPixel(img, x, y));
+	
+	// Fast copy raw pixel data
+	SDL_memcpy(new_img->pixels, img->pixels, (img->h * img->pitch));
 
 	return new_img;
 }
@@ -239,17 +237,15 @@ void Image::setPixel(SDL_Surface *img, unsigned int x, unsigned int y, uint32_t 
 	// 24-bit
 	case 3:
 	{
-		if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
-			p[0] = (pixel >> 16) & 0xff;
-			p[1] = (pixel >> 8) & 0xff;
-			p[2] = pixel & 0xff;
-		}
-		else {
-			p[0] = pixel & 0xff;
-			p[1] = (pixel >> 8) & 0xff;
-			p[2] = (pixel >> 16) & 0xff;
-		}
-
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		p[0] = (pixel >> 16) & 0xff;
+		p[1] = (pixel >> 8) & 0xff;
+		p[2] = pixel & 0xff;
+#else
+		p[0] = pixel & 0xff;
+		p[1] = (pixel >> 8) & 0xff;
+		p[2] = (pixel >> 16) & 0xff;
+#endif
 #ifdef _DEBUG
 		std::bitset<8> b1(p[0]), b2(p[1]), b3(p[2]);
 
@@ -327,8 +323,7 @@ Image::Image(SDL_Surface *moved_surface)
 	: Image()
 {
 #ifdef _DEBUG
-	std::cout << "[Image]: Called SDL_Surface* move constructor." << std::endl
-		<< " -> [Image]: Hardcoded SDL_Surface* swapping." << std::endl;
+	std::cout << "[Image]: Called SDL_Surface* move [" << CText("hardcoded swap", CText::Color::YELLOW) << "] constructor." << std::endl;
 #endif // DEBUG
 
 	// Zero-out given pointer, and attach surface
@@ -481,4 +476,169 @@ size_t Image::size() const
 bool Image::empty() const
 {
 	return surface == nullptr;
+}
+
+Image::pixel_iterator::pixel_iterator(SDL_Surface * surface)
+	: s(surface), x(0), y(0),
+	current(reinterpret_cast<uint8_t *>(s->pixels))
+{}
+
+Image::pixel_iterator::pixel_iterator(SDL_Surface * surface, size_t x, size_t y)
+	: s(surface), x(x), y(y),
+	current(reinterpret_cast<uint8_t *>(s->pixels) + y * s->pitch + x * s->format->BytesPerPixel)
+{}
+
+Image::pixel_iterator & Image::pixel_iterator::operator++()
+{
+	++x;
+	if (x != s->w)
+	{
+		current += s->format->BytesPerPixel;
+	}
+	else
+	{
+		x = 0;
+		++y;
+		current = reinterpret_cast<uint8_t *>(s->pixels) + y * s->pitch;
+	}
+
+	return *this;
+}
+
+Image::pixel_iterator Image::pixel_iterator::operator++(int)
+{
+	pixel_iterator ret = *this;
+
+	++x;
+	if (x != s->w)
+	{
+		current += s->format->BytesPerPixel;
+	}
+	else
+	{
+		x = 0;
+		++y;
+		current = reinterpret_cast<uint8_t *>(s->pixels) + y * s->pitch;
+	}
+
+	return std::move(ret);
+}
+
+inline std::pair<size_t, size_t> Image::pixel_iterator::xy() const
+{
+	return std::make_pair(x, y);
+}
+
+uint32_t Image::pixel_iterator::value() const
+{
+	switch (s->format->BytesPerPixel)
+	{
+	case 1:
+		return *current;
+	case 2:
+		return *reinterpret_cast<uint16_t *>(current);
+	case 3:
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		return current[0] << 16 | current[1] << 8 | current[2];
+#else
+		return current[0] | current[1] << 8 | current[2] << 16;
+#endif
+	case 4:
+		return *reinterpret_cast<uint32_t *>(current);
+	default:
+		return 0;
+	}
+}
+
+uint8_t Image::pixel_iterator::gray() const
+{
+	SDL_Color col = color();
+	return static_cast<uint8_t>(0.2126 * col.r + 0.7152 * col.g + 0.0722 * col.b);
+}
+
+SDL_Color Image::pixel_iterator::color() const
+{
+	uint32_t RGB = value();
+
+	SDL_Color COLOR = { 0, 0, 0, 0 };
+	if (s->format->palette == nullptr)
+	{
+		COLOR.r = ((RGB & s->format->Rmask) >> s->format->Rshift) << s->format->Rloss;
+		COLOR.g = ((RGB & s->format->Gmask) >> s->format->Gshift) << s->format->Gloss;
+		COLOR.b = ((RGB & s->format->Bmask) >> s->format->Bshift) << s->format->Bloss;
+	}
+	else if (RGB < static_cast<uint32_t>(s->format->palette->ncolors))
+	{
+		COLOR.r = s->format->palette->colors[RGB].r;
+		COLOR.g = s->format->palette->colors[RGB].g;
+		COLOR.b = s->format->palette->colors[RGB].b;
+	}
+
+	return COLOR;
+}
+
+void Image::pixel_iterator::value(uint32_t RGB)
+{
+	switch (s->format->BytesPerPixel)
+	{
+	case 1:
+		*current = RGB;
+		return;
+
+	case 2:
+		*reinterpret_cast<uint16_t*>(current) = RGB;
+		return;
+
+	case 3:
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		current[0] = (RGB >> 16) & 0xff;
+		current[1] = (RGB >> 8) & 0xff;
+		current[2] = RGB & 0xff;
+#else
+		current[0] = RGB & 0xff;
+		current[1] = (RGB >> 8) & 0xff;
+		current[2] = (RGB >> 16) & 0xff;
+#endif
+		return;
+
+	case 4:
+		*reinterpret_cast<uint32_t*>(current) = RGB;
+		return;
+	}
+}
+
+void Image::pixel_iterator::value(uint8_t R, uint8_t G, uint8_t B)
+{
+	// Convert to full width uint32_t pixel
+	uint32_t RGB = (R >> s->format->Rloss) << s->format->Rshift
+		| (G >> s->format->Gloss) << s->format->Gshift
+		| (B >> s->format->Bloss) << s->format->Bshift
+		| s->format->Amask;
+	
+	value(RGB);
+}
+
+bool Image::pixel_iterator::operator==(const pixel_iterator & it) const
+{
+	return s == it.s && x == it.x && y == it.y;
+}
+
+bool Image::pixel_iterator::operator!=(const pixel_iterator & it) const
+{
+	return x != it.x || y != it.y || s != it.s;
+}
+
+bool Image::pixel_iterator::operator<(const pixel_iterator & it) const
+{
+	return s == it.s && ((y < it.y) || (y == it.y && x < it.x));
+}
+
+Image::pixel_iterator Image::begin() const
+{
+	return pixel_iterator(surface);
+}
+
+Image::pixel_iterator Image::end() const
+{
+	return pixel_iterator(surface, 0, surface->h);
 }

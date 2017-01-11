@@ -98,6 +98,47 @@ protected:
 
 public:
 
+	class pixel_iterator
+	{
+	private:
+		SDL_Surface *s;
+		size_t x, y;
+		uint8_t *current;
+
+	public:
+		pixel_iterator(SDL_Surface *surface);
+		pixel_iterator(SDL_Surface *surface, size_t x, size_t y);
+
+		pixel_iterator(const pixel_iterator& ) = default;
+		pixel_iterator(pixel_iterator &&) = default;
+		pixel_iterator& operator=(const pixel_iterator &) = default;
+		pixel_iterator& operator=(pixel_iterator &&) = default;
+		~pixel_iterator() = default;
+
+		pixel_iterator& operator++(); // pre increment
+		pixel_iterator operator++(int); // post increment
+
+		std::pair<size_t, size_t> xy() const;
+
+		// Getters
+		uint32_t value() const;
+		uint8_t gray() const;
+		SDL_Color color() const;
+
+		// Setters
+		void value(uint32_t RGB);
+		void value(uint8_t R, uint8_t G, uint8_t B);
+		
+		// Operators 
+		bool operator==(const pixel_iterator& it) const;
+		bool operator!=(const pixel_iterator& it) const;
+		bool operator<(const pixel_iterator& it) const;
+
+	};
+
+	pixel_iterator begin() const;
+	pixel_iterator end() const;
+
 	// Default constructor
 	Image();
 

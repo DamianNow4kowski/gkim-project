@@ -262,3 +262,8 @@ void ImageHandler::load(const char *str)
 {
 	load(std::string(str));
 }
+
+const Image& ImageHandler::img() const
+{
+	return image;
+}

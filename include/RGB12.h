@@ -15,7 +15,7 @@ public:
 		BitDensity,
 		Huffman,
 		LZ77,
-		GreyScale
+		GrayScale
 	};
 
 	// Indicates which algorithm (defined in Algorithm enum) will be used for future saving process

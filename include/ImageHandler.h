@@ -82,6 +82,8 @@ public:
 	void load(const std::string &);
 	void load(const char*);
 
+	const Image& img() const;
+
 	// @return supported extension to save to/load from
 	virtual std::string extension() const = 0;
 
