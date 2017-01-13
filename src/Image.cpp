@@ -491,7 +491,7 @@ Image::pixel_iterator::pixel_iterator(SDL_Surface * surface, size_t x, size_t y)
 Image::pixel_iterator & Image::pixel_iterator::operator++()
 {
 	++x;
-	if (x != s->w)
+	if (x != static_cast<size_t>(s->w))
 	{
 		current += s->format->BytesPerPixel;
 	}
@@ -510,7 +510,7 @@ Image::pixel_iterator Image::pixel_iterator::operator++(int)
 	pixel_iterator ret = *this;
 
 	++x;
-	if (x != s->w)
+	if (x != static_cast<size_t>(s->w))
 	{
 		current += s->format->BytesPerPixel;
 	}

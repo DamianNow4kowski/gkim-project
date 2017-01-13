@@ -144,7 +144,7 @@ void test_BitDensity(const std::string &test)
 	end = std::chrono::steady_clock::now();
 	showDuration(begin, end, "BitDenisty decoded");
 
-	rgb2.preview(true);
+	rgb2.preview();
 
 }
 
@@ -191,7 +191,7 @@ void test_Huffman(const std::string &test)
 	 * test/smalltest_24bit.bmp - 36ms (VS Release/x64/notebook 2-core i7)
  	 */
 
-	rgb2.preview(true);
+	rgb2.preview();
 }
 
 void test_LZ77(const std::string &test)
@@ -342,12 +342,12 @@ int main()
 	//test_BMPHandler();
 	//test_RGB12Handler();
 
-	//testImg = "test/wide.bmp";
+	testImg = "test/wide.bmp";
 	//testImg = "test/1x1.bmp";
 	//testImg = "test/rgbcube.bmp";
 	//testImg = "test/test.bmp";
 	//testImg = "test/smalltest_24bit.bmp";
-	testImg = "test/smalltest_8bit.bmp";
+	//testImg = "test/smalltest_8bit.bmp";
 
 	/// Algs
 	test_BitDensity(testImg);
