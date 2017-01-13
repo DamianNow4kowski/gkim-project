@@ -41,62 +41,6 @@ protected:
 	 */
 	SDL_Surface *copy(const SDL_Surface *) const;
 
-	/**
-	 * Gets (8|16|24|32) bits from pixel data
-	 * @param pixel pointer to adress where chosen pixel begins in pixel data
-	 * @param bpp size of pixel in number of bytes
-	 * @return fully qualifed pixel data (32 bit)
-	 */
-	uint32_t getPixel(uint8_t*, uint8_t) const;
-
-	/**
-	 * Gets pixel data from SDL_Surface
-	 * @param pointer to structure with pixel data
-	 * @param x x-axis
-	 * @param y y-axis cordinate of chosen pixel
-	 * @return full pixel data (32 bit)
-	 */
-	uint32_t getPixel(const SDL_Surface*, unsigned int, unsigned int) const;
-
-	/**
-	 * Gets pixel data from SDL_Surface
-	 * @param pointer to structure with pixel data
-	 * @param x x-axis
-	 * @param y y-axis cordinate of chosen pixel
-	 * @return pixel data in SDL_Color structure
-	 */
-	SDL_Color getPixelColor(const SDL_Surface*, unsigned int, unsigned int) const;
-
-	/**
-	 * Sets pixel's data to SDL_Surface
-	 * @param pointer to structure with pixel data
-	 * @param x x-axis
-	 * @param y y-axis cordinate of chosen pixel
-	 * @param pixel data (32 bits)
-	 */
-	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint32_t) const;
-
-	/**
-	 * Sets pixel's color's data to SDL_Surface (Doesn't work with PALLETIZED SDL_Surface)
-	 * @param pointer to structure with pixel data
-	 * @param x x-axis
-	 * @param y y-axis cordinate of chosen pixel
-	 * @param red component color value (8 bit)
-	 * @param green component color value (8 bit)
-	 * @param blue component color value (8 bit)
-	 */
-	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint8_t, uint8_t, uint8_t) const;
-
-
-	/**
-	 * Converts RGB color to gray scale component
-	 * @param SDL_Color structure that stores RGB component colors
-	 * @return uint8_t grey scale color made from these RGB components
-	 * Standard:
-	 * @link https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
-	 */
-	uint8_t toGrayScale(const SDL_Color &) const;
-
 public:
 
 	class pixel_iterator
@@ -119,16 +63,51 @@ public:
 		pixel_iterator& operator++(); // pre increment
 		pixel_iterator operator++(int); // post increment
 
+		/**
+		 * Gets current [x, y] coordinates on SDL_Surface
+		 * @return pair<size_t, size_t> first => x, second => y coordinate
+		 */
 		std::pair<size_t, size_t> xy() const;
 
-		// Getters
+		/**
+		 * Gets pixel data in one dimensional array format
+		 * where keys: [0] => red component, [1] => green component, [2] => blue component
+		 * @return array<uint8_t, 3>
+		 */
 		std::array<uint8_t, 3> rgb() const;
+
+		/**
+		 * Gets pixel's data (32 bits)
+		 * @return uint32_t 
+		 */
 		uint32_t value() const;
+
+		/**
+		 * Gets gray scale color using stanard:
+		 * @link https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems 
+		 *
+		 * @return uint8_t grey scale color made from RGB components
+		 */
 		uint8_t gray() const;
+		
+		/**
+		 * Gets pixel data in SDL_Color format
+		 * @return SDL_Color
+		 */
 		SDL_Color color() const;
 
-		// Setters
+		/**
+		 * Sets pixel's data to SDL_Surface
+		 * @param pixel data (32 bits)
+		 */
 		void value(uint32_t RGB);
+
+		/**
+		 * Sets pixel's color's data to SDL_Surface (Doesn't work with PALLETIZED SDL_Surface)
+		 * @param red component color value (8 bit)
+		 * @param green component color value (8 bit)
+		 * @param blue component color value (8 bit)
+		 */
 		void value(uint8_t R, uint8_t G, uint8_t B);
 		
 		// Operators 
@@ -168,15 +147,6 @@ public:
 	// Destructor
 	~Image();
 
-	// Public interface functions [safely modify SDL_Surface]
-	// @throws RuntimeError
-	uint32_t getPixel(unsigned int x, unsigned int y) const;
-	SDL_Color getPixelColor(unsigned int x, unsigned int y) const;
-	uint8_t getGrayColor(unsigned int x, unsigned int y) const;
-	void setPixel(unsigned int x, unsigned int y, uint8_t gray);
-	void setPixel(unsigned int x, unsigned int y, uint32_t pixel);
-	void setPixel(unsigned int x, unsigned int y, uint8_t r, uint8_t g, uint8_t b);
-	void setPixel(unsigned int x, unsigned int y, const SDL_Color &color);
 	void printDetails(std::ostream &out = std::cout) const;
 
 	/**

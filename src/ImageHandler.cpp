@@ -96,7 +96,7 @@ ImageHandler & ImageHandler::toGrayScale()
 
 	uint8_t gray;
 	auto img_end = image.end();
-	for (auto pixel = image.begin(); pixel != img_end; ++pixel)
+	for (auto pixel = image.begin(); pixel < img_end; ++pixel)
 	{
 		gray = pixel.gray();
 		pixel.value(gray, gray, gray);
