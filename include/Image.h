@@ -4,6 +4,7 @@
 #include "SDL_Local.h"
 #include <iostream>
 #include <tuple>
+#include <array>
 
 class Image
 {
@@ -121,6 +122,7 @@ public:
 		std::pair<size_t, size_t> xy() const;
 
 		// Getters
+		std::array<uint8_t, 3> rgb() const;
 		uint32_t value() const;
 		uint8_t gray() const;
 		SDL_Color color() const;

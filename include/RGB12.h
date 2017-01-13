@@ -84,10 +84,6 @@ private:
 	void saveLZ77(std::ofstream &ofs, const Image &img) const;
 	void loadLZ77(std::ifstream &ifs, Image &img);
 
-	/// Needed for algorithms
-	uint8_t getColorOfPixel(SDL_Color color, int which) const;
-	void setColorOfPixel(SDL_Color &color, int which, uint8_t value) const;
-
 };
 
 #endif // !RGB12_H

@@ -94,15 +94,12 @@ ImageHandler & ImageHandler::toGrayScale()
 	if (image.depth() <= 8)
 		std::cerr << "!!! [ImageHandler::toGreyScale]: " << CText("This function may NOT work on palletized surfaces. Use RGB12 container.") << std::endl;
 
-	unsigned int h = image.height(),
-		w = image.width();
-
-	for (unsigned int y = 0; y < h; ++y)
+	uint8_t gray;
+	auto img_end = image.end();
+	for (auto pixel = image.begin(); pixel != img_end; ++pixel)
 	{
-		for (unsigned int x = 0; x < w; ++x)
-		{
-			image.setPixel(x, y, image.getGrayColor(x, y));
-		}
+		gray = pixel.gray();
+		pixel.value(gray, gray, gray);
 	}
 
 	return *this;

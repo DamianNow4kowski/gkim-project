@@ -72,26 +72,20 @@ void RGB12::load444(std::ifstream &f, Image &img)
 	std::vector<char> buffer = std::vector<char>(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
 
 	int colorToCode = 0;
-	SDL_Color pixel;
+	std::array<uint8_t, 3> pixel;
 	auto pixel_iter = img.begin();
 
 	for (auto i : buffer)
 	{
 		for (int k = 0; k < 2; ++k)
 		{
-			if (k == 0)
-			{
-				setColorOfPixel(pixel, colorToCode, ((i >> 4) << 4));
-			}
-			else
-				setColorOfPixel(pixel, colorToCode, (i << 4));
+			pixel[colorToCode] = k ? (i << 4) : ((i >> 4) << 4);
+			++colorToCode;
 
-			colorToCode++;
 			if (colorToCode == 3)
 			{
-				pixel_iter.value(pixel.r, pixel.g, pixel.b);
+				pixel_iter.value(pixel[0], pixel[1], pixel[2]);
 				++pixel_iter;
-
 				colorToCode = 0;
 			}
 		}
@@ -153,22 +147,22 @@ void RGB12::save444(std::ofstream &f, const Image &img) const
 	bool isSpace = true,
 		firstHalf = true;
 	char usedChar = 0;
-	SDL_Color color;
+	std::array<uint8_t, 3> color;
 
 	auto img_end = img.end();
 	for (auto pixel = img.begin(); pixel < img_end; ++pixel)
 	{
+		color = pixel.rgb();
 		for (int k = 0; k < 3; ++k)
 		{
-			color = pixel.color();
 			if (firstHalf)
 			{
-				usedChar = (getColorOfPixel(color, k) >> 4) << 4;
+				usedChar = (color[k] >> 4) << 4;
 				firstHalf = false;
 			}
 			else
 			{
-				usedChar |= getColorOfPixel(color, k) >> 4;
+				usedChar |= color[k] >> 4;
 				firstHalf = true;
 				isSpace = false;
 			}
@@ -197,36 +191,6 @@ void RGB12::loadLZ77(std::ifstream &ifs, Image &img)
 {
 	LZ77 lz;
 	lz.decode(ifs, img);
-}
-
-uint8_t RGB12::getColorOfPixel(SDL_Color color, int which) const
-{
-	switch (which)
-	{
-	case 0:
-		return color.r;
-	case 1:
-		return color.g;
-	case 2:
-		return color.b;
-	default:
-		return 0;
-	}
-}
-
-void RGB12::setColorOfPixel(SDL_Color &color, int which, uint8_t value) const
-{
-	switch (which)
-	{
-	case 0:
-		color.r = value;
-	case 1:
-		color.g = value;
-	case 2:
-		color.b = value;
-	default:
-		return;
-	}
 }
 
 void RGB12::store(const std::string & filename, const Image & img) const

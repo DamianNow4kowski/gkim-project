@@ -529,8 +529,38 @@ inline std::pair<size_t, size_t> Image::pixel_iterator::xy() const
 	return std::make_pair(x, y);
 }
 
+std::array<uint8_t, 3> Image::pixel_iterator::rgb() const
+{
+	std::array<uint8_t, 3> rgb = {0, 0, 0};
+	uint32_t val = value();
+
+	if (s->format->palette == nullptr)
+	{
+		rgb[0] = ((val & s->format->Rmask) >> s->format->Rshift) << s->format->Rloss;
+		rgb[1] = ((val & s->format->Gmask) >> s->format->Gshift) << s->format->Gloss;
+		rgb[2] = ((val & s->format->Bmask) >> s->format->Bshift) << s->format->Bloss;
+	}
+	else if (val < static_cast<uint32_t>(s->format->palette->ncolors))
+	{
+		rgb[0] = s->format->palette->colors[val].r;
+		rgb[1] = s->format->palette->colors[val].g;
+		rgb[2] = s->format->palette->colors[val].b;
+	}
+
+	return rgb;
+}
+
 uint32_t Image::pixel_iterator::value() const
 {
+
+#ifdef _DEBUG
+	if (x >= static_cast<size_t>(s->w) || y >= static_cast<size_t>(s->h))
+	{
+		std::cerr << "!!! [Image::pixel_iterator::value]: " << CText("Wanted pixel out of Image range.") << std::endl;
+		return 0;
+	}
+#endif
+
 	switch (s->format->BytesPerPixel)
 	{
 	case 1:
@@ -568,17 +598,22 @@ SDL_Color Image::pixel_iterator::color() const
 		COLOR.b = ((RGB & s->format->Bmask) >> s->format->Bshift) << s->format->Bloss;
 	}
 	else if (RGB < static_cast<uint32_t>(s->format->palette->ncolors))
-	{
-		COLOR.r = s->format->palette->colors[RGB].r;
-		COLOR.g = s->format->palette->colors[RGB].g;
-		COLOR.b = s->format->palette->colors[RGB].b;
-	}
+		return s->format->palette->colors[RGB];
 
 	return COLOR;
 }
 
 void Image::pixel_iterator::value(uint32_t RGB)
 {
+
+#ifdef _DEBUG
+	if (x >= static_cast<size_t>(s->w) || y >= static_cast<size_t>(s->h))
+	{
+		std::cerr << "!!! [Image::pixel_iterator::value]: " << CText("Setting pixel out of Image range.") << std::endl;
+		return;
+	}
+#endif
+
 	switch (s->format->BytesPerPixel)
 	{
 	case 1:

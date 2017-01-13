@@ -1,14 +1,16 @@
 #include "LZ77.h"
+#include "CText.h"
 #include <iterator>
+#include <vector>
 
 LZ77::LZ77()
-{
+
 	//size of search buffer
-	s_buff_size = 16;
-	
+	:s_buff_size(16), 
+
 	// size of lookahead buffer
-	la_buff_size = 20;
-}
+	la_buff_size(20)
+{}
 
 
 
@@ -20,45 +22,40 @@ LZ77::LZ77()
  */
 void LZ77::encode(std::ofstream &ofile, const Image &image)
 {
+#ifdef _DEBUG
 	std::cout<<"\n=== LZ77 COMPRESSION ==="<<std::endl;
+#endif
 	
-	//iterator helping loading data to buffers
-	unsigned int it = 0;
+	// Image iterator
+	auto const img_end = image.end();
+	auto pixel_it = image.begin();
 
-	//coordinates of pixels
-	unsigned int x = 1, y = 0;
+	// Loading first pixel to initialization variables
+	std::array<uint8_t, 3> color = pixel_it.rgb();
+	for (auto &c : color)
+		c >>= 4;
 
-	//variables to search the longest sequence
-	short max_length=0; 	
-	
-	//variables to break operations
-	bool end_of_picture = 0;  
-
-	//loading first pixel to initialization variables
-	SDL_Color clr = image.getPixelColor(0, 0);						
-
-	//colors of the one pixel
-	uint8_t color[3];
-	color[0] = clr.r >> 4;
-	color[1] = clr.g >> 4;
-	color[2] = clr.b >> 4;
-		
-	//variable pointing the subpixel
-	short what_color = 1;
-
-	//saving first subpixel
+	// Saving first subpixel
 	ofile.write(reinterpret_cast<const char*>(&color[0]), sizeof(color[0]));
 
-	//initialization of search buffer 	
-	for (unsigned int i = 0; i < s_buff_size; ++i)
-		s_buff.insert(std::pair<int, uint8_t>(i, color[0]));
+	// Initialization of search buffer 	
+	for (int i = 0; i < static_cast<int>(s_buff_size); ++i)
+		s_buff.insert(std::make_pair(i, color[0]));
 
-	first_loading_la_buff(x, y, what_color, color, image, end_of_picture);
+	// Variable pointing the subpixel
+	short what_color = 1;
 
-	//main part of algorithm- loading data and coding
+	// The first loading data to la_buff 
+	load_la_buff(color, pixel_it, img_end, what_color);
+
+	// Variables to search the longest sequence
+	short max_length = 0;
+
+	// Main part of algorithm - loading data and coding
+	int it = 0;
 	while (la_buff.size() > 0)
 	{
-		insert_elements_to_la_buff(it, max_length, x, y, what_color, color, image, end_of_picture);
+		load_la_buff(color, pixel_it, img_end, what_color, (it - max_length + 1), la_buff_size);
 		max_length = create_code(ofile);
 		insert_elements_to_s_buff(max_length, it);
 
@@ -66,90 +63,12 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 		popFront(la_buff, max_length);
 	}
 
-	la_buff.clear();
+//	la_buff.clear();
 	s_buff.clear();
+
+#ifdef _DEBUG
 	std::cout<<"\n=== LZ77 COMPRESSION DONE ==="<<std::endl;
-}
-
-
-
-/** 
- * @param coordinate x
- * @param coordinate y
- * @param variable pointing the subpixel
- * @param loaded colors of the one pixel
- * @param valid Image to save
- * @param variable to break mechanism in the end of picture (here for very small pictures)
- */
-void LZ77::first_loading_la_buff(unsigned int &x, unsigned int &y, short &what_color, uint8_t *color, const Image &image, bool &end_of_picture)
-{
-	unsigned int it=0;
-	//the first loading data to la_buff 
-	while (la_buff.size() < la_buff_size && end_of_picture == 0)
-	{
-		if (what_color < 3)
-			la_buff.insert(std::pair<int, uint8_t>(it++, color[what_color++]));
-		else
-		{
-			if (x >= image.width())
-			{
-				x = 0;
-				++y;
-				if (y >= image.height())
-				{
-					end_of_picture = 1;
-					break;
-				}
-			}
-			SDL_Color clr = image.getPixelColor(x++, y);
-			what_color = 1;
-			color[0] = clr.r >> 4;
-			color[1] = clr.g >> 4;
-			color[2] = clr.b >> 4;
-			la_buff.insert(std::pair<int, uint8_t>(it++, color[0]));
-		}
-	}
-}
-
-
-/** 
- * @param iterator helps loading data
- * @param size of the longest sequence
- * @param coordinate x
- * @param coordinate y
- * @param variable pointing the subpixel
- * @param loaded colors of the one pixel
- * @param vaild Image to save
- * @param variable to break mechanism in the ending point of picture
- */
-void LZ77::insert_elements_to_la_buff(unsigned int it, unsigned int max_length, unsigned int &x, unsigned int &y, short &what_color, uint8_t *color, const Image &image, bool &end_of_picture)
-{ 
-	//loading data to la_buff 
-	unsigned int it2 = it - max_length;
-	while (la_buff.size() < la_buff_size && end_of_picture == 0)
-	{
-		if (what_color < 3)
-			la_buff.insert(std::pair<int, uint8_t>(la_buff_size + 1 + it2++, color[what_color++]));
-		else
-		{
-			if (x >= image.width())
-			{
-				x = 0;
-				++y;
-				if (y >= image.height())
-				{
-					end_of_picture = 1;
-					break;
-				}
-			}
-			SDL_Color clr = image.getPixelColor(x++, y);
-			what_color = 1;
-			color[0] = clr.r >> 4;
-			color[1] = clr.g >> 4;
-			color[2] = clr.b >> 4;
-			la_buff.insert(std::pair<int, uint8_t>(la_buff_size + 1 + it2++, color[0]));
-		}
-	}	
+#endif
 }
 
 
@@ -158,62 +77,75 @@ void LZ77::insert_elements_to_la_buff(unsigned int it, unsigned int max_length, 
  */
 short LZ77::create_code(std::ofstream &ofile)
 {
-	std::map<int, uint8_t>::iterator 
-		s_begin = s_buff.begin(),
-		s_end = s_buff.end(),
-		la_begin = la_buff.begin(),
-		count,
-		temp;
+	auto s_begin = s_buff.begin();
+	auto s_end = s_buff.end();
+	auto la_begin = la_buff.begin();
+	auto la_end = la_buff.end();
 
-	short length = 0, max_length = 1, position = 0;
-	bool if_max_length_stop = 0;
+	short length = 0, 
+		max_length = 1, 
+		position = 0;
+	bool stop = false;
 		
-	//searching the longest sequence	
-	for(auto k = s_end; k != s_begin; --k)
+	// Searching the longest sequence
+	for(auto k = s_end; k != s_begin && !stop; --k)
 	{
-		count = k;
-		temp = la_begin;
-		while (true)
+		auto count = k;
+		auto temp = la_begin;
+		while (count != s_end && temp != la_end && count->second == temp->second)
 		{
-			if (count->second == temp->second)
-				if (count != s_end)
-				{
-					if (length >= 9)
-					{
-						if_max_length_stop = 1;
-						break;
-					}
-					++count;
-					++temp;
-					++length;
-				}
-				else
-					break;
-			else
+			if (length >= 9)
+			{
+				stop = true;
 				break;
+			}
+			++count;
+			++temp;
+			++length;
 		}
+
 		if (max_length < length)
 		{
 			max_length = length;
 			position = k->first;	
 		}
+
 		length = 0;
-		if (if_max_length_stop == 1)
-		{
-			if_max_length_stop = 0;
-			break;
-		}
 	}
 
-	//creating code of subpixels
+	// Creating code of subpixels
 	if (max_length == 1)
-		ofile.write(reinterpret_cast<const char*>(&la_begin->second), 1);
+		ofile.write(reinterpret_cast<const char*>(&la_begin->second), sizeof(la_begin->second));
 	else
 	{
 		uint8_t code = 128 | (max_length - 2) << 4 | (position - s_begin->first);
 		ofile.write(reinterpret_cast<const char*>(&code), sizeof(code));
 	}
+
 	return max_length;
+}
+
+void LZ77::load_la_buff(std::array<uint8_t, 3> & color, Image::pixel_iterator & current, const Image::pixel_iterator & end, short & what_color, int it, int addition)
+{
+	while (la_buff.size() < la_buff_size && current != end)
+	{
+		if (what_color < 3)
+		{
+			la_buff.insert(std::make_pair(addition + it, color[what_color]));
+			++it;
+			++what_color;
+		}
+		else
+		{
+			what_color = 1;
+			color = current.rgb();
+			++current;
+			for (auto &c : color)
+				c >>= 4;
+			la_buff.insert(std::make_pair(addition + it, color[0]));
+			++it;
+		}
+	}
 }
 
 
@@ -221,15 +153,16 @@ short LZ77::create_code(std::ofstream &ofile)
  * @param size of the longest sequence
  * @param iterator pointing the beginning of search buffer
  */
-void LZ77::insert_elements_to_s_buff(short max_length, unsigned int &it)
+void LZ77::insert_elements_to_s_buff(short max_length, int &it)
 {
-	//inserting elements into search buffer
-	std::map<int, uint8_t>::iterator la_begin=la_buff.begin();
-	while (max_length-- > 0)
+	// Inserting elements into search buffer
+	auto la_begin = la_buff.begin();
+	while (max_length > 0)
 	{
-		s_buff.insert(std::pair<int, uint8_t>(s_buff_size + it, la_begin->second));
+		s_buff.insert(std::make_pair(static_cast<int>(s_buff_size + it), la_begin->second));
 		++la_begin;
 		++it;
+		--max_length;
 	}
 }
 
@@ -251,44 +184,55 @@ void LZ77::popFront(std::map<int, uint8_t> & buffer, size_t n)
  */
 void LZ77::decode(std::ifstream &ifile, Image &image)
 {
-	std::cout<<"\n=== LZ77 DECOMPRESSION ==="<<std::endl;
+#ifdef _DEBUG
+	std::cout << "\n=== LZ77 DECOMPRESSION ===" << std::endl;
+#endif
 
 	//variables to decoding
-	short length=0;
-	
-	//coordinates of pixels
-	unsigned int x=0, y=0; 	
-		
+	short length = 0;
+
 	//colors of the one pixel
 	uint8_t color[3];
 
-	//variable to keep code readed from binary file
-	uint8_t code;
-	
 	//variable pointing subpixel
-	short what_color=1;
+	short what_color = 1;
 
-	//loading first byte				
-	ifile.read(reinterpret_cast<char*>(&code), sizeof(code));
-	color[0] = code << 4;
+	// Load whole file at once
+	std::vector<char> codes = std::vector<char>(std::istreambuf_iterator<char>(ifile), std::istreambuf_iterator<char>());
+	auto code = codes.begin();
 
-	//initialization of search buffer
-	for (unsigned int i = 0; i < s_buff_size; ++i)
-		s_buff.insert(std::pair<int, uint8_t>(i, color[0]));
+	// Fill search buffer with first byte
+	color[0] = static_cast<uint8_t>(*code) << 4;
+	for (int i = 0; i < static_cast<int>(s_buff_size); ++i)
+		s_buff.insert(std::make_pair(i, color[0]));
 
-	while (!ifile.eof())
+	auto pixel_it = image.begin();
+	auto codes_end = codes.end();
+	for (++code; code != codes_end; ++code)
 	{
-		ifile.read(reinterpret_cast<char*>(&code), sizeof(code));
-		length=read_code(code);
+		length = read_code(static_cast<uint8_t>(*code));
 		put_elements_into_s_buff(length);
-
 		popFront(s_buff, length);
 
-		build_image(x, y, length, what_color, color, image);
+		for (const auto p : la_buff)
+		{
+			if (what_color >= 3)
+			{
+				pixel_it.value(color[0], color[1], color[2]);
+				++pixel_it;
+				what_color = 0;
+			}
+
+			color[what_color] = p.second;
+			++what_color;
+		}
+		la_buff.clear();
 	}
-	la_buff.clear();
+
 	s_buff.clear();
-	std::cout<<"\n=== LZ77 DECOMPRESSION DONE ==="<<std::endl;
+#ifdef _DEBUG
+	std::cout << "\n=== LZ77 DECOMPRESSION DONE ===" << std::endl;
+#endif
 }
 
 
@@ -296,22 +240,23 @@ void LZ77::decode(std::ifstream &ifile, Image &image)
  * @param readed code
  */
 short LZ77::read_code(uint8_t code)
-{	
-	std::map<int, uint8_t>::iterator la_begin = la_buff.begin();
-	std::map<int, uint8_t>::iterator s_begin = s_buff.begin();
+{
+	auto s_first = s_buff.begin()->first;
+
 	uint8_t first_bit = code >> 7;
 	short length;
 	//checking what we have- one subpixel or sequence
 	if (first_bit)
 	{
 		//decoding sequence of subpixels in one byte
-		length = ((int)code >> 4) - 8;
-		short position = (int)code - 128 - (length << 4);
+		length = (static_cast<int>(code) >> 4) - 8;
+		short position = static_cast<int>(code) - 128 - (length << 4);
 		length += 2;
+
 		short it = 0;
 		while (it < length)
 		{
-			la_buff.insert(std::pair<int, uint8_t>(la_begin->first, s_buff[s_begin->first + position + it]));
+			la_buff.insert(std::make_pair(s_first + it, s_buff[s_first + position + it]));
 			++it;
 		}
 	}
@@ -319,7 +264,7 @@ short LZ77::read_code(uint8_t code)
 	{
 		//decoding one subpixel
 		code = code << 4;
-		la_buff.insert(std::pair<int, uint8_t>(la_begin->first, (int)code));
+		la_buff.insert(std::make_pair(0, code));
 		length = 1;
 	}
 	return length;
@@ -332,47 +277,15 @@ short LZ77::read_code(uint8_t code)
 void LZ77::put_elements_into_s_buff(short length)
 {
 	//inserting elements to search buffer
-	std::map<int, uint8_t>::iterator s_begin=s_buff.begin();
-	std::map<int, uint8_t>::iterator la_begin=la_buff.begin();
-	short it=0;
-	while (length-- > 0)
+	auto s_first = s_buff.begin()->first;
+	auto la_begin = la_buff.begin();
+
+	short it = 0;
+	while (length > 0)
 	{
-		s_buff.insert(std::pair<int, uint8_t>(s_begin->first+s_buff_size+it, la_begin->second));
+		s_buff.insert(std::make_pair(s_first + s_buff_size + it, la_begin->second));
 		++la_begin;
 		++it;
+		--length;
 	}
-}
-
-
-/** 
- * @param coordinate x
- * @param coordinate y
- * @param length of sequence of subpixels or one subpixel (=1)
- * @param variable pointing the subpixel
- * @param loading colors of the one pixel
- * @param vaild Image to save
- */
-void LZ77::build_image(unsigned int &x, unsigned int &y, short &length, short &what_color, uint8_t *color, Image &image)
-{
-
-	for (auto it = la_buff.begin(); it != la_buff.end() && length > 0; ++it, --length)
-	{
-		if (x >= image.width())
-		{
-			x = 0;
-			++y;
-		}
-		if (what_color >= 3)
-		{
-			image.setPixel(x, y, color[0], color[1], color[2]);
-			++x;
-			what_color = 0;
-		}
-
-		color[what_color] = it->second;
-		++what_color;
-		
-		la_buff.erase(it); // #HERE
-	}
-
 }
