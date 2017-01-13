@@ -46,8 +46,9 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 	// Variable pointing the subpixel
 	short what_color = 1;
 
+	bool end_of_picture=1;
 	// The first loading data to la_buff 
-	load_la_buff(color, pixel_it, img_end, what_color);
+	load_la_buff(color, pixel_it, img_end, what_color, end_of_picture);
 
 	// Variables to search the longest sequence
 	short max_length = 0;
@@ -56,7 +57,7 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 	int it = 0;
 	while (la_buff.size() > 0)
 	{
-		load_la_buff(color, pixel_it, img_end, what_color, (it - max_length + 1), la_buff_size);
+		load_la_buff(color, pixel_it, img_end, what_color, end_of_picture, (it - max_length + 1), la_buff_size);
 		max_length = create_code(ofile);
 		insert_elements_to_s_buff(max_length, it);
 
@@ -66,7 +67,6 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 
 //	la_buff.clear();
 	s_buff.clear();
-
 #ifdef _DEBUG
 	std::cout<<"\n=== LZ77 COMPRESSION DONE ==="<<std::endl;
 #endif
@@ -126,15 +126,17 @@ short LZ77::create_code(std::ofstream &ofile)
 	return max_length;
 }
 
-void LZ77::load_la_buff(std::array<uint8_t, 3> & color, Image::pixel_iterator & current, const Image::pixel_iterator & end, short & what_color, int it, int addition)
+void LZ77::load_la_buff(std::array<uint8_t, 3> & color, Image::pixel_iterator & current, const Image::pixel_iterator & end, short & what_color, bool &end_of_picture, int it, int addition)
 {
-	while (la_buff.size() < la_buff_size && current != end)
+	while (la_buff.size() < la_buff_size && end_of_picture)
 	{
 		if (what_color < 3)
 		{
 			la_buff.insert(std::make_pair(addition + it, color[what_color]));
 			++it;
 			++what_color;
+			if (current == end && what_color==3)
+				end_of_picture=0;
 		}
 		else
 		{
@@ -210,7 +212,7 @@ void LZ77::decode(std::ifstream &ifile, Image &image)
 
 	auto pixel_it = image.begin();
 	auto codes_end = codes.end();
-	for (code; code != codes_end; ++code)
+	for (code; code <= codes_end; ++code)
 	{
 		length = read_code(static_cast<uint8_t>(*code));
 		put_elements_into_s_buff(length);
