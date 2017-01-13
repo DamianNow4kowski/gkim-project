@@ -32,6 +32,7 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 
 	// Loading first pixel to initialization variables
 	std::array<uint8_t, 3> color = pixel_it.rgb();
+	++pixel_it;
 	for (auto &c : color)
 		c >>= 4;
 
@@ -203,12 +204,13 @@ void LZ77::decode(std::ifstream &ifile, Image &image)
 
 	// Fill search buffer with first byte
 	color[0] = static_cast<uint8_t>(*code) << 4;
+	++code;
 	for (int i = 0; i < static_cast<int>(s_buff_size); ++i)
 		s_buff.insert(std::make_pair(i, color[0]));
 
 	auto pixel_it = image.begin();
 	auto codes_end = codes.end();
-	for (++code; code != codes_end; ++code)
+	for (code; code != codes_end; ++code)
 	{
 		length = read_code(static_cast<uint8_t>(*code));
 		put_elements_into_s_buff(length);

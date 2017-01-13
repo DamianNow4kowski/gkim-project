@@ -9,11 +9,11 @@ protected:
 	virtual Image recover(const std::string &filename) override;
 public:
 	virtual std::string extension() const override;
-	BMP();
-	BMP(const BMP &img);
-	BMP(BMP &&img);
-	BMP& operator=(const BMP &img);
-	BMP& operator=(BMP &&img);
+	BMP() = default;
+	BMP(const ImageHandler &img);
+	BMP(ImageHandler &&img);
+	BMP& operator=(const ImageHandler &img);
+	BMP& operator=(ImageHandler &&img);
 };
 
 #endif // !BMP_H

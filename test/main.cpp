@@ -321,6 +321,43 @@ void test_iterator(const std::string &test)
 	bmp.preview();
 }
 
+void openCompressSaveBMP(const std::string &test)
+{
+	BMP bmp;
+	bmp.load(test);
+	{
+		RGB12 rgb(std::move(bmp));
+		rgb.save("test/big/big_upakowanie");
+		rgb.algorithm = RGB12::Algorithm::Huffman;
+		rgb.save("test/big/big_huffman");
+		rgb.algorithm = RGB12::Algorithm::LZ77;
+		rgb.save("test/big/big_lz77");
+		rgb.algorithm = RGB12::Algorithm::GrayScale;
+		rgb.save("test/big/big_gray");
+	}
+
+	{
+		RGB12 rgb;
+		BMP bmp;
+
+		rgb.load("test/big/big_upakowanie.rgb12");
+		bmp = std::move(rgb);
+		bmp.save("test/big/big_upakowanie");
+
+		rgb.load("test/big/big_huffman.rgb12");
+		bmp = std::move(rgb); 
+		bmp.save("test/big/big_huffman");
+	
+		rgb.load("test/big/big_lz77.rgb12");
+		bmp = std::move(rgb); 
+		bmp.save("test/big/big_lz77");
+
+		rgb.load("test/big/big_gray.rgb12");
+		bmp = std::move(rgb);
+		bmp.save("test/big/big_gray");
+	}
+}
+
 int main()
 {
 	std::string testImg;
@@ -342,7 +379,8 @@ int main()
 	//test_BMPHandler();
 	//test_RGB12Handler();
 
-	testImg = "test/wide.bmp";
+	///testImg = "test/big/big.bmp";
+	//testImg = "test/wide.bmp";
 	//testImg = "test/1x1.bmp";
 	//testImg = "test/rgbcube.bmp";
 	//testImg = "test/test.bmp";
@@ -350,10 +388,12 @@ int main()
 	//testImg = "test/smalltest_8bit.bmp";
 
 	/// Algs
-	test_BitDensity(testImg);
-	test_Huffman(testImg);
-	test_LZ77(testImg);
-	test_Grey(testImg);
+	//test_BitDensity(testImg);
+	//test_Huffman(testImg);
+	//test_LZ77(testImg);
+	//test_Grey(testImg);
+	openCompressSaveBMP(testImg);
+
 
 	// Image::iterator test vs setters/getters
 	//test_iterator(testImg);

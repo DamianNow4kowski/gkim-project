@@ -27,14 +27,7 @@ std::string BMP::extension() const
 	return std::string(".bmp");
 }
 
-BMP::BMP()
-{
-#ifdef _DEBUG
-	std::cout << "[BMP]: Called default constructor." << std::endl;
-#endif
-}
-
-BMP::BMP(const BMP &img)
+BMP::BMP(const ImageHandler &img)
 	: ImageHandler(img)
 {
 #ifdef _DEBUG
@@ -42,7 +35,7 @@ BMP::BMP(const BMP &img)
 #endif
 }
 
-BMP::BMP(BMP &&img)
+BMP::BMP(ImageHandler &&img)
 	: ImageHandler(std::move(img))
 {
 #ifdef _DEBUG
@@ -50,7 +43,7 @@ BMP::BMP(BMP &&img)
 #endif
 }
 
-BMP & BMP::operator=(const BMP &img)
+BMP & BMP::operator=(const ImageHandler &img)
 {
 #ifdef _DEBUG
 	std::cout << " -> [BMP::operator=]: Called copy assigment operator." << std::endl;
@@ -60,7 +53,7 @@ BMP & BMP::operator=(const BMP &img)
 	return *this;
 }
 
-BMP & BMP::operator=(BMP &&img)
+BMP & BMP::operator=(ImageHandler &&img)
 {
 #ifdef _DEBUG
 	std::cout << " -> [BMP::operator=]: Called move assigment operator." << std::endl;
