@@ -335,17 +335,17 @@ int main()
 
 	///testImg = "test/big/big.bmp";
 	//testImg = "test/wide.bmp";
-	testImg = "test/1x1.bmp";
-	//testImg = "test/rgbcube.bmp";
+	//testImg = "test/1x1.bmp";
+	testImg = "test/rgbcube.bmp";
 	//testImg = "test/test.bmp";
 	//testImg = "test/smalltest_24bit.bmp";
 	//testImg = "test/smalltest_8bit.bmp";
 
 	/// Algs
-	test_BitDensity(testImg);
-	test_Huffman(testImg);
+	//test_BitDensity(testImg);
+	//test_Huffman(testImg);
 	test_LZ77(testImg);
-	test_Grey(testImg);
+	//test_Grey(testImg);
 	//openCompressSaveBMP(testImg);
 
 	#ifndef __linux

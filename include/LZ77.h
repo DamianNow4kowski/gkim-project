@@ -23,7 +23,7 @@ private:
 
 	//encoding functions
 	short create_code(std::ofstream &ofile);
-	void load_la_buff(std::array<uint8_t, 3> &color, Image::pixel_iterator &current, const Image::pixel_iterator &end, short &what_color, bool &end_of_picture, int start = 0, int addition = 0);
+	void load_la_buff(std::array<uint8_t, 3> &color, Image::pixel_iterator &current, const Image::pixel_iterator &end, short &what_color, int start = 0, int addition = 0);
 	void insert_elements_to_s_buff(short max_length, int &it);
 
 	/**
