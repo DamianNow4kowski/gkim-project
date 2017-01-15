@@ -2,64 +2,88 @@
 #include "Huffman.h"
 #include "RGB12.h"
 #include "InputHandler.h"
+#include "CText.h"
 
 #include <iostream>
-#include <array>
 #include <string>
+#include <memory>
 
 int main(int argc, char *argv[])
 {
-	InputHandler real(argc, argv);
+	InputHandler cli(argc, argv);
 
-	auto test = real.get("test");
-	if (!test.empty() && test[0] == "InputHandler")
+	if (cli.isset("debug"))
 	{
-		char **arr = new char*[9];
-		arr[0] = "exe.xd";
-		arr[1] = "obrazek.bmp";
-		arr[2] = "-input";
-		arr[3] = "obrazek2.bmp";
-		arr[4] = "-output";
-		arr[5] = "obrazek";
-		arr[6] = "-alg";
-		arr[7] = "Huffman";
-		arr[8] = "-grayscale";
-		InputHandler cli(9, arr);
 		cli.print();
 	}
 
-	// Initialize SDL
-	try
-	{
-		SDL sdl(SDL_INIT_VIDEO | SDL_INIT_TIMER);
-	}
-	catch (const RuntimeError &err)
-	{
-		std::cerr << "Error while initializing SDL:  " << err.what() << std::endl;
-		return 1;
-	}
+	const std::vector<std::string> SUPPORTED_EXTS = { "bmp", "rgb12" };
 
-	/*if (cli.option("open"))
+	// Parse files on input
+	// 0 => filepath
+	// 1 => filename
+	// 2 => extension
+	std::vector<std::tuple<std::string, std::string, std::string>> parsedFiles;
+	for (auto &f : cli.get("input"))
 	{
-		std::string filename;
-		while (cli.get(filename))
+
+#ifdef _WIN32
+		// normalize path separator
+		for (auto &c : f)
 		{
-			// VERY SIMPLE OPENING
-			BMP bmp;
-			bmp.load(filename);
-			if (bmp.image.empty())
-			{
-				RGB12 rgb;
-				rgb.load(filename);
-				rgb.preview();
-			}
-			else bmp.preview();
+			if (c == '\\')
+				c = '/';
 		}
-	}*/
+#endif
+		auto res = cli.match_extensions(f, SUPPORTED_EXTS);
+		if (std::get<0>(res))
+		{
+			parsedFiles.push_back(std::make_tuple(f, std::get<1>(res), std::get<2>(res)));
+		}
+		else std::cerr << " !!! Unsupported extension: " << CText((std::get<2>(res).empty() ? " - no extension -" : std::get<2>(res))) << std::endl;
+	}
 
-	#ifndef  __linux
-		system("PAUSE");
-	#endif // ! __linux
+	if (!parsedFiles.empty())
+	{
+		// Initialize SDL
+		try
+		{
+			SDL sdl(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+		}
+		catch (const RuntimeError &err)
+		{
+			std::cerr << " !!! Error while initializing SDL:  " << CText(err.what()) << std::endl;
+			return 1;
+		}
+
+		for (auto &file : parsedFiles)
+		{
+			std::string path, name, ext;
+			std::tie(path, name, ext) = file;
+			std::unique_ptr<ImageHandler> ih;
+
+			// Init proper class
+			if (ext == "rgb12")
+				ih = std::make_unique<RGB12>();
+			else ih = std::make_unique<BMP>();
+
+			// Load Image
+			ih->load(path);
+			if (!ih->image.empty())
+			{
+				// Convert to gray scale if needed
+				if (cli.isset({ "gs" , "gray", "grayscale" }))
+					ih->toGrayScale();
+
+				if (cli.isset({ "v", "view" }))
+					ih->preview();
+			}
+		}
+	}
+	else
+	{
+		std::cerr << "There was no input provided or it was invaild." << std::endl;
+	}
 
 	// Return sucess
 	return EXIT_SUCCESS;

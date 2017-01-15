@@ -19,7 +19,7 @@ void ImageHandler::openStream(const std::string &filename, std::ifstream &input)
 	// @remarks: http://stackoverflow.com/questions/24097580/ifstreamis-open-vs-ifstreamfail
 	if (!input) {
 		std::ostringstream os;
-		os << "Cannot open file in load mode [filename = '" << filename << "']";
+		os << "Cannot open file in binary load mode [filename = '" << filename << "']";
 		throw RuntimeError(os.str());
 	}
 }
@@ -29,7 +29,7 @@ void ImageHandler::openStream(const std::string &filename, std::ofstream &output
 	output.open(filename, std::ios::out | std::ios::binary);
 	if (!output) {
 		std::ostringstream os;
-		os << "Cannot open file in save mode [filename = '" << filename << "']";
+		os << "Cannot open file in binary save mode [filename = '" << filename << "']";
 		throw RuntimeError(os.str());
 	}
 }
@@ -91,15 +91,26 @@ ImageHandler & ImageHandler::toGrayScale()
 	std::cout << " -> [ImageHandler::toGrayScale]: Converting Image to grey scale." << std::endl;
 #endif // _DEBUG
 
-	if (image.depth() <= 8)
-		std::cerr << "!!! [ImageHandler::toGreyScale]: " << CText("This function may NOT work on palletized surfaces. Use RGB12 container.") << std::endl;
-
 	uint8_t gray;
 	auto img_end = image.end();
-	for (auto pixel = image.begin(); pixel < img_end; ++pixel)
+
+	if (image.depth() <= 8)
 	{
-		gray = pixel.gray();
-		pixel.value(gray, gray, gray);
+		std::cerr << "!!! [ImageHandler::toGreyScale]: " << CText("This function may NOT work well on palletized surfaces. Use RGB12 container instead.") << std::endl;
+		SDL_PixelFormat *pf = image.img()->format;
+		for (auto pixel = image.begin(); pixel < img_end; ++pixel)
+		{
+			gray = pixel.gray();
+			pixel.value(SDL_MapRGB(pf, gray, gray, gray));
+		}
+	}
+	else
+	{
+		for (auto pixel = image.begin(); pixel < img_end; ++pixel)
+		{
+			gray = pixel.gray();
+			pixel.value(gray, gray, gray);
+		}
 	}
 
 	return *this;

@@ -15,8 +15,8 @@ private:
 
 	/**
 	 * Verifies extension of file
-	 * @param string with filename 
-	 * @param string containg verified extension WITH dot (!important)
+	 * @param string with full filename with extension LOWERCASE
+	 * @param string containg verified LOWERCASE extension WITH dot (!important)
 	 * @return true if extension matches | false otherwise
 	 */
 	bool verifyExtension(const std::string &, const std::string &) const;

@@ -6,14 +6,17 @@
 
 
 InputHandler::InputHandler(int argc, char ** argv)
-	:EMPTY_OPTION("input")
+	: DEFAULT_OPTION("input"),
+	FILE_EXT(R"([^\\]*\.(\w+)$)")
+//	FILE_EXT(R"([^\\]*\.(\w+)$)")
+//	FILE_EXT("[^\\\\]*\\.(\\w+)$") // path separator in windows is '\'
+	//FILE_EXT("[^\\/]*\\.(\\w+)$") // whlie everywhere else is '/'
 {
-
 #ifdef _DEBUG
 	std::cout << " -> [InputHandler]: Parsing input for executable '" << CText(argv[0], CText::Color::GREEN) << '\'' << std::endl;
 #endif // DEBUG
 
-	std::string option = EMPTY_OPTION;
+	std::string option = DEFAULT_OPTION;
 	std::vector<std::string> arguments;
 
 	size_t i = 1;
@@ -52,14 +55,19 @@ InputHandler::InputHandler(int argc, char ** argv)
 }
 
 
-bool InputHandler::isset(const std::string & option) const
+bool InputHandler::isset(const std::vector<std::string> &options) const
 {
-	return option_arguments.count(option) == 1;
+	for (const auto &opt : options)
+	{
+		if (option_arguments.count(opt) == 1)
+			return true;
+	}
+	return false;
 }
 
 bool InputHandler::isset(const char * option) const
 {
-	return isset(std::string(option));
+	return option_arguments.count(std::string(option)) == 1;
 }
 
 std::vector<std::string> InputHandler::get(const std::string &argument)
@@ -81,6 +89,51 @@ std::vector<std::string> InputHandler::get(const char * option)
 bool InputHandler::empty() const
 {
 	return option_arguments.size() == used.size();
+}
+
+std::pair<bool, std::string> InputHandler::match_extension(const std::string & filepath, const char * extension) const
+{
+	bool matched = false;
+	std::string result;
+	std::smatch match;
+	
+	if (std::regex_match(filepath, match, FILE_EXT))
+	{
+		// "only" file extension
+		result = match[1].str();
+
+		if (result == extension)
+		{
+			// return full filename when matched
+			result = match[0].str();
+			matched = true;
+		}
+	}
+
+	return std::make_pair(matched, result);
+}
+
+std::tuple<bool, std::string, std::string> InputHandler::match_extensions(const std::string & filepath, const std::vector<std::string>& extensions) const
+{
+	bool matched = false;
+	std::string name, ext;
+	std::smatch match;
+
+	if (std::regex_match(filepath, match, FILE_EXT))
+	{
+		name = match[0].str();
+		ext = match[1].str();
+		for (const auto &e : extensions)
+		{
+			if (ext == e)
+			{
+				matched = true;
+				break;
+			}
+		}
+	}
+
+	return std::make_tuple(matched, name, ext);
 }
 
 void InputHandler::print(std::ostream & o)
