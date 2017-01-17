@@ -6,7 +6,6 @@
 
 #include <vector>
 #include <fstream>
-#include <iostream>
 
 class Huffman
 {

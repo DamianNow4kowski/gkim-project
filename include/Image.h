@@ -3,7 +3,6 @@
 
 #include "SDL_Local.h"
 #include <iostream>
-#include <tuple>
 #include <array>
 
 class Image

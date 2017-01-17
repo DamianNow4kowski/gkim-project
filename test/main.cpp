@@ -9,6 +9,7 @@
 #include "RGB12.h"
 #include "LZ77.h"
 #include "CText.h"
+#include "RuntimeError.h"
 
 using namespace std;
 
@@ -52,7 +53,6 @@ void test_BMPHandler()
 	BMP bmp;
 	bmp.load("test/smalltest_24bit.bmp");
 	bmp.preview(true);
-	bmp.toGrayScale();
 	bmp.save("test/bmp_handler_test");
 	bmp.load("test/bmp_handler_test.bmp");
 	bmp.preview(true);
@@ -222,9 +222,6 @@ void test_Grey(const std::string &test)
 {
 	BMP bmp;
 	bmp.load(test);
-	if(bmp.image.depth() > 8)
-		bmp.toGrayScale();
-	bmp.preview();
 
 	// Test look
 	RGB12 rgb(bmp);
@@ -255,24 +252,29 @@ void test_Image()
 	BMP bmp, test;
 	bmp.load("test/smalltest_24bit.bmp");
 
-	test.image = bmp.image; // pixels
+	test.image = bmp.image;
 	bmp.preview();
 	test.preview();
 
-	bmp.toGrayScale(); // pixels
+	{
+		RGB12 temp;
+		temp = bmp;
+		temp.toGrayScale();
+		bmp = std::move(temp);
+	}
 	test.image = std::move(bmp.image);
 	bmp.preview(); // should fail
 	test.preview();
 
-	Image copied(test.image); // pixels
-	test.image = copied; // pixels
+	Image copied(test.image);
+	test.image = copied;
 	test.preview();
 
 	Image moved(std::move(copied));
 	test.image = std::move(copied);
 	test.preview(); // should fail
 	test.image = std::move(moved);
-	test.preview(); // should ok
+	test.preview();
 }
 
 void openCompressSaveBMP(const std::string &test)
@@ -329,14 +331,14 @@ int main()
 
 
     cout << "Testing.." << endl;
-	//test_Image();
-	//test_BMPHandler();
-	//test_RGB12Handler();
+	test_Image();
+	test_BMPHandler();
+	test_RGB12Handler();
 
 	///testImg = "test/big/big.bmp";
-	//testImg = "test/wide.bmp";
+	testImg = "test/wide.bmp";
 	//testImg = "test/1x1.bmp";
-	testImg = "test/rgbcube.bmp";
+	//testImg = "test/rgbcube.bmp";
 	//testImg = "test/test.bmp";
 	//testImg = "test/smalltest_24bit.bmp";
 	//testImg = "test/smalltest_8bit.bmp";
@@ -344,12 +346,9 @@ int main()
 	/// Algs
 	//test_BitDensity(testImg);
 	//test_Huffman(testImg);
-	test_LZ77(testImg);
+	//test_LZ77(testImg);
 	//test_Grey(testImg);
-	//openCompressSaveBMP(testImg);
+	openCompressSaveBMP(testImg);
 
-	#ifndef __linux
-		system("PAUSE");
-	#endif
 	return 0;
 }

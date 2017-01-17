@@ -1,4 +1,5 @@
 #include "SDL_Local.h"
+#include "RuntimeError.h"
 
 SDL::SDL(uint32_t flags)
 {

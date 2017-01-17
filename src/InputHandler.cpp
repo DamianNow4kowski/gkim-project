@@ -1,16 +1,12 @@
 #include "InputHandler.h"
 #include "CText.h"
 
-#include <iostream>
 #include <string>
 
 
 InputHandler::InputHandler(int argc, char ** argv)
 	: DEFAULT_OPTION("input"),
-	FILE_EXT(R"([^\\]*\.(\w+)$)")
-//	FILE_EXT(R"([^\\]*\.(\w+)$)")
-//	FILE_EXT("[^\\\\]*\\.(\\w+)$") // path separator in windows is '\'
-	//FILE_EXT("[^\\/]*\\.(\\w+)$") // whlie everywhere else is '/'
+	FILE_EXT(R"([^\\]*\.(\w+)$)") // TODO: not "Raw string"
 {
 #ifdef _DEBUG
 	std::cout << " -> [InputHandler]: Parsing input for executable '" << CText(argv[0], CText::Color::GREEN) << '\'' << std::endl;

@@ -1,10 +1,8 @@
 #ifndef LZ77_H
 #define LZ77_H
 #include "Image.h"
-#include "RuntimeError.h"
 #include <map>
 #include <fstream>
-#include <iostream>
 
 class LZ77
 {

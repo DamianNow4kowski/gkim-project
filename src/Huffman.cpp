@@ -1,13 +1,10 @@
 #include "Huffman.h"
-
 #include "BitsToFile.h"
-#include "BMP.h"
 
 #include <iostream>
-#include <iomanip>
+#include <iomanip> // printCodes
 #include <queue>
-#include <iterator>
-#include <algorithm>
+#include <algorithm> // sort
 
 Huffman::Huffman()
 	:	codeVec(std::vector<std::pair<uint32_t, std::vector<bool>>>()),

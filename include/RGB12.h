@@ -30,10 +30,9 @@ public:
 	RGB12& operator=(const RGB12 &);
 	RGB12& operator=(RGB12 &&);
 
-	// @override
 	// Turn Image to gray scale in RGB444 format and if Algorithm::BitDenisty
 	// is chosen change to Algorithm::GreyScale
-	RGB12& toGrayScale() override;
+	RGB12& toGrayScale();
 
 protected:
 	void store(const std::string &filename, const Image &image) const override;
@@ -77,12 +76,6 @@ private:
 
 	void saveGray(std::ofstream &output, const Image &img) const;
 	void loadGray(std::ifstream &input, Image &img);
-
-	void saveHuffman(std::ofstream &os, const Image &img) const;
-	void loadHuffman(std::ifstream &is, Image &img);
-
-	void saveLZ77(std::ofstream &ofs, const Image &img) const;
-	void loadLZ77(std::ifstream &ifs, Image &img);
 
 };
 

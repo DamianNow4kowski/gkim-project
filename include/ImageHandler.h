@@ -68,9 +68,6 @@ public:
 
 	/// Public interface methods
 
-	// Turn Image to gray scale
-	virtual ImageHandler& toGrayScale();
-
 	// Render Image view and show it on the screen 
 	ImageHandler& preview(bool = false);
 

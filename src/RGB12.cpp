@@ -2,10 +2,10 @@
 #include "LZ77.h"
 #include "Huffman.h"
 #include "CText.h"
+#include "RuntimeError.h"
 
 #include <iostream>
 #include <utility>
-#include <algorithm>
 #include <sstream>
 
 Image RGB12::convert(const Image& img) const
@@ -22,7 +22,7 @@ Image RGB12::convert(const Image& img) const
 		return Image(img);
 
 #ifdef _DEBUG
-	std::cout << "-> [RGB12::convert]: Converting Image to RGB444 format." << std::endl;
+	std::cout << " -> [RGB12::convert]: Converting Image to RGB444 format." << std::endl;
 #endif
 
 	// Start conversion
@@ -66,7 +66,7 @@ RGB12 & RGB12::toGrayScale()
 void RGB12::load444(std::ifstream &f, Image &img)
 {
 #ifdef _DEBUG
-	std::cout << "-> [RGB12::load444]: Run BitDensity load algorithm." << std::endl;
+	std::cout << " -> [RGB12::load444]: Run BitDensity load algorithm." << std::endl;
 #endif
 
 	std::vector<char> buffer = std::vector<char>(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
@@ -126,22 +126,10 @@ void RGB12::loadGray(std::ifstream & input, Image & img)
 		
 }
 
-void RGB12::saveHuffman(std::ofstream &os, const Image &img) const
-{
-	Huffman huffman; // TODO: maybe create constructor like this: Huffman(std::ofstream &os, const Image &img); to encode? and same for decode()
-	huffman.encode(os, img);
-}
-
-void RGB12::loadHuffman(std::ifstream &is, Image &img)
-{
-	Huffman huffman;
-	huffman.decode(is, img);
-}
-
 void RGB12::save444(std::ofstream &f, const Image &img) const
 {
 #ifdef _DEBUG
-	std::cout << "-> [RGB12::save444]: Run BitDensity save algorithm." << std::endl;
+	std::cout << " -> [RGB12::save444]: Run BitDensity save algorithm." << std::endl;
 #endif
 
 	bool isSpace = true,
@@ -181,18 +169,6 @@ void RGB12::save444(std::ofstream &f, const Image &img) const
 		f.write(&usedChar, sizeof(usedChar));
 }
 
-void RGB12::saveLZ77(std::ofstream &ofs, const Image &img) const
-{
-	LZ77 lz;
-	lz.encode(ofs, img);
-}
-
-void RGB12::loadLZ77(std::ifstream &ifs, Image &img)
-{
-	LZ77 lz;
-	lz.decode(ifs, img);
-}
-
 void RGB12::store(const std::string & filename, const Image & img) const
 {
 #ifdef _DEBUG
@@ -213,11 +189,17 @@ void RGB12::store(const std::string & filename, const Image & img) const
 		save444(f, img);
 		break;
 	case Algorithm::Huffman:
-		saveHuffman(f, img);
+	{
+		Huffman huffman;
+		huffman.encode(f, img);
 		break;
+	}
 	case Algorithm::LZ77:
-		saveLZ77(f, img);
+	{
+		LZ77 lz77;
+		lz77.encode(f, img);
 		break;
+	}
 	case Algorithm::GrayScale:
 		saveGray(f, img);
 		break;
@@ -256,11 +238,17 @@ Image RGB12::recover(const std::string & filename)
 		load444(f, recovered);
 		break;
 	case Algorithm::Huffman:
-		loadHuffman(f, recovered);
+	{
+		Huffman huffman;
+		huffman.decode(f, recovered);
 		break;
+	}
 	case Algorithm::LZ77:
-		loadLZ77(f, recovered);
+	{
+		LZ77 lz77;
+		lz77.decode(f, recovered);
 		break;
+	}
 	case Algorithm::GrayScale:
 		loadGray(f, recovered);
 		break;
@@ -391,7 +379,7 @@ RGB12::RGB12(const RGB12 &rgb)
 }
 
 RGB12::RGB12(RGB12 &&rgb)
-	:ImageHandler(std::move(rgb)), algorithm(rgb.algorithm)
+	: ImageHandler(std::move(rgb)), algorithm(rgb.algorithm)
 {
 #ifdef _DEBUG
 	std::cout << "[RGB12]: Called move constructor." << std::endl;
@@ -401,7 +389,7 @@ RGB12::RGB12(RGB12 &&rgb)
 RGB12 & RGB12::operator=(const RGB12 &rgb)
 {
 #ifdef _DEBUG
-	std::cout << "-> [RGB12::operator=]: Called copy assigment operator." << std::endl;
+	std::cout << " -> [RGB12::operator=]: Called copy assigment operator." << std::endl;
 #endif
 	
 	ImageHandler::operator=(rgb);
@@ -412,7 +400,7 @@ RGB12 & RGB12::operator=(const RGB12 &rgb)
 RGB12 & RGB12::operator=(RGB12 &&rgb)
 {
 #ifdef _DEBUG
-	std::cout << "-> [RGB12::operator=]: Called move assigment operator." << std::endl;
+	std::cout << " -> [RGB12::operator=]: Called move assigment operator." << std::endl;
 #endif
 	ImageHandler::operator=(std::move(rgb));
 	algorithm = rgb.algorithm;

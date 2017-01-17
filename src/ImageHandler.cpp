@@ -1,9 +1,10 @@
 #include "ImageHandler.h"
 #include "CText.h"
+#include "RuntimeError.h"
 
-#include <iostream>  //debug
+#include <iostream>
 #include <utility>
-#include <algorithm>
+#include <algorithm> // std::equal
 #include <sstream>  // error handling
 
 bool ImageHandler::verifyExtension(const std::string &filename, const std::string &extension) const
@@ -82,37 +83,6 @@ ImageHandler & ImageHandler::operator=(ImageHandler &&iop)
 #endif
 
 	image = std::move(iop.image); // TODO: investigate beheviour
-	return *this;
-}
-
-ImageHandler & ImageHandler::toGrayScale()
-{
-#ifdef _DEBUG
-	std::cout << " -> [ImageHandler::toGrayScale]: Converting Image to grey scale." << std::endl;
-#endif // _DEBUG
-
-	uint8_t gray;
-	auto img_end = image.end();
-
-	if (image.depth() <= 8)
-	{
-		std::cerr << "!!! [ImageHandler::toGreyScale]: " << CText("This function may NOT work well on palletized surfaces. Use RGB12 container instead.") << std::endl;
-		SDL_PixelFormat *pf = image.img()->format;
-		for (auto pixel = image.begin(); pixel < img_end; ++pixel)
-		{
-			gray = pixel.gray();
-			pixel.value(SDL_MapRGB(pf, gray, gray, gray));
-		}
-	}
-	else
-	{
-		for (auto pixel = image.begin(); pixel < img_end; ++pixel)
-		{
-			gray = pixel.gray();
-			pixel.value(gray, gray, gray);
-		}
-	}
-
 	return *this;
 }
 
@@ -202,7 +172,7 @@ ImageHandler& ImageHandler::preview(bool showDetails)
 void ImageHandler::save(std::string &filename) const
 {
 #ifdef _DEBUG
-	std::cout << " -> [ImageHandler::save]: Saving Image to file: " << filename << std::endl;
+	std::cout << " -> [ImageHandler::save]: Saving Image to file: " << CText(filename, CText::Color::GREEN) << std::endl;
 #endif
 
 	try 
@@ -235,7 +205,7 @@ void ImageHandler::save(const char *str) const
 void ImageHandler::load(const std::string &filename)
 {
 #ifdef _DEBUG
-	std::cout << " -> [ImageHandler::load]: Loading Image from file: " << filename << std::endl;
+	std::cout << " -> [ImageHandler::load]: Loading Image from file: " << CText(filename, CText::Color::GREEN) << std::endl;
 #endif
 
 	try 

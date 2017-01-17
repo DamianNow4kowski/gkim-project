@@ -1,14 +1,12 @@
 #ifndef SDL_H
 #define SDL_H
 
-#ifdef __linux
+#ifdef __unix
 	#include <SDL2/SDL.h>
 #else
 	#include <SDL.h>
 #endif
 #undef main // this prevents including default main() from SDL
-
-#include "RuntimeError.h"
 
 class SDL 
 {

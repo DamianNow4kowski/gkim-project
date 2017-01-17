@@ -1,10 +1,6 @@
 #include "Image.h"
 #include "CText.h"
-
-#ifdef _DEBUG
-#include <bitset>
-#include <iomanip>
-#endif
+#include "RuntimeError.h"
 
 #include <sstream>  // thrown errors' messages
 

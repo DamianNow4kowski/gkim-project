@@ -1,12 +1,14 @@
 ﻿#include "SDL_Local.h"
-#include "Huffman.h"
 #include "RGB12.h"
+#include "BMP.h"
 #include "InputHandler.h"
 #include "CText.h"
+#include "RuntimeError.h"
 
 #include <iostream>
 #include <string>
-#include <memory>
+#include <tuple>
+#include <vector>
 
 int main(int argc, char *argv[])
 {
@@ -60,23 +62,30 @@ int main(int argc, char *argv[])
 		{
 			std::string path, name, ext;
 			std::tie(path, name, ext) = file;
-			std::unique_ptr<ImageHandler> ih;
 
-			// Init proper class
-			if (ext == "rgb12")
-				ih = std::make_unique<RGB12>();
-			else ih = std::make_unique<BMP>();
+			RGB12 input;
+
+			// Load input file proper way
+			if (ext == "bmp")
+			{
+				BMP bmp_input;
+				bmp_input.load(path);
+				input = std::move(bmp_input);
+			}
+			else
+			{
+				input.load(path);
+			}
 
 			// Load Image
-			ih->load(path);
-			if (!ih->image.empty())
+			if (!input.image.empty())
 			{
 				// Convert to gray scale if needed
 				if (cli.isset({ "gs" , "gray", "grayscale" }))
-					ih->toGrayScale();
+					input.toGrayScale();
 
 				if (cli.isset({ "v", "view" }))
-					ih->preview();
+					input.preview();
 			}
 		}
 	}

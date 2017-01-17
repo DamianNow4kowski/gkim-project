@@ -1,7 +1,9 @@
 #include "LZ77.h"
-#include "CText.h"
-#include <iterator>
 #include <vector>
+
+#ifdef _DEBUG
+#include <iostream>
+#endif
 
 LZ77::LZ77()
 

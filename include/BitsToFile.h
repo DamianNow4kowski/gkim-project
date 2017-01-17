@@ -1,11 +1,8 @@
 #ifndef BITS_TO_FILE_H
 #define BITS_TO_FILE_H
 
-#include "RuntimeError.h"
-
 #include <fstream>
 #include <vector>
-#include <iostream>
 
 class BitsToFile
 {
