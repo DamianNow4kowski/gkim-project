@@ -26,10 +26,10 @@ TOBJECTS := $(patsubst $(TESTDIR)/%,$(BUILDDIR)/%,$(TESTS:.$(SRCEXT)=.$(BUILDEXT
 CC := g++
 
 ## CFLAGS FOR DEBUG
-#CFLAGS := -g -Wall -D_DEBUG -O2 -m64 -std=c++14
+CFLAGS := -g -Wall -D_DEBUG -O2 -m64 -std=c++14
 
 ## CFLAGS FOR PERFORMANCE TESTS
-CFLAGS := -g -m64 -O3 -std=c++14
+#CFLAGS := -g -m64 -O3 -std=c++14
 
 LIB := -L lib -lSDL2
 INC := -I include

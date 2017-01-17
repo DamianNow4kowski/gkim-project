@@ -210,7 +210,8 @@ void LZ77::decode(std::ifstream &ifile, Image &image)
 
 	auto pixel_it = image.begin();
 	auto codes_end = codes.end();
-	for (code; code < codes_end; ++code)
+
+	while(code < codes_end)
 	{
 		length = read_code(static_cast<uint8_t>(*code));
 		put_elements_into_s_buff(length);
@@ -229,6 +230,7 @@ void LZ77::decode(std::ifstream &ifile, Image &image)
 			++what_color;
 		}
 		la_buff.clear();
+		++code;
 	}
 
 	s_buff.clear();

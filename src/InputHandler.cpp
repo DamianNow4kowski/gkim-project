@@ -19,7 +19,7 @@ InputHandler::InputHandler(int argc, char ** argv)
 	while (true)
 	{
 		// add arguments
-		if (i < argc && argv[i][0] != '-')
+		if (i < static_cast<size_t>(argc) && argv[i][0] != '-')
 		{
 			arguments.push_back(argv[i]);
 		}
@@ -38,7 +38,7 @@ InputHandler::InputHandler(int argc, char ** argv)
 					(*it).second.push_back(a);
 			}
 
-			if (i == argc)
+			if (i == static_cast<size_t>(argc))
 				break;
 
 			// clean arguments for new option
