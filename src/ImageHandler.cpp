@@ -192,7 +192,7 @@ void ImageHandler::save(std::string &filename) const
 	}
 	catch (const RuntimeError &error)
 	{
-		std::cerr << "!!! [ImageHandler::save]: " << CText(error.what()) << std::endl;
+		std::cerr << '[' << CText("IH Saving Error") << "]: " << error.what() << std::endl;
 	}
 }
 
@@ -232,7 +232,7 @@ void ImageHandler::load(const std::string &filename)
 	}
 	catch (const RuntimeError &error)
 	{
-		std::cerr << "!!! [ImageHandler::load]: " << CText(error.what()) << std::endl;
+		std::cerr << '[' << CText("IH Loading Error") << "]: " << error.what() << std::endl;
 	}
 }
 

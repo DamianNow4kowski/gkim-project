@@ -15,13 +15,15 @@ Image RGB12::convert(const Image& img) const
 	// More usefull when don't throw RuntimError
 	if (img.empty())
 	{
+#ifdef _DEBUG
 		std::cerr << "!!! [RGB12::convert]: " << CText("Cannot convert not initialized Image.") << std::endl;
-		return Image();
+#endif
+		return img;
 	}
 
 	// Simply copy surface if it is already in proper format
 	if (img.depth() == RGB12::supported_depth)
-		return Image(img);
+		return img;
 
 #ifdef _DEBUG
 	std::cout << " -> [RGB12::convert]: Converting Image to RGB444 format." << std::endl;

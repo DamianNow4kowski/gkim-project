@@ -33,7 +33,9 @@ SDL_Surface * Image::copy(const SDL_Surface *img) const
 
 	if (img == nullptr)
 	{
+#ifdef _DEBUG
 		std::cerr  << "!!! [Image::copy]: " << CText("Copying not existing surface.") << std::endl;
+#endif
 		return nullptr;
 	}
 

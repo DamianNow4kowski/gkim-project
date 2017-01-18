@@ -18,10 +18,10 @@ std::ostream & CText::print(std::ostream & os) const
 {
 	bool sterr = (&os == &std::cerr);
 #ifdef __unix
-	os << colors[static_cast<size_t>(sterr ? Color::RED : color)] << text << colors[static_cast<size_t>(Color::RESET)];
+	os << colors[static_cast<size_t>((color == Color::RESET && sterr) ? Color::RED : color)] << text << colors[static_cast<size_t>(Color::RESET)];
 #elif _WIN32
 	HANDLE stdhand = GetStdHandle(sterr ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(stdhand, colors[static_cast<size_t>(sterr ? Color::RED : color)]);
+	SetConsoleTextAttribute(stdhand, colors[static_cast<size_t>((color == Color::RESET && sterr) ? Color::RED : color)]);
 	os << text;
 	SetConsoleTextAttribute(stdhand, colors[static_cast<size_t>(Color::RESET)]);
 
