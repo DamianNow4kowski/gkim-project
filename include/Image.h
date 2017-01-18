@@ -72,8 +72,10 @@ public:
 		 * Gets pixel data in one dimensional array format
 		 * where keys: [0] => red component, [1] => green component, [2] => blue component
 		 * @return array<uint8_t, 3>
+		 *
+		 * Remarks: Only for 2 bytes per pixel Image (otherwise undefined behaviour)
 		 */
-		std::array<uint8_t, 3> rgb() const;
+		std::array<uint8_t, 3> rgb2() const;
 
 		/**
 		 * Gets pixel's data (32 bits)
@@ -82,18 +84,35 @@ public:
 		uint32_t value() const;
 
 		/**
+		 * value() specialization
+		 *
+		 * Remarks: Only for 2 bytes per pixel Image (otherwise undefined behaviour)
+		 */
+		uint32_t value2() const;
+
+		/**
 		 * Gets gray scale color using stanard:
 		 * @link https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems 
-		 *
+		 * 
 		 * @return uint8_t grey scale color made from RGB components
+		 *
+		 * Remarks: Only for 2 bytes per pixel Image (otherwise undefined behaviour)
 		 */
-		uint8_t gray() const;
-		
+		uint8_t gray2() const;
+
+
 		/**
 		 * Gets pixel data in SDL_Color format
 		 * @return SDL_Color
 		 */
 		SDL_Color color() const;
+		
+		/**
+		 * color() specliaziation
+		 *
+		 * Remarks: Only for 2 bytes per pixel Image (otherwise undefined behaviour)
+		 */
+		SDL_Color color2() const;
 
 		/**
 		 * Sets pixel's data to SDL_Surface
@@ -102,12 +121,21 @@ public:
 		void value(uint32_t RGB);
 
 		/**
+		 * value(uint32_t) specialization
+		 *
+		 * Remarks: Only for 2 bytes per pixel Image (otherwise undefined behaviour)
+		 */
+		void value2(uint32_t RGB2) const;
+
+		/**
 		 * Sets pixel's color's data to SDL_Surface (Doesn't work with PALLETIZED SDL_Surface)
 		 * @param red component color value (8 bit)
 		 * @param green component color value (8 bit)
 		 * @param blue component color value (8 bit)
+		 *
+		 * Remarks: Only for 2 bytes per pixel Image (otherwise undefined behaviour)
 		 */
-		void value(uint8_t R, uint8_t G, uint8_t B);
+		void value2(uint8_t R4, uint8_t G4, uint8_t B4);
 		
 		// Operators 
 		bool operator==(const pixel_iterator& it) const;

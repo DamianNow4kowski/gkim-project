@@ -240,28 +240,16 @@ inline std::pair<size_t, size_t> Image::pixel_iterator::xy() const
 	return std::make_pair(x, y);
 }
 
-std::array<uint8_t, 3> Image::pixel_iterator::rgb() const
+std::array<uint8_t, 3> Image::pixel_iterator::rgb2() const
 {
-	std::array<uint8_t, 3> rgb = {0, 0, 0};
-	uint32_t val = value();
+	uint32_t val = value2();
 
 	// Gets component's data using SDL_Surface schema
-	if (s->format->palette == nullptr)
-	{
-		rgb[0] = ((val & s->format->Rmask) >> s->format->Rshift) << s->format->Rloss;
-		rgb[1] = ((val & s->format->Gmask) >> s->format->Gshift) << s->format->Gloss;
-		rgb[2] = ((val & s->format->Bmask) >> s->format->Bshift) << s->format->Bloss;
-	}
-
-	// If isset pallete gets values from there 
-	else if (val < static_cast<uint32_t>(s->format->palette->ncolors))
-	{
-		rgb[0] = s->format->palette->colors[val].r;
-		rgb[1] = s->format->palette->colors[val].g;
-		rgb[2] = s->format->palette->colors[val].b;
-	}
-
-	return rgb;
+	return std::array<uint8_t, 3>{
+		static_cast<uint8_t>(((val & s->format->Rmask) >> s->format->Rshift) << s->format->Rloss),
+		static_cast<uint8_t>(((val & s->format->Gmask) >> s->format->Gshift) << s->format->Gloss),
+		static_cast<uint8_t>(((val & s->format->Bmask) >> s->format->Bshift) << s->format->Bloss)
+	};
 }
 
 uint32_t Image::pixel_iterator::value() const
@@ -295,9 +283,31 @@ uint32_t Image::pixel_iterator::value() const
 	}
 }
 
-uint8_t Image::pixel_iterator::gray() const
+uint32_t Image::pixel_iterator::value2() const
 {
-	SDL_Color col = color();
+
+#ifdef _DEBUG
+	if (x >= static_cast<size_t>(s->w) || y >= static_cast<size_t>(s->h))
+	{
+		std::cerr << "!!! [Image::pixel_iterator::value]: " << CText("Wanted pixel out of Image range.") << std::endl;
+		return 0;
+	}
+
+	if (s->format->BytesPerPixel != 2)
+	{
+		std::ostringstream os;
+		os << "Trying to get 16 bit pixel's value of " << s->format->BitsPerPixel << " bit depth image.";
+		throw RuntimeError(os.str());
+	}
+#endif
+
+	// Gets pixel's data of 2 bpp image
+	return *reinterpret_cast<uint16_t *>(current);
+}
+
+uint8_t Image::pixel_iterator::gray2() const
+{
+	SDL_Color col = color2();
 	return static_cast<uint8_t>(0.2126 * col.r + 0.7152 * col.g + 0.0722 * col.b);
 }
 
@@ -305,6 +315,7 @@ SDL_Color Image::pixel_iterator::color() const
 {
 	uint32_t RGB = value();
 
+	// Gets component's data using SDL_Surface schema
 	SDL_Color COLOR = { 0, 0, 0, 0 };
 	if (s->format->palette == nullptr)
 	{
@@ -312,10 +323,22 @@ SDL_Color Image::pixel_iterator::color() const
 		COLOR.g = ((RGB & s->format->Gmask) >> s->format->Gshift) << s->format->Gloss;
 		COLOR.b = ((RGB & s->format->Bmask) >> s->format->Bshift) << s->format->Bloss;
 	}
+	// for palletized surfaces (depth <= 8 bit)
 	else if (RGB < static_cast<uint32_t>(s->format->palette->ncolors))
 		return s->format->palette->colors[RGB];
 
 	return COLOR;
+}
+
+SDL_Color Image::pixel_iterator::color2() const
+{
+	uint32_t RGB = value2();
+
+	return SDL_Color{ 
+		static_cast<uint8_t>(((RGB & s->format->Rmask) >> s->format->Rshift) << s->format->Rloss),
+		static_cast<uint8_t>(((RGB & s->format->Gmask) >> s->format->Gshift) << s->format->Gloss),
+		static_cast<uint8_t>(((RGB & s->format->Bmask) >> s->format->Bshift) << s->format->Bloss)
+	};
 }
 
 void Image::pixel_iterator::value(uint32_t RGB)
@@ -358,15 +381,36 @@ void Image::pixel_iterator::value(uint32_t RGB)
 	}
 }
 
-void Image::pixel_iterator::value(uint8_t R, uint8_t G, uint8_t B)
+void Image::pixel_iterator::value2(uint32_t RGB2) const
+{
+#ifdef _DEBUG
+	if (x >= static_cast<size_t>(s->w) || y >= static_cast<size_t>(s->h))
+	{
+		std::cerr << "!!! [Image::pixel_iterator::value]: " << CText("Setting pixel out of Image range.") << std::endl;
+		return;
+	}
+
+	if (s->format->BytesPerPixel != 2)
+	{
+		std::ostringstream os;
+		os << "Trying to set 16 bit pixel's value to " << s->format->BitsPerPixel << " bit depth image.";
+		throw RuntimeError(os.str());
+	}
+#endif
+
+	// Sets pixel's data of 12 bit (depth) image
+	*reinterpret_cast<uint16_t*>(current) = RGB2;
+}
+
+void Image::pixel_iterator::value2(uint8_t R4, uint8_t G4, uint8_t B4)
 {
 	// Convert to full width 32 bit pixel
-	uint32_t RGB = (R >> s->format->Rloss) << s->format->Rshift
-		| (G >> s->format->Gloss) << s->format->Gshift
-		| (B >> s->format->Bloss) << s->format->Bshift
+	uint32_t RGB = (R4 >> s->format->Rloss) << s->format->Rshift
+		| (G4 >> s->format->Gloss) << s->format->Gshift
+		| (B4 >> s->format->Bloss) << s->format->Bshift
 		| s->format->Amask;
 	
-	value(RGB);
+	value2(RGB);
 }
 
 bool Image::pixel_iterator::operator==(const pixel_iterator & it) const

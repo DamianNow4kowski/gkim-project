@@ -8,6 +8,8 @@
 #include <utility>
 #include <sstream>
 
+//const unsigned int RGB12::supported_depth = 12;
+
 Image RGB12::convert(const Image& img) const
 {
 	// More usefull when don't throw RuntimError
@@ -18,7 +20,7 @@ Image RGB12::convert(const Image& img) const
 	}
 
 	// Simply copy surface if it is already in proper format
-	if (img.depth() == 12u)
+	if (img.depth() == RGB12::supported_depth)
 		return Image(img);
 
 #ifdef _DEBUG
@@ -26,7 +28,7 @@ Image RGB12::convert(const Image& img) const
 #endif
 
 	// Start conversion
-	Image converted(img.width(), img.height(), 12u);
+	Image converted(img.width(), img.height(), RGB12::supported_depth);
 	SDL_Color color;
 	auto conv_end = converted.end();
 	auto pixel_const = img.begin();
@@ -37,7 +39,7 @@ Image RGB12::convert(const Image& img) const
 		color.r = (color.r >> 4) << 4;
 		color.g = (color.g >> 4) << 4;
 		color.b = (color.b >> 4) << 4;
-		pixel.value(color.r, color.g, color.b);
+		pixel.value2(color.r, color.g, color.b);
 	}
 
 	return std::move(converted);
@@ -53,8 +55,8 @@ RGB12 & RGB12::toGrayScale()
 	auto img_end = image.end();
 	for (auto pixel = image.begin(); pixel < img_end; ++pixel)
 	{
-		gray = (pixel.gray() >> 4) << 4;
-		pixel.value(gray, gray, gray);
+		gray = (pixel.gray2() >> 4) << 4;
+		pixel.value2(gray, gray, gray);
 	}
 
 	if (algorithm == Algorithm::BitDensity)
@@ -84,7 +86,7 @@ void RGB12::load444(std::ifstream &f, Image &img)
 
 			if (colorToCode == 3)
 			{
-				pixel_iter.value(pixel[0], pixel[1], pixel[2]);
+				pixel_iter.value2(pixel[0], pixel[1], pixel[2]);
 				++pixel_iter;
 				colorToCode = 0;
 			}
@@ -99,9 +101,9 @@ void RGB12::saveGray(std::ofstream & output, const Image & img) const
 
 	for (auto pixel = img.begin(); pixel < img_end; ++pixel)
 	{
-		block = (pixel.gray() >> 4) << 4;
+		block = (pixel.gray2() >> 4) << 4;
 		++pixel;
-		block |= pixel.gray() >> 4;
+		block |= pixel.gray2() >> 4;
 		output.write(reinterpret_cast<char*>(&block), sizeof(block));
 	}
 }
@@ -117,11 +119,11 @@ void RGB12::loadGray(std::ifstream & input, Image & img)
 	for (auto pixel = img.begin(); pixel < img_end; ++pixel, ++it)
 	{
 		gray = (*it >> 4) << 4;
-		pixel.value(gray, gray, gray);
+		pixel.value2(gray, gray, gray);
 		++pixel;
 
 		gray = *it << 4;
-		pixel.value(gray, gray, gray);
+		pixel.value2(gray, gray, gray);
 	}
 		
 }
@@ -140,7 +142,7 @@ void RGB12::save444(std::ofstream &f, const Image &img) const
 	auto img_end = img.end();
 	for (auto pixel = img.begin(); pixel < img_end; ++pixel)
 	{
-		color = pixel.rgb();
+		color = pixel.rgb2();
 		for (int k = 0; k < 3; ++k)
 		{
 			if (firstHalf)
@@ -224,12 +226,11 @@ Image RGB12::recover(const std::string & filename)
 
 	// Read global header data
 	unsigned int width, height;
-	uint8_t depth;
 	Algorithm alg;
-	std::tie(width, height, depth, alg) = readHeader(f);
+	std::tie(width, height, alg) = readHeader(f);
 
 	// Create new empty Image
-	Image recovered(width, height, depth);
+	Image recovered(width, height, RGB12::supported_depth);
 
 	// Load depending on the alogrithm
 	switch (alg)
@@ -276,7 +277,7 @@ Image RGB12::recover(const std::string & filename)
  *		uint8_t depth (bits per pixel),
  *		Algorithm chosen compression algorithm }
 */
-std::tuple<int, int, uint8_t, RGB12::Algorithm> RGB12::readHeader(std::ifstream &input) const
+std::tuple<unsigned int, unsigned int, RGB12::Algorithm> RGB12::readHeader(std::ifstream &input) const
 {
 #ifdef _DEBUG
 	std::cout << " -> [RGB12::readHeader]: Getting stored informations about this file." << std::endl;
@@ -305,22 +306,19 @@ std::tuple<int, int, uint8_t, RGB12::Algorithm> RGB12::readHeader(std::ifstream 
 
 	// Load actually required things
 	unsigned int width, height;
-	uint8_t depth;
 	Algorithm alg;
 
 	input.read(reinterpret_cast<char *>(&width), sizeof(width));
 	input.read(reinterpret_cast<char *>(&height), sizeof(height));
-	input.read(reinterpret_cast<char *>(&depth), sizeof(depth));
 	input.read(reinterpret_cast<char *>(&alg), sizeof(alg));
 
 #ifdef _DEBUG
 	std::cout << "- Algorithm: " << static_cast<unsigned int>(alg) << std::endl;
 	std::cout << "- Width: " << width << std::endl;
 	std::cout << "- Height: " << height << std::endl;
-	std::cout << "- Depth: " << static_cast<unsigned int>(depth) << std::endl;
 #endif
 
-	return std::make_tuple(width, height, depth, alg);
+	return std::make_tuple(width, height, alg);
 }
 
 void RGB12::writeHeader(std::ofstream &output, const Image &img, Algorithm alg) const
@@ -338,14 +336,11 @@ void RGB12::writeHeader(std::ofstream &output, const Image &img, Algorithm alg) 
 	const unsigned int 
 		width = img.width(), 
 		height = img.height();
-	const uint8_t
-		depth = static_cast<uint8_t>(img.depth());
 
 	output.write(reinterpret_cast<const char *>(&ext_size), sizeof(ext_size));
 	output.write(ext.c_str(), ext_size);
 	output.write(reinterpret_cast<const char *>(&width), sizeof(width));
 	output.write(reinterpret_cast<const char *>(&height), sizeof(height));
-	output.write(reinterpret_cast<const char *>(&depth), sizeof(depth));
 	output.write(reinterpret_cast<const char *>(&alg), sizeof(alg));
 }
 

@@ -22,6 +22,9 @@ public:
 	// Remarks: stil can read images saved by other compatible algorithms
 	Algorithm algorithm;
 
+	// This class has undefined beheviour if "image.depth() != supported_depth"
+	static constexpr unsigned int supported_depth = 12u;
+
 	std::string extension() const override;
 	RGB12(Algorithm = Algorithm::BitDensity);
 	RGB12(const ImageHandler &img, Algorithm alg = Algorithm::BitDensity);
@@ -38,7 +41,7 @@ protected:
 	void store(const std::string &filename, const Image &image) const override;
 	Image recover(const std::string &filename) override;
 
-	std::tuple<int, int, uint8_t, Algorithm> readHeader(std::ifstream &input) const;
+	std::tuple<unsigned int, unsigned int, Algorithm> readHeader(std::ifstream &input) const;
 	void writeHeader(std::ofstream &output, const Image &img, Algorithm alg) const;
 
 private:

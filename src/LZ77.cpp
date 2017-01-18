@@ -33,7 +33,7 @@ void LZ77::encode(std::ofstream &ofile, const Image &image)
 	auto pixel_it = image.begin();
 
 	// Loading first pixel to initialization variables
-	std::array<uint8_t, 3> color = pixel_it.rgb();
+	std::array<uint8_t, 3> color = pixel_it.rgb2();
 	++pixel_it;
 	for (auto &c : color)
 		c >>= 4;
@@ -139,7 +139,7 @@ void LZ77::load_la_buff(std::array<uint8_t, 3> & color, Image::pixel_iterator & 
 		}
 		else
 		{
-			color = current.rgb();
+			color = current.rgb2();
 			++current;
 			for (auto &c : color)
 				c >>= 4;
@@ -220,7 +220,7 @@ void LZ77::decode(std::ifstream &ifile, Image &image)
 		{
 			if (what_color >= 3)
 			{
-				pixel_it.value(color[0], color[1], color[2]);
+				pixel_it.value2(color[0], color[1], color[2]);
 				++pixel_it;
 				what_color = 0;
 			}
