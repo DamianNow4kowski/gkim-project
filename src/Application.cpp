@@ -48,36 +48,48 @@ int main(int argc, char *argv[])
 {
 	InputHandler cli(argc, argv);
 
-	if (cli.isset({ "v", "version" }))
+	if (cli.isset({ "v", "-version" }))
 	{
 		std::cout << "Github: https://github.com/k911/gkim-project" << std::endl
 			<<  CText("Copyright (C) 2017 v1.0.0-RC1", CText::Color::GREEN);
 		return EXIT_SUCCESS;
 	}
 
-	if (cli.isset({ "a" , "authors" }))
+	if (cli.isset({ "a" , "-authors" }))
 	{
 		std::cout << " - marmal95 | https://github.com/marmal95 \n - Trub4dur | https://github.com/Trub4dur \n - k911 | https://github.com/k911 \n - pan-marek | https://github.com/pan-marek";
 
 		return EXIT_SUCCESS;
 	}
 
-	if (cli.isset({ "h", "help" }))
+	if (cli.isset({ "h", "-help" }))
 	{
 		std::cout << "\n Usage:\n" << std::endl
-			<< "\t[-input] {...input file(s)} [optional parameters]\tnormal usage" << std::endl
-			<< "\t-a | -authors\t\t\t\t\t\tshows authors information" << std::endl
-			<< "\t-v | -version\t\t\t\t\t\tshows program version" << std::endl
-			<< "\t-h | -help\t\t\t\t\t\tshow this informations" << std::endl
-			<< "\n Optional parameters:\n" << std::endl
-			<< "\t-output \"filepath\"\toutput file path pattern, can use following variables:\n" << std::endl
-			<< "\t\t\t\t\t" << CText("%input.path%", CText::Color::YELLOW) << "\t[unix] path of file (if not null, ends with '/')" << std::endl
-			<< "\t\t\t\t\t" << CText("%input.name%", CText::Color::YELLOW) << "\tname of input file (without extension)" << std::endl
-			<< "\t\t\t\t\t" << CText("%input.ext%", CText::Color::YELLOW) << "\textension of input file (without dot)" << std::endl
-			<< "\t\t\t\t\t" << CText("%input.id%", CText::Color::YELLOW) << "\tposition in input files set\n" << std::endl
-			<< "\t-s | -show\t\tshows output file" << std::endl
-			<< "\t-g | -gs | -gray\tconverts image to grayscale (even if it is already in grayscale!)" << std::endl
-			<< "\t-huffman | -lz77\tuses choosen algorithm instead of default one (BitDensity)" << std::endl;
+
+			<< "\t[-input] <...files> -output <pattern> [options]\t creates encoded/decoded output from input files" << std::endl
+			<< "\t" << CText("Remarks:", CText::Color::YELLOW) << " String <pattern> is a full path to output files, which can contain these parameters:\n" << std::endl
+
+			<< "\t\t" << CText("%input.path%", CText::Color::GREEN) << "\t[unix] path of file (if not null, ends with '/')" << std::endl
+			<< "\t\t" << CText("%input.name%", CText::Color::GREEN) << "\tname of input file (without extension)" << std::endl
+			<< "\t\t" << CText("%input.ext%", CText::Color::GREEN) << "\textension of input file (without dot)" << std::endl
+			<< "\t\t" << CText("%input.id%", CText::Color::GREEN) << "\tposition in input files set\n" << std::endl
+
+			<< "\t" << "If output generated filename doesn't contain any extension, '.rgb12' is used by default." << std::endl
+			<< "\t" << "If you just want to convert images between '.rgb12' and '.bmp' just change extension in output pattern.\n" << std::endl
+
+			<< "\t[-input] <...files> [(-s | --show)]\t\t Preview image files (.bmp | .rgb12)" << std::endl
+			<< "\t" << CText("Remarks:", CText::Color::YELLOW) << " Can drag and drop image files on application to execute this command.\n" << std::endl
+
+			<< "\t(-a | --authors)\t\t\t\t Informations about authors" << std::endl
+			<< "\t(-v | --version)\t\t\t\t Application version" << std::endl
+			<< "\t(-h | --help)\t\t\t\t\t This message\n" << std::endl
+
+			<< " Options:\n" << std::endl
+
+			<< "\t(-s | --show)\t\t show output file afterwards" << std::endl
+			<< "\t(-gs | --grayscale)\t convert image to grayscale (even if it is already in grayscale!)" << std::endl
+			<< "\t(--huffman | --lz77)\t use different compression algorithm (default = BitDensity)\n" << std::endl;
+			
 
 		return EXIT_SUCCESS;
 	}
@@ -141,9 +153,9 @@ int main(int argc, char *argv[])
 		
 		// Change save algorithm if set
 		RGB12::Algorithm alg = RGB12::Algorithm::BitDensity;
-		if (cli.isset("huffman"))
+		if (cli.isset("-huffman"))
 			alg = RGB12::Algorithm::Huffman;
-		else if (cli.isset("lz77"))
+		else if (cli.isset("-lz77"))
 			alg = RGB12::Algorithm::LZ77;
 
 		// Start processing files
@@ -173,7 +185,7 @@ int main(int argc, char *argv[])
 				input.algorithm = alg;
 
 				// Convert to gray scale if needed
-				if (cli.isset({ "g" , "gs", "gray" }))
+				if (cli.isset({ "gs", "-grayscale" }))
 					input.toGrayScale();
 
 				// Save with chosen algoirthm if any output set
@@ -194,8 +206,9 @@ int main(int argc, char *argv[])
 					std::cout << outputFile << std::endl;
 				}
 
-				// Show the output if wanted
-				if (cli.isset({ "s", "show" }))
+				// Show the output if option "show" is set 
+				// or when loaded only input files without other options
+				if (cli.isset({ "s", "-show" }) || (cli.empty() && !isOutput))
 					input.preview();
 
 				++id;
@@ -205,7 +218,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		std::cout << '[' << CText("Warning", CText::Color::YELLOW) << "]: There was no input provided or it was invaild." << std::endl;
-		std::cout << "If you don't know how to use type -h or -help." << std::endl;
+		std::cout << "If you don't know how to use type -h or --help." << std::endl;
 	}
 
 	// Return sucess
