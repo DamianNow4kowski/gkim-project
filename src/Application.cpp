@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 	if (cli.isset({ "v", "-version" }))
 	{
 		std::cout << "Github: https://github.com/k911/gkim-project" << std::endl
-			<<  CText("Copyright (C) 2017 v1.0.0-RC2", CText::Color::GREEN);
+			<<  CText("Copyright (C) 2017 v1.0.0", CText::Color::GREEN);
 		return EXIT_SUCCESS;
 	}
 
@@ -149,16 +149,16 @@ int main(int argc, char *argv[])
 		std::vector<std::string> outputPatterns = cli.get("output");
 		bool isOutput = !outputPatterns.empty();
 
+#ifdef _WIN32
 		if (isOutput)
 		{
 			for (auto &out : outputPatterns)
 			{
-#ifdef _WIN32
 				normalizePathSeparator(out);
-#endif
 			}
 		}
-		
+#endif
+
 		// Change save algorithm if set
 		RGB12::Algorithm alg = RGB12::Algorithm::BitDensity;
 		if (cli.isset("-huffman"))
