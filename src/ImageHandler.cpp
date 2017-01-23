@@ -20,7 +20,7 @@ void ImageHandler::openStream(const std::string &filename, std::ifstream &input)
 	// @remarks: http://stackoverflow.com/questions/24097580/ifstreamis-open-vs-ifstreamfail
 	if (!input) {
 		std::ostringstream os;
-		os << "Cannot open file in binary load mode [filename = '" << filename << "']";
+		os << "Cannot open file: '" << filename << "' with read access.";
 		throw RuntimeError(os.str());
 	}
 }
@@ -30,7 +30,7 @@ void ImageHandler::openStream(const std::string &filename, std::ofstream &output
 	output.open(filename, std::ios::out | std::ios::binary);
 	if (!output) {
 		std::ostringstream os;
-		os << "Cannot open file in binary save mode [filename = '" << filename << "']";
+		os << "Cannot open file: '" << filename << "' with write access.";
 		throw RuntimeError(os.str());
 	}
 }
@@ -179,7 +179,7 @@ void ImageHandler::save(std::string &filename) const
 	{
 		// Check wheter it is anything to save
 		if (image.empty())
-			throw RuntimeError("Cannot save unintialized Image.");
+			throw RuntimeError("Cannot save unintialized image.");
 
 		// Add extension if there is not set (or not proper)
 		std::string ext = extension();
@@ -214,7 +214,8 @@ void ImageHandler::load(const std::string &filename)
 		if (!verifyExtension(filename, extension()))
 		{
 			std::ostringstream os;
-			os << "Cannot load file due to unproper extension. [Required = " << extension() << ']';
+			os << "Cannot load image: '" << filename << "' due to unproper extension. [Required = '" 
+				<< extension() << "']";
 			throw RuntimeError(os.str());
 		}
 
@@ -224,7 +225,12 @@ void ImageHandler::load(const std::string &filename)
 
 		// Verify if the recovering process has succeed
 		if (recovered.empty())
-			throw RuntimeError("Loading Image has failed.");
+		{
+			std::ostringstream os;
+			os << "Loading image: '" << filename << "' has failed.";
+			throw RuntimeError(os.str());
+		}
+			
 		
 		// Free current object and init recovered one (use move assigment to archieve this)
 		else image = std::move(recovered);

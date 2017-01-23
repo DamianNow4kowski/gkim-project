@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 	if (cli.isset({ "v", "-version" }))
 	{
 		std::cout << "Github: https://github.com/k911/gkim-project" << std::endl
-			<<  CText("Copyright (C) 2017 v1.0.0-RC1", CText::Color::GREEN);
+			<<  CText("Copyright (C) 2017 v1.0.0-RC2", CText::Color::GREEN);
 		return EXIT_SUCCESS;
 	}
 
@@ -99,9 +99,9 @@ int main(int argc, char *argv[])
 
 	// Parse files on input
 	// 0 => full filepath
-	// 0 => path only (can be null, if not ends on '/')
-	// 1 => filename (without extension)
-	// 2 => extension (without dot)
+	// 1 => path only (can be null, if not ends on '/')
+	// 2 => filename (without extension)
+	// 3 => extension (without dot)
 	std::vector<std::tuple<std::string, std::string, std::string, std::string>> parsedFiles;
 	for (auto &f : cli.get("input"))
 	{
@@ -117,7 +117,15 @@ int main(int argc, char *argv[])
 			parsedFiles.push_back(std::make_tuple(f, std::get<1>(res), std::get<2>(res), std::get<3>(res)));
 		}
 
-		else std::cerr << '[' << CText("Unsupported extension") << "]: " << (std::get<3>(res).empty() ? CText("(no extension)", CText::Color::YELLOW) : CText(std::get<3>(res), CText::Color::WHITE)) << std::endl;
+		else
+		{
+			std::cerr << '[' << CText("Input Error") << "]: "
+				<< "File: '" << f << "' has unsupported extension: "
+				<< (std::get<3>(res).empty()
+					? CText("(no extension)", CText::Color::YELLOW)
+					: CText(std::get<3>(res), CText::Color::WHITE))
+				<< std::endl;
+		}
 	}
 
 	

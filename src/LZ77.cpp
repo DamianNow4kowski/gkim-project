@@ -8,7 +8,7 @@
 LZ77::LZ77()
 
 	//size of search buffer
-	:s_buff_size(16), 
+	:s_buff_size(17), 
 
 	// size of lookahead buffer
 	la_buff_size(20)
