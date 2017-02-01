@@ -1,6 +1,6 @@
 This application uses SDL2 library, therefore to be able to compile it from source code you have to include this library properly into your project. On linux it is simple, just install `libsdl2-dev` using package manager.
-On windows (e.g. when using Visual Studio 2015 or QtCreator), you have to compile SDL2 library by yourself from source code to make it work. <br />
-SDL2 download: https://www.libsdl.org/download-2.0.php
+On windows (e.g. when using Visual Studio 2015 or QtCreator), you have to compile SDL2 library by yourself from source code to make it work. <br /> <br />
+SDL2: https://www.libsdl.org/download-2.0.php <br />
 Guide for VS 2015: http://headerphile.com/sdl2/sdl2-part-0-setting-up-visual-studio-for-sdl2/
 
 1. Usage:
@@ -38,12 +38,10 @@ Guide for VS 2015: http://headerphile.com/sdl2/sdl2-part-0-setting-up-visual-stu
 	* /doc - documentation (in polish)
 
 3. Makefile <br />
-Edit makefile to change flags for compilation debug and release versions <br />
+	Edit makefile to change flags for compilation debug and release versions <br />
 
-**Usage**:
-	* `make` 
-	compiles application binary `bin/app`
-	* `make test`
-	fresh compile test application binary `bin/test`
-	* `make clean`
-	removes all files from `bin/` and `build/`
+	*Usage*: <br />
+
+		- `make` compiles application binary `bin/app`
+		- `make test` fresh compile test application binary `bin/test`
+		- `make clean` removes all files from `bin/` and `build/`
