@@ -38,9 +38,7 @@ Guide for VS 2015: http://headerphile.com/sdl2/sdl2-part-0-setting-up-visual-stu
 	* /doc - documentation (in polish)
 
 3. Makefile <br />
-	Edit makefile to change flags for compilation debug and release versions <br />
-
-	*Usage*:
-		- `make` compiles application binary `bin/app`
-		- `make test` fresh compile test application binary `bin/test`
-		- `make clean` removes all files from `bin/` and `build/`
+	Edit makefile to change flags for compilation debug and release versions
+	* `make` compiles application binary `bin/app`
+	* `make test` fresh compile test application binary `bin/test`
+	* `make clean` removes all files from `bin/` and `build/`
