@@ -3,14 +3,11 @@
 
 #include "SDL_Local.h"
 #include <iostream>
-#include <tuple>
+#include <array>
 
 class Image
 {
 private:
-
-	// Deallocates whole previously allocated data
-	void free();
 
 	// Swapper for better class construction
 	void swap(Image &);
@@ -25,13 +22,6 @@ protected:
 
 	/// SDL Utility functions for private purposes 
 	/// (they do NOT modify the object directly - so they are const)
-	/// !!! Thats what you love the most !!!
-	//         V     O    T     E
-	//  A) Leave it here
-	//  B) Move to "namespace SDL_Utils {}"
-	//
-	//  Marcin [   ]    Marek  [   ]
-	//  Konrad [ A ]    Damian [   ]
 
 	/**
 	 * Creates an empty SDL_Surface (RGB) with paramters
@@ -41,7 +31,7 @@ protected:
 	 * @return pointer to newly allocated SDL_Surface structure
 	 * @throws RuntimError when allocation fails
 	 */
-	SDL_Surface *create(int, int, int) const;
+	SDL_Surface *create(unsigned int width, unsigned int height, unsigned int depth) const;
 
 	/**
 	 * Creates a copy of existing SDL_Surface strucutre
@@ -50,79 +40,127 @@ protected:
 	 */
 	SDL_Surface *copy(const SDL_Surface *) const;
 
-	/**
-	 * Gets (8|16|24|32) bits from pixel data
-	 * @param pixel pointer to adress where chosen pixel begins in pixel data
-	 * @param bpp size of pixel in number of bytes
-	 * @return fully qualifed pixel data (32 bit)
-	 */
-	uint32_t getPixel(uint8_t*, uint8_t) const;
-
-	/**
-	 * Gets pixel data from SDL_Surface
-	 * @param pointer to structure with pixel data
-	 * @param x x-axis
-	 * @param y y-axis cordinate of chosen pixel
-	 * @param bool turns on debuging when true
-	 * @return full pixel data (32 bit)
-	 */
-	uint32_t getPixel(const SDL_Surface*, unsigned int, unsigned int, bool = false) const;
-
-	/**
-	 * Gets pixel data from SDL_Surface
-	 * @param pointer to structure with pixel data
-	 * @param x x-axis
-	 * @param y y-axis cordinate of chosen pixel
-	 * @param bool turns on debuging when true
-	 * @return pixel data in SDL_Color structure
-	 */
-	SDL_Color getPixelColor(const SDL_Surface*, unsigned int, unsigned int, bool = false) const;
-
-	/**
-	 * Sets pixel's data to SDL_Surface
-	 * @param pointer to structure with pixel data
-	 * @param x x-axis
-	 * @param y y-axis cordinate of chosen pixel
-	 * @param pixel data (32 bits)
-	 * @param bool turns on debuging when true
-	 */
-	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint32_t, bool = false) const;
-
-	/**
-	 * Sets pixel's color's data to SDL_Surface
-	 * @param pointer to structure with pixel data
-	 * @param x x-axis
-	 * @param y y-axis cordinate of chosen pixel
-	 * @param red component color value (8 bit)
-	 * @param green component color value (8 bit)
-	 * @param blue component color value (8 bit)
-	 * @param bool turns on debuging when true
-	 */
-	void setPixel(SDL_Surface *, unsigned int, unsigned int, uint8_t, uint8_t, uint8_t, bool = false) const;
-
-
-	/**
-	 * Converts RGB color to grey scale component
-	 * @param SDL_Color structure that stores RGB component colors
-	 * @return uint8_t grey scale color made from these RGB components
-	 * Standard:
-	 * @link https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
-	 */
-	uint8_t toGreyScale(const SDL_Color &);
-
 public:
+
+	class pixel_iterator
+	{
+	private:
+		SDL_Surface *s;
+		size_t x, y;
+		uint8_t *current;
+
+	public:
+		pixel_iterator(SDL_Surface *surface);
+		pixel_iterator(SDL_Surface *surface, size_t x, size_t y);
+
+		pixel_iterator(const pixel_iterator& ) = default;
+		pixel_iterator(pixel_iterator &&) = default;
+		pixel_iterator& operator=(const pixel_iterator &) = default;
+		pixel_iterator& operator=(pixel_iterator &&) = default;
+		~pixel_iterator() = default;
+
+		pixel_iterator& operator++(); // pre increment
+		pixel_iterator operator++(int); // post increment
+
+		/**
+		 * Gets current [x, y] coordinates on SDL_Surface
+		 * @return pair<size_t, size_t> first => x, second => y coordinate
+		 */
+		std::pair<size_t, size_t> xy() const;
+
+		/**
+		 * Gets pixel data in one dimensional array format
+		 * where keys: [0] => red component, [1] => green component, [2] => blue component
+		 * @return array<uint8_t, 3>
+		 *
+		 * Remarks: Only for 2 bytes per pixel Image (otherwise undefined behaviour)
+		 */
+		std::array<uint8_t, 3> rgb2() const;
+
+		/**
+		 * Gets pixel's data (32 bits)
+		 * @return uint32_t 
+		 */
+		uint32_t value() const;
+
+		/**
+		 * value() specialization
+		 *
+		 * Remarks: Only for 2 bytes per pixel Image (otherwise undefined behaviour)
+		 */
+		uint32_t value2() const;
+
+		/**
+		 * Gets gray scale color using stanard:
+		 * @link https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems 
+		 * 
+		 * @return uint8_t grey scale color made from RGB components
+		 *
+		 * Remarks: Only for 2 bytes per pixel Image (otherwise undefined behaviour)
+		 */
+		uint8_t gray2() const;
+
+
+		/**
+		 * Gets pixel data in SDL_Color format
+		 * @return SDL_Color
+		 */
+		SDL_Color color() const;
+		
+		/**
+		 * color() specliaziation
+		 *
+		 * Remarks: Only for 2 bytes per pixel Image (otherwise undefined behaviour)
+		 */
+		SDL_Color color2() const;
+
+		/**
+		 * Sets pixel's data to SDL_Surface
+		 * @param pixel data (32 bits)
+		 */
+		void value(uint32_t RGB);
+
+		/**
+		 * value(uint32_t) specialization
+		 *
+		 * Remarks: Only for 2 bytes per pixel Image (otherwise undefined behaviour)
+		 */
+		void value2(uint32_t RGB2) const;
+
+		/**
+		 * Sets pixel's color's data to SDL_Surface (Doesn't work with PALLETIZED SDL_Surface)
+		 * @param red component color value (8 bit)
+		 * @param green component color value (8 bit)
+		 * @param blue component color value (8 bit)
+		 *
+		 * Remarks: Only for 2 bytes per pixel Image (otherwise undefined behaviour)
+		 */
+		void value2(uint8_t R4, uint8_t G4, uint8_t B4);
+		
+		// Operators 
+		bool operator==(const pixel_iterator& it) const;
+		bool operator!=(const pixel_iterator& it) const;
+		bool operator<(const pixel_iterator& it) const;
+
+	};
+
+	pixel_iterator begin() const;
+	pixel_iterator end() const;
 
 	// Default constructor
 	Image();
 
 	// Create empty surface constructor
-	Image(int, int, int);
+	Image(unsigned int width, unsigned int height, unsigned int depth);
 
-	// Attaching surface to this image
-	Image(SDL_Surface *);
+	// SDL_Surface* move constructor
+	// Remarks: given SDL_Surface will be attached in Image,
+	//          but pointer to this surface will be 'nullptr' outside the class
+	//          to prevent its deallocation outside class
+	Image(SDL_Surface *moved_surface);
 
 	// Copying surface
-	Image(const SDL_Surface *);
+	Image(const SDL_Surface *copied_surface);
 
 	// Copy constructor
 	Image(const Image &);
@@ -130,28 +168,13 @@ public:
 	// Move constructor
 	Image(Image &&);
 
-	// Universal (copy and move assigment)
+	// Universal operator (copy and move assigment)
 	Image& operator=(Image);
-
-	// Copy assigment
-	//Image& operator=(const Image &);
-	// Move assigment
-	//Image& operator=(Image &&);
 
 	// Destructor
 	~Image();
 
-	// Public interface functions [safetly modify SDL_Surface]
-	// @throws RuntimeError
-	// TODO: inline some of them
-	void allocate(int, int, int);
-	void toGreyScale();
-	uint32_t getPixel(unsigned int, unsigned int, bool = false) const;
-	SDL_Color getPixelColor(unsigned int, unsigned int, bool = false) const;
-	void setPixel(unsigned int, unsigned int, uint32_t, bool = false);
-	void setPixel(unsigned int, unsigned int, uint8_t, uint8_t, uint8_t, bool = false);
-	void setPixel(unsigned int, unsigned int, const SDL_Color &, bool = false);
-	void printDetails(std::ostream & = std::cout) const;
+	void printDetails(std::ostream &out = std::cout) const;
 
 	/**
 	 * @return pointer to constant SDL_Structure which

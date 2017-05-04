@@ -1,226 +1,226 @@
 #include "RGB12.h"
 #include "LZ77.h"
 #include "Huffman.h"
+#include "CText.h"
+#include "RuntimeError.h"
 
 #include <iostream>
 #include <utility>
-#include <algorithm>
 #include <sstream>
+
+//const unsigned int RGB12::supported_depth = 12;
 
 Image RGB12::convert(const Image& img) const
 {
 	// More usefull when don't throw RuntimError
 	if (img.empty())
 	{
-		std::cerr << "[RGB12]: RuntimeError(\"Cannot convert not initialized Image.\");" << std::endl;
-		return Image();
+#ifdef _DEBUG
+		std::cerr << "!!! [RGB12::convert]: " << CText("Cannot convert not initialized Image.") << std::endl;
+#endif
+		return img;
 	}
 
 	// Simply copy surface if it is already in proper format
-	if (img.depth() == 12)
-		return Image(img);
+	if (img.depth() == RGB12::supported_depth)
+		return img;
 
-	// Real conversion method is here
-	std::cout << "[RGB12]-> Converting Image to RGB444 format." << std::endl;
-	Image converted(img.width(), img.height(), 12);
+#ifdef _DEBUG
+	std::cout << " -> [RGB12::convert]: Converting Image to RGB444 format." << std::endl;
+#endif
+
+	// Start conversion
+	Image converted(img.width(), img.height(), RGB12::supported_depth);
 	SDL_Color color;
+	auto conv_end = converted.end();
+	auto pixel_const = img.begin();
 
-	for (unsigned int y = 0; y < converted.height(); ++y)
+	for (auto pixel = converted.begin(); pixel != conv_end; ++pixel, ++pixel_const)
 	{
-		for (unsigned int x = 0; x < converted.width(); ++x)
-		{
-			color = img.getPixelColor(x, y);
-
-			// Convert each color to have only 4 siginificant bits
-			color.r = (color.r >> 4) << 4;
-			color.g = (color.g >> 4) << 4;
-			color.b = (color.b >> 4) << 4;
-
-			converted.setPixel(x, y, color);
-		}
+		color = pixel_const.color();
+		color.r = (color.r >> 4) << 4;
+		color.g = (color.g >> 4) << 4;
+		color.b = (color.b >> 4) << 4;
+		pixel.value2(color.r, color.g, color.b);
 	}
 
 	return std::move(converted);
 }
 
+RGB12 & RGB12::toGrayScale()
+{
+#ifdef _DEBUG
+	std::cout << " -> [RGB12::toGrayScale]: Converting Image to grey scale." << std::endl;
+#endif // _DEBUG
+
+	uint8_t gray;
+	auto img_end = image.end();
+	for (auto pixel = image.begin(); pixel < img_end; ++pixel)
+	{
+		gray = (pixel.gray2() >> 4) << 4;
+		pixel.value2(gray, gray, gray);
+	}
+
+	if (algorithm == Algorithm::BitDensity)
+		algorithm = Algorithm::GrayScale;
+
+	return *this;
+}
+
 void RGB12::load444(std::ifstream &f, Image &img)
 {
-	std::cout << "[RGB12]-> Run 444 load algorithm." << std::endl;
-	int colorToCode = 0;
-	char usedChar = 0;
-	unsigned int x, y;
-	SDL_Color pixel;
+#ifdef _DEBUG
+	std::cout << " -> [RGB12::load444]: Run BitDensity load algorithm." << std::endl;
+#endif
 
-	x = y = 0;
-	while (f.get(usedChar))
+	std::vector<char> buffer = std::vector<char>(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
+
+	int colorToCode = 0;
+	std::array<uint8_t, 3> pixel;
+	auto pixel_iter = img.begin();
+
+	for (auto i : buffer)
 	{
 		for (int k = 0; k < 2; ++k)
 		{
-			if (k == 0)
-			{
-				//setColorOfPixel(pixel, colorToCode, usedChar); // TODO: try and compare investigate performance
-				setColorOfPixel(pixel, colorToCode, ((usedChar >> 4) << 4));
-			}
-			else
-				setColorOfPixel(pixel, colorToCode, (usedChar << 4));
+			pixel[colorToCode] = k ? (i << 4) : ((i >> 4) << 4);
+			++colorToCode;
 
-			colorToCode++;
 			if (colorToCode == 3)
 			{
-				if (x == img.width())
-				{
-					x = 0;
-					++y;
-				}
-
-				// ----------------------> turns on debug on
-				img.setPixel(x, y, pixel, (y == img.height() / 2));
+				pixel_iter.value2(pixel[0], pixel[1], pixel[2]);
+				++pixel_iter;
 				colorToCode = 0;
-				++x;
 			}
 		}
 	}
 }
 
-void RGB12::saveHuffman(std::ofstream &os, const Image &img) const
+void RGB12::saveGray(std::ofstream & output, const Image & img) const
 {
-	Huffman huffman;
-	huffman.encode(os, img);
+	auto img_end = img.end();
+	uint8_t block;
+
+	for (auto pixel = img.begin(); pixel < img_end; ++pixel)
+	{
+		block = (pixel.gray2() >> 4) << 4;
+		++pixel;
+		block |= pixel.gray2() >> 4;
+		output.write(reinterpret_cast<char*>(&block), sizeof(block));
+	}
 }
 
-void RGB12::loadHuffman(std::ifstream &is, Image &img)
+void RGB12::loadGray(std::ifstream & input, Image & img)
 {
-	Huffman huffman;
-	huffman.decode(is, img);
+	std::vector<char> buffer = std::vector<char>(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+
+	auto it = buffer.begin();
+	auto img_end = img.end();
+
+	uint8_t gray;
+	for (auto pixel = img.begin(); pixel < img_end; ++pixel, ++it)
+	{
+		gray = (*it >> 4) << 4;
+		pixel.value2(gray, gray, gray);
+		++pixel;
+
+		gray = *it << 4;
+		pixel.value2(gray, gray, gray);
+	}
+		
 }
 
 void RGB12::save444(std::ofstream &f, const Image &img) const
 {
-	std::cout << "[RGB12]-> Run 444 save algorithm." << std::endl;
-	bool isSpace, firstHalf;
-	char usedChar;
-	SDL_Color color;
+#ifdef _DEBUG
+	std::cout << " -> [RGB12::save444]: Run BitDensity save algorithm." << std::endl;
+#endif
 
-	isSpace = true;
-	firstHalf = true;
-	usedChar = 0;
+	bool isSpace = true,
+		firstHalf = true;
+	char usedChar = 0;
+	std::array<uint8_t, 3> color;
 
-	for (unsigned int y = 0; y < img.height(); ++y)
+	auto img_end = img.end();
+	for (auto pixel = img.begin(); pixel < img_end; ++pixel)
 	{
-		for (unsigned int x = 0; x < img.width(); ++x)
+		color = pixel.rgb2();
+		for (int k = 0; k < 3; ++k)
 		{
-			for (int k = 0; k < 3; ++k)
+			if (firstHalf)
 			{
-				// ----------------------------> turns on debug on
-				color = img.getPixelColor(x, y, (y == img.height() / 2));
+				usedChar = (color[k] >> 4) << 4;
+				firstHalf = false;
+			}
+			else
+			{
+				usedChar |= color[k] >> 4;
+				firstHalf = true;
+				isSpace = false;
+			}
 
-				if (firstHalf)
-				{
-					usedChar = (getColorOfPixel(color, k) >> 4) << 4;
-					firstHalf = false;
-				}
-				else
-				{
-					usedChar |= getColorOfPixel(color, k) >> 4;
-					firstHalf = true;
-					isSpace = false;
-				}
-
-				if (!isSpace)
-				{
-					// Binary save
-					f.write(&usedChar, sizeof(usedChar));
-					isSpace = true;
-					usedChar = 0;
-				}
+			if (!isSpace)
+			{
+				// Binary save
+				f.write(&usedChar, sizeof(usedChar));
+				isSpace = true;
+				usedChar = 0;
 			}
 		}
 	}
-}
 
-void RGB12::saveLZ77(std::ofstream &of, const Image &img) const
-{
-	LZ77 lz;
-	lz.encode(of, img);
-}
-
-void RGB12::loadLZ77(std::ifstream &ifs, Image &img)
-{
-	LZ77 lz;
-	lz.decode(ifs, img);
-}
-
-uint8_t RGB12::getColorOfPixel(SDL_Color color, int which) const
-{
-	switch (which)
-	{
-	case 0:
-		return color.r;
-	case 1:
-		return color.g;
-	case 2:
-		return color.b;
-	default:
-		return 0;
-	}
-}
-
-void RGB12::setColorOfPixel(SDL_Color &color, int which, uint8_t value) const
-{
-	switch (which)
-	{
-	case 0:
-		color.r = value;
-	case 1:
-		color.g = value;
-	case 2:
-		color.b = value;
-	default:
-		return;
-	}
+	if (isSpace)
+		f.write(&usedChar, sizeof(usedChar));
 }
 
 void RGB12::store(const std::string & filename, const Image & img) const
 {
-	std::cout << "[RGB12]-> STARTED: Storing image process." << std::endl;
+#ifdef _DEBUG
+	std::cout << "\n -> [RG12::store]: Storing Image to file process has just begun." << std::endl;
+#endif
 	std::ofstream f;
 
 	// Load file to save data in binary mode
 	openStream(filename, f);
 
-	// Verify if algorithm exists
-	uint8_t alg = algorithm;
-	if (alg >= implemented)
-	{
-		std::cerr << "[RGB12]: RuntimeError(\"There is no such an algorithm: " << static_cast<unsigned int>(algorithm) << ". Calling default..\");" << std::endl;
-		alg = 0;
-	}
-
 	// Save global header needed to recover Image
-	writeHeader(f, img, alg, true);
+	writeHeader(f, img, algorithm);
 
 	// Save by chosen (or default) algorithm
-	switch (alg)
+	switch (algorithm)
 	{
-	case 0:
+	case Algorithm::BitDensity:
 		save444(f, img);
 		break;
-	case 1:
-		saveHuffman(f, img);
+	case Algorithm::Huffman:
+	{
+		Huffman huffman;
+		huffman.encode(f, img);
 		break;
-	case 2:
-		saveLZ77(f, img);
+	}
+	case Algorithm::LZ77:
+	{
+		LZ77 lz77;
+		lz77.encode(f, img);
+		break;
+	}
+	case Algorithm::GrayScale:
+		saveGray(f, img);
 		break;
 	}
 
 	// Close file
 	f.close();
-	std::cout << "[RGB12]<- COMPLETED: Storing image process." << std::endl;
+#ifdef _DEBUG
+	std::cout << " <- [RGB12::store]: Finished.\n" << std::endl;
+#endif
 }
 
 Image RGB12::recover(const std::string & filename)
 {
-	std::cout << "[RGB12]-> STARTED: Recovering image process." << std::endl;
+#ifdef _DEBUG
+	std::cout << "\n -> [RG12::recover]: Recovering Image from file process has just begun." << std::endl;
+#endif
 	std::ifstream f;
 
 	// Open input file in binary mode
@@ -228,35 +228,47 @@ Image RGB12::recover(const std::string & filename)
 
 	// Read global header data
 	unsigned int width, height;
-	uint8_t depth, alg;
-	std::tie(width, height, depth, alg) = readHeader(f, true);
+	Algorithm alg;
+	std::tie(width, height, alg) = readHeader(f);
 
-	// Create new Image
-	Image recovered(width, height, depth);
+	// Create new empty Image
+	Image recovered(width, height, RGB12::supported_depth);
 
 	// Load depending on the alogrithm
 	switch (alg)
 	{
-	case 0:
+	case Algorithm::BitDensity:
 		load444(f, recovered);
 		break;
-	case 1:
-		loadHuffman(f, recovered);
+	case Algorithm::Huffman:
+	{
+		Huffman huffman;
+		huffman.decode(f, recovered);
 		break;
-	case 2:
-		loadLZ77(f, recovered);
+	}
+	case Algorithm::LZ77:
+	{
+		LZ77 lz77;
+		lz77.decode(f, recovered);
+		break;
+	}
+	case Algorithm::GrayScale:
+		loadGray(f, recovered);
 		break;
 	default:
 		std::ostringstream os;
-		os << "Saved with uknown algorithm: " << static_cast<unsigned int>(alg);
+		os << "Saved with uknown algorithm: [unsigned int] " << static_cast<unsigned int>(alg);
 		throw RuntimeError(os.str());
 	}
 
 	// Close file
 	f.close();
 
+#ifdef _DEBUG
+	std::cout << " <- [RG12::recover]: Finished.\n" << std::endl;
+#endif
+
 	// Return recovered Image
-	std::cout << "[RGB12]<- COMPLETED: Recovering image process." << std::endl;
 	return std::move(recovered);
 }
 
@@ -265,63 +277,60 @@ Image RGB12::recover(const std::string & filename)
  *		unsigned int width,
  *		unsigned int height,
  *		uint8_t depth (bits per pixel),
- *		uint8_t algorithm }
+ *		Algorithm chosen compression algorithm }
 */
-std::tuple<int, int, uint8_t, uint8_t> RGB12::readHeader(std::ifstream &f, bool debug) const
+std::tuple<unsigned int, unsigned int, RGB12::Algorithm> RGB12::readHeader(std::ifstream &input) const
 {
-	std::cout << "[RGB12]-> Reading header." << std::endl;
+#ifdef _DEBUG
+	std::cout << " -> [RGB12::readHeader]: Getting stored informations about this file." << std::endl;
+#endif
 
-	// Read header verifier
+	// Read size of "verifier" string
 	size_t str_size;
-	char *cstr;
-	f.read(reinterpret_cast<char *>(&str_size), sizeof(str_size));
+	input.read(reinterpret_cast<char *>(&str_size), sizeof(str_size));
 	if (str_size >= 1000)
-		throw RuntimeError("Header is possibly invaild.");
+		throw RuntimeError("Header of processed file is possibly invaild.");
 
-	cstr = new char[str_size + 1];
-	f.read(cstr, str_size);
+	// Read cstring "verifier" and convert it to "string"
+	char *cstr = new char[str_size + 1];
+	input.read(cstr, str_size);
 	cstr[str_size] = '\0';
 	std::string ext(cstr);
 	delete[] cstr;
 
-	// Verify header
-	if (debug)
-	{
-		std::cout << "[RGB12]-> Header Details:" << std::endl;
-		std::cout << "- string(" << str_size << "): " << ext << std::endl;
-	}
+#ifdef _DEBUG
+	std::cout << "- string(" << str_size << "): " << ext << std::endl;
+#endif
 
+	// Verify header
 	if(!std::equal(ext.begin(), ext.end(), extension().begin()))
 		throw RuntimeError("Header of processed file is not vaild.");
 
 	// Load actually required things
 	unsigned int width, height;
-	uint8_t depth, alg;
-	f.read(reinterpret_cast<char *>(&width), sizeof(width));
-	f.read(reinterpret_cast<char *>(&height), sizeof(height));
-	f.read(reinterpret_cast<char *>(&depth), sizeof(depth));
-	f.read(reinterpret_cast<char *>(&alg), sizeof(alg));
+	Algorithm alg;
 
-	// Debug
-	if (debug)
-	{
-		std::cout << "- Algorithm: " << static_cast<unsigned int>(alg) << std::endl;
-		std::cout << "- Width: " << width << std::endl;
-		std::cout << "- Height: " << height << std::endl;
-		std::cout << "- Depth: " << static_cast<unsigned int>(depth) << std::endl;
-	}
+	input.read(reinterpret_cast<char *>(&width), sizeof(width));
+	input.read(reinterpret_cast<char *>(&height), sizeof(height));
+	input.read(reinterpret_cast<char *>(&alg), sizeof(alg));
 
-	return std::make_tuple(width, height, depth, alg);
+#ifdef _DEBUG
+	std::cout << "- Algorithm: " << static_cast<unsigned int>(alg) << std::endl;
+	std::cout << "- Width: " << width << std::endl;
+	std::cout << "- Height: " << height << std::endl;
+#endif
+
+	return std::make_tuple(width, height, alg);
 }
 
-void RGB12::writeHeader(std::ofstream &f, const Image &img, uint8_t alg, bool debug) const
+void RGB12::writeHeader(std::ofstream &output, const Image &img, Algorithm alg) const
 {
-	std::cout << "[RGB12]-> Saving header." << std::endl;
-	if (debug)
-	{
-		img.printDetails(std::cout);
-		std::cout << " - Algorithm: " << static_cast<unsigned int>(algorithm) << std::endl;
-	}
+
+#ifdef _DEBUG
+	std::cout << " -> [RGB12::writeHeader]: Save informations about Image to file." << std::endl;
+	img.printDetails(std::cout);
+	std::cout << " - Algorithm: " << static_cast<unsigned int>(alg) << std::endl;
+#endif
 
 	// Saving Image informations
 	std::string ext = extension();
@@ -329,15 +338,12 @@ void RGB12::writeHeader(std::ofstream &f, const Image &img, uint8_t alg, bool de
 	const unsigned int 
 		width = img.width(), 
 		height = img.height();
-	const uint8_t
-		depth = static_cast<uint8_t>(img.depth());
 
-	f.write(reinterpret_cast<const char *>(&ext_size), sizeof(ext_size));
-	f.write(ext.c_str(), ext_size);
-	f.write(reinterpret_cast<const char *>(&width), sizeof(width));
-	f.write(reinterpret_cast<const char *>(&height), sizeof(height));
-	f.write(reinterpret_cast<const char *>(&depth), sizeof(depth));
-	f.write(reinterpret_cast<const char *>(&alg), sizeof(alg));
+	output.write(reinterpret_cast<const char *>(&ext_size), sizeof(ext_size));
+	output.write(ext.c_str(), ext_size);
+	output.write(reinterpret_cast<const char *>(&width), sizeof(width));
+	output.write(reinterpret_cast<const char *>(&height), sizeof(height));
+	output.write(reinterpret_cast<const char *>(&alg), sizeof(alg));
 }
 
 std::string RGB12::extension() const
@@ -345,33 +351,44 @@ std::string RGB12::extension() const
 	return std::string(".rgb12");
 }
 
-RGB12::RGB12(uint8_t alg)
+RGB12::RGB12(Algorithm alg)
 	: algorithm(alg)
 {
+#ifdef _DEBUG
 	std::cout << "[RGB12]: Called default constructor." << std::endl;
+#endif
 }
 
-RGB12::RGB12(const BMP &bmp, uint8_t alg)
-	: ImageHandler(std::move(convert(bmp.image))), algorithm(alg)
+RGB12::RGB12(const ImageHandler &img, Algorithm alg)
+	: ImageHandler(convert(img.image)), algorithm(alg) // affect when Image is protected
 {
-	std::cout << "[RGB12]: Called copy BMP constructor." << std::endl;
+#ifdef _DEBUG
+	std::cout << "[RGB12]: Called convert ImageHandler constructor." << std::endl;
+#endif
 }
 
 RGB12::RGB12(const RGB12 &rgb)
 	: ImageHandler(rgb), algorithm(rgb.algorithm)
 {
+#ifdef _DEBUG
 	std::cout << "[RGB12]: Called copy constructor." << std::endl;
+#endif
 }
 
 RGB12::RGB12(RGB12 &&rgb)
-	:ImageHandler(std::move(rgb)), algorithm(rgb.algorithm)
+	: ImageHandler(std::move(rgb)), algorithm(rgb.algorithm)
 {
+#ifdef _DEBUG
 	std::cout << "[RGB12]: Called move constructor." << std::endl;
+#endif
 }
 
 RGB12 & RGB12::operator=(const RGB12 &rgb)
 {
-	std::cout << "[RGB12]-> Called copy assigment operator." << std::endl;
+#ifdef _DEBUG
+	std::cout << " -> [RGB12::operator=]: Called copy assigment operator." << std::endl;
+#endif
+	
 	ImageHandler::operator=(rgb);
 	algorithm = rgb.algorithm;
 	return *this;
@@ -379,14 +396,10 @@ RGB12 & RGB12::operator=(const RGB12 &rgb)
 
 RGB12 & RGB12::operator=(RGB12 &&rgb)
 {
-	std::cout << "[RGB12]-> Called move assigment operator." << std::endl;
+#ifdef _DEBUG
+	std::cout << " -> [RGB12::operator=]: Called move assigment operator." << std::endl;
+#endif
 	ImageHandler::operator=(std::move(rgb));
 	algorithm = rgb.algorithm;
 	return *this;
-}
-
-
-RGB12::~RGB12()
-{
-	std::cout << "[RGB12]: Called virtual destructor." << std::endl;
 }

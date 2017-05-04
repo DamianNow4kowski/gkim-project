@@ -9,9 +9,6 @@ RuntimeError::RuntimeError(const char *m)
 RuntimeError::RuntimeError(const std::string &m)
     : exception(), msg(m) {}
 
-// @destruct
-RuntimeError::~RuntimeError() {}
-
 // @implement
 const char *RuntimeError::what() const noexcept
 {

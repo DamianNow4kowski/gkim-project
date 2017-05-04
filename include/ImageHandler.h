@@ -15,12 +15,11 @@ private:
 
 	/**
 	 * Verifies extension of file
-	 * @param string with filename 
-	 * @param string containg verified extension WITH dot (!important)
+	 * @param string with full filename with extension LOWERCASE
+	 * @param string containg verified LOWERCASE extension WITH dot (!important)
 	 * @return true if extension matches | false otherwise
 	 */
 	bool verifyExtension(const std::string &, const std::string &) const;
-
 
 protected:
 
@@ -41,6 +40,9 @@ protected:
 	 */
 	void openStream(const std::string &, std::ofstream &) const;
 
+	// Move Image protected constructor (available only for derieved class)
+	ImageHandler(Image &&img);
+
 public:
 
 	// Image Container
@@ -48,12 +50,6 @@ public:
 
 	// Default constructor
 	ImageHandler();
-
-	// Copy SDL_Surface constructor
-	ImageHandler(const SDL_Surface*); // TODO: investigate if needed
-
-	// Copy Image constructor
-	ImageHandler(const Image &); // TODO: investigate if needed
 
 	// Copy constuctor
 	ImageHandler(const ImageHandler &);
@@ -68,12 +64,12 @@ public:
 	ImageHandler & operator=(ImageHandler &&);
 
 	// virtual destructor due to abstraction of this class
-	virtual ~ImageHandler();
+	virtual ~ImageHandler() = default;
 
 	/// Public interface methods
 
 	// Render Image view and show it on the screen 
-	void preview(bool = false);
+	ImageHandler& preview(bool = false);
 
 	// Saving Image to file handler
 	void save(std::string &) const;
@@ -82,6 +78,8 @@ public:
 	// Loading data from file handler to init Image
 	void load(const std::string &);
 	void load(const char*);
+
+	const Image& img() const;
 
 	// @return supported extension to save to/load from
 	virtual std::string extension() const = 0;

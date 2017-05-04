@@ -10,7 +10,6 @@ class RuntimeError : public std::exception
     RuntimeError();
     RuntimeError(const char *);
     RuntimeError(const std::string &);
-    virtual ~RuntimeError();
     virtual const char *what() const noexcept;
 
   private:

@@ -4,7 +4,9 @@
 
 void BMP::store(const std::string & filename, const Image & image) const
 {
-	std::cout << "[BMP]-> Storing Image." << std::endl;
+#ifdef _DEBUG
+	std::cout << " -> [BMP::store]: SDL_SaveBMP()" << std::endl;
+#endif
 	
 	// Remarks: I know it is undefined behaviour but SDL_SaveBMP() requires [not const] SDL_Surface*
 	// even though it only access it in read mode (const-incorrect API)
@@ -13,7 +15,10 @@ void BMP::store(const std::string & filename, const Image & image) const
 
 Image BMP::recover(const std::string & filename)
 {
-	std::cout << "[BMP]-> Recovering Image." << std::endl;
+#ifdef _DEBUG
+	std::cout << " -> [BMP::recover]: SDL_LoadBMP()" << std::endl;
+#endif
+
 	return Image(SDL_LoadBMP(filename.c_str()));
 }
 
@@ -22,39 +27,38 @@ std::string BMP::extension() const
 	return std::string(".bmp");
 }
 
-BMP::BMP()
-{
-	std::cout << "[BMP]: Called default constructor." << std::endl;
-}
-
-BMP::BMP(const BMP &img)
+BMP::BMP(const ImageHandler &img)
 	: ImageHandler(img)
 {
+#ifdef _DEBUG
 	std::cout << "[BMP]: Called copy constructor." << std::endl;
+#endif
 }
 
-BMP::BMP(BMP &&img)
+BMP::BMP(ImageHandler &&img)
 	: ImageHandler(std::move(img))
 {
+#ifdef _DEBUG
 	std::cout << "[BMP]: Called move constructor." << std::endl;
+#endif
 }
 
-BMP & BMP::operator=(const BMP &img)
+BMP & BMP::operator=(const ImageHandler &img)
 {
-	std::cout << "[BMP]: Called copy assigment operator." << std::endl;
+#ifdef _DEBUG
+	std::cout << " -> [BMP::operator=]: Called copy assigment operator." << std::endl;
+#endif
+
 	ImageHandler::operator=(img);
 	return *this;
 }
 
-BMP & BMP::operator=(BMP &&img)
+BMP & BMP::operator=(ImageHandler &&img)
 {
-	std::cout << "[BMP]: Called move assigment operator." << std::endl;
+#ifdef _DEBUG
+	std::cout << " -> [BMP::operator=]: Called move assigment operator." << std::endl;
+#endif
+
 	ImageHandler::operator=(std::move(img));
 	return *this;
-}
-
-
-BMP::~BMP()
-{
-	std::cout << "[BMP]: Called virtual destructor." << std::endl;
 }

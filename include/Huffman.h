@@ -6,7 +6,6 @@
 
 #include <vector>
 #include <fstream>
-#include <iostream>
 
 class Huffman
 {
@@ -26,16 +25,15 @@ private:
 	void printCodes() const;
 
 	// Store/load informations needed from file to use Huffman compression
-	void saveHuffHeader(std::ofstream &ofile);
+	void saveHuffHeader(std::ofstream &ofile) const;
 	void readHuffHeader(std::ifstream &ifile);
 
 	// Save/load data from/to file
-	void saveCodes(std::ofstream &ofile, const Image &);
+	void saveCodes(std::ofstream &ofile, const Image &) const;
 	void readCodes(std::ifstream &ifile, Image &);
 
 public:
 	Huffman();
-	~Huffman();
 
 	// Public interface
 	void encode(std::ofstream &, const Image &);

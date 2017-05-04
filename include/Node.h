@@ -2,7 +2,6 @@
 #define NODE_H
 
 #include <fstream>
-#include "SDL_Local.h"
 
 class Node
 {

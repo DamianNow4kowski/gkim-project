@@ -10,23 +10,21 @@ BitsToFile &BitsToFile::write()
 }
 
 BitsToFile::BitsToFile(std::ofstream& f)
-	: file(f)
-{
-	c = 0;
-	pos = 0;
-}
+	: c(0), pos(0), file(f)
+{}
 
 BitsToFile& BitsToFile::flush()
 {
 	if (pos)
 	{
+		c <<= 8 - pos;
 		write();
 	}
 
 	return *this;
 }
 
-void BitsToFile::to(std::vector<bool>& vec)
+void BitsToFile::to(const std::vector<bool>& vec)
 {
 	for (auto v : vec)
 		to(v);
@@ -35,10 +33,7 @@ void BitsToFile::to(std::vector<bool>& vec)
 BitsToFile& BitsToFile::to(bool f)
 {
 	c <<= 1;
-	if (f)
-		c |= 1;
-	else
-		c |= 0;
+	c |= int(f);
 	pos++;
 	if (pos == 8)
 		write();
@@ -46,38 +41,26 @@ BitsToFile& BitsToFile::to(bool f)
 	return *this;
 }
 
+std::vector<char> BitsFromFile::read(std::ifstream &f) const
+{
+	return std::vector<char>(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
+}
 
 BitsFromFile::BitsFromFile(std::ifstream& f)
-	: file(f)
-{
-	if (!file.good())
-		throw RuntimeError("File is not good");
-	if (file.eof())
-		throw RuntimeError("File is end");
-
-	pos = 8;
-	c = 0;
-}
+	: buffer(read(f)), c(buffer.begin()), pos(0)
+{}
 
 bool BitsFromFile::get()
 {
 	if (pos == 8)
 	{
-		if (!file.eof())
-		{
-			file.read(&c, sizeof(c));
-			pos = 0;
-		}
-		else std::cout << "EOF" << std::endl;
+		pos = 0;
+		++c;
 	}
-	char help = c & 128;
-	help >>= 7;
-	c <<= 1;
-	pos++;
+
+	char bit = (*c & 128) >> 7;
+	*c <<= 1;
+	++pos;
 	
-	// Fixed performance warning
-	if (help)
-		return true;
-	else
-		return false;
+	return (bit) ? true : false;
 }
